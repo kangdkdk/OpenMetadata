@@ -36,6 +36,31 @@
 - 테스트 시작 시 MySQL 컨테이너가 이전 세션 중단 여파로 InnoDB 크래시 상태였음(Tibero 코드와
   무관). `docker/development/docker-volume` 삭제 후 재기동으로 해결.
 
+## 2026-08-03 — v1/v2: UI 포함 전체 빌드 + Sybase/Tibero 화면 검증
+
+이전 검증은 `-m no-ui`(backend-only)로만 진행되어 UI 코드 경로(연결 편집 폼, 서비스 카드,
+Add Service 마법사 등)가 실제로 한 번도 렌더링 검증되지 않았음. UI를 포함해 다시 빌드하고
+Playwright로 실제 브라우저 렌더링까지 확인함.
+
+| 항목 | 명령 | 결과 |
+|---|---|---|
+| UI 프로덕션 빌드 | `npx vite build` (openmetadata-ui/src/main/resources/ui) | ✅ 성공 |
+| 전체 Maven 패키징 (UI 포함) | `mvn -DskipTests clean package -rf :openmetadata-ui` | ✅ BUILD SUCCESS |
+| Docker 재기동 (UI 포함) | `docker/run_local_docker.sh -m ui -d mysql -s true -r false` | ✅ 전 컨테이너 healthy |
+| UI 루트 응답 확인 | `curl -o /dev/null -w '%{http_code}' http://localhost:8585/` | ✅ 200 (기존 500 `Missing required resource: /assets/index.html` 해결) |
+| Sybase/Tibero 서비스+DB+Schema+Table 샘플 데이터 생성 | REST API | ✅ 전 단계 생성 성공 |
+| Playwright로 Tibero 서비스 개요/데이터베이스/스키마/테이블/연결/연결편집 화면 진입 | headless Chromium | ✅ 전 화면 정상 렌더링, `pageerror` 없음 |
+| Playwright로 Add Service 마법사에서 Sybase/Tibero 검색 | headless Chromium | ✅ 둘 다 카드로 정상 노출 |
+
+- **결론**: 사용자가 보고한 "Tibero 화면 진입 시 오류"는 이전 세션이 `-m no-ui`로 기동된
+  상태(UI 정적 자산 자체가 없어 모든 화면이 500)에서 발생한 것으로 확인됨. UI를 포함해
+  재빌드한 이후에는 개요/DB/스키마/테이블/연결/연결편집 화면 모두 오류 없이 정상 동작함.
+- **DB 데이터 유지 이슈**: `docker/run_local_docker.sh`는 `-r`(DB 볼륨 초기화) 옵션의
+  기본값이 `true`라서, `-r`을 명시하지 않고 재기동하면 매번 MySQL 데이터가 삭제됨
+  (`docker/development/docker-volume/` 삭제). 기존 데이터를 유지하려면 반드시
+  `-r false`를 붙여서 실행해야 함. 이 스크립트는 공식 파일이라 기본값은 변경하지 않음 —
+  향후 로컬 재기동 시 `-r false`를 항상 명시할 것.
+
 ## Windows 로컬 환경에서 재현할 때 필요한 사전 준비
 
 이 저장소를 Windows에서 처음 셋업하면 아래 3가지 환경 이슈를 만날 수 있습니다.
