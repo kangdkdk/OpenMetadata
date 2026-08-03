@@ -140,6 +140,13 @@ asked each time:
 Keep all three `KB-CUSTOM-*.md` files terse (file/feature only) — they are a lookup
 index for future upstream-merge conflict checks, not a changelog narrative.
 
+### Before upgrading `vendor/<version>`
+
+Before merging/rebasing onto a newer official release, work through
+`KB-CUSTOM-UPGRADE-CHECK.md` and record the result in its 점검 이력 table. Do not
+proceed with the upgrade if it flags a No-Go (currently: naming collision between our
+custom connector types and an official connector added upstream).
+
 ## Frontend Architecture Patterns
 
 ### React Component Patterns
