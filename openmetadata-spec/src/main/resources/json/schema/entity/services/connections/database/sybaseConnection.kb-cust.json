@@ -1,0 +1,57 @@
+{
+  "$id": "https://open-metadata.org/schema/entity/services/connections/database/sybaseConnection.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SybaseConnection",
+  "description": "Sybase Database Service connection.",
+  "type": "object",
+  "javaType": "org.openmetadata.schema.services.connections.database.SybaseConnection",
+  "definitions": {
+    "sybaseType": {
+      "title": "Service Type",
+      "description": "Sybase database service type",
+      "type": "string",
+      "enum": ["Sybase"],
+      "default": "Sybase"
+    }
+  },
+  "properties": {
+    "type": {
+      "title": "Service Type",
+      "description": "Sybase database service type",
+      "$ref": "#/definitions/sybaseType",
+      "default": "Sybase"
+    },
+    "sourcePythonClass": {
+      "title": "Source Python Class Name",
+      "description": "Source Python Class Name to be instantiated by the ingestion workflow",
+      "type": "string"
+    },
+    "connectionOptions": {
+      "title": "Connection Options",
+      "$ref": "../connectionBasicType.json#/definitions/connectionOptions"
+    },
+    "schemaFilterPattern": {
+      "title": "Default Schema Filter Pattern",
+      "description": "Regex to only include/exclude schemas that match the pattern.",
+      "$ref": "../../../../type/filterPattern.json#/definitions/filterPattern"
+    },
+    "tableFilterPattern": {
+      "title": "Default Table Filter Pattern",
+      "description": "Regex to only include/exclude tables that match the pattern.",
+      "$ref": "../../../../type/filterPattern.json#/definitions/filterPattern"
+    },
+    "databaseFilterPattern": {
+      "title": "Default Database Filter Pattern",
+      "description": "Regex to only include/exclude databases that match the pattern.",
+      "$ref": "../../../../type/filterPattern.json#/definitions/filterPattern"
+    },
+    "supportsMetadataExtraction": {
+      "title": "Supports Metadata Extraction",
+      "$ref": "../connectionBasicType.json#/definitions/supportsMetadataExtraction"
+    }
+  },
+  "additionalProperties": true,
+  "required": [
+    "type"
+  ]
+}

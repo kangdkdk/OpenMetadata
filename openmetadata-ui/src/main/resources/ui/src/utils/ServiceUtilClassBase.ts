@@ -416,6 +416,7 @@ class ServiceUtilClassBase {
 
   private readonly serviceLogoMap = new Map<string, string>([
     [this.DatabaseServiceTypeSmallCase.CustomDatabase, DATABASE_DEFAULT],
+    [this.DatabaseServiceTypeSmallCase.Sybase, DATABASE_DEFAULT],
     [this.DatabaseServiceTypeSmallCase.Mysql, MYSQL],
     [this.DatabaseServiceTypeSmallCase.Redshift, REDSHIFT],
     [this.DatabaseServiceTypeSmallCase.BigQuery, BIGQUERY],

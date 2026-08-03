@@ -1,0 +1,45 @@
+# KB Custom - Build/Test Verification Log
+
+커스텀 변경사항(`KB-CUSTOM-MODIFIED.md`, `KB-CUSTOM-NEW.md`)에 대해 실제로 빌드/테스트를
+돌려본 기록입니다. 새 커스텀 작업을 검증할 때마다 이 파일 하단에 항목을 추가해주세요.
+
+## 2026-08-02 — v1: Sybase 데이터베이스 서비스 커넥터
+
+| 항목 | 명령 | 결과 |
+|---|---|---|
+| 백엔드 스키마 빌드 | `mvn -pl openmetadata-spec -am clean install -DskipTests` | ✅ 성공 |
+| 백엔드 서비스 빌드 | `mvn -pl openmetadata-service -am clean install -DskipTests` | ✅ 성공 |
+| UI 스키마 resolve | `yarn parse-schema` | ✅ 성공 |
+| UI 타입 체크 | `npx tsc --noEmit -p .` | ✅ 우리 파일 에러 0건 (기존 무관 에러 992건은 별개) |
+| UI 유닛 테스트 | `npx jest src/utils/DatabaseServiceUtils.test.tsx` | ✅ 12/12 PASS (Sybase 케이스 포함) |
+| Docker 로컬 기동 (`openmetadata-server`, mysql, elasticsearch) | `docker/run_local_docker.sh -m ui -d mysql` | ✅ 성공, 전부 healthy |
+| DB 초기화 후 Sybase 샘플 데이터 생성 (Service → Database → Schema → Table) | `POST /api/v1/services/databaseServices` 등 | ✅ 전 단계 생성 성공 |
+| 샘플 데이터 영속성 확인 | `GET` 재조회 | ✅ `serviceType: Sybase`, connection config, 컬럼 3개 그대로 저장 확인 |
+| Elasticsearch 검색 색인 확인 | `GET /api/v1/search/query?q=kb_cust_customers` | ✅ 1건 히트, service/serviceType 정상 표시 |
+
+## Windows 로컬 환경에서 재현할 때 필요한 사전 준비
+
+이 저장소를 Windows에서 처음 셋업하면 아래 3가지 환경 이슈를 만날 수 있습니다.
+Sybase 코드와는 무관한, 이 저장소의 Windows 개발 환경 이슈입니다.
+
+1. **`parseSchemas.js` 경로 구분자 버그**: Windows(`\`)와 스크립트 내부 하드코딩된 구분자(`/`)가
+   안 맞아 `yarn parse-schema` 실행 시 `src/jsons/connectionSchemas`가 텅 빈 채로 나옴.
+   확인/재현 시에만 임시 패치 필요 (커밋 대상 아님).
+2. **`antlr4` 명령 충돌**: conda가 설치한 동명의 무관한 `antlr4` 바이너리가 PATH를 선점해
+   `yarn run js-antlr`가 `PWD: unknown option -- D` 에러로 실패함.
+   → `pip install antlr4-tools`로 정식 ANTLR 도구 설치.
+3. **yarn 스크립트가 Windows `cmd.exe`와 안 맞음**: `js-antlr` 스크립트가 bash 전용 문법
+   (`PWD=$(echo $PWD) antlr4 ...`)을 쓰는데 yarn이 Windows에서 기본 `cmd.exe`로 실행해 파싱이
+   깨짐. → 같은 명령을 yarn 대신 bash(Git Bash)로 직접 실행.
+4. **ANTLR 버전 불일치**: antlr4-tools가 기본으로 최신 버전(4.13.1)을 내려받는데, 프로젝트의
+   npm `antlr4` 런타임은 `4.9.2`라 직렬화 포맷이 달라 테스트 실행 시
+   `TypeError: data.split is not a function` 발생.
+   → `antlr4 -v 4.9.2 -Dlanguage=JavaScript -o src/generated/antlr <grammar files>` 로
+   버전을 맞춰 재생성.
+
+```bash
+# UI 디렉터리에서 (openmetadata-ui/src/main/resources/ui)
+pip install antlr4-tools
+antlr4 -v 4.9.2 -Dlanguage=JavaScript -o src/generated/antlr \
+  "$PWD"/../../../../../openmetadata-spec/src/main/antlr4/org/openmetadata/schema/*.g4
+```

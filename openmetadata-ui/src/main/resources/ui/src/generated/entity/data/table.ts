@@ -1362,6 +1362,7 @@ export enum DatabaseServiceType {
     Cockroach = "Cockroach",
     Couchbase = "Couchbase",
     CustomDatabase = "CustomDatabase",
+    Sybase = "Sybase",
     Databricks = "Databricks",
     Datalake = "Datalake",
     Db2 = "Db2",

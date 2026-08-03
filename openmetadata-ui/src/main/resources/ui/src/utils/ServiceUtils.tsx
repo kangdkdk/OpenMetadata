@@ -109,6 +109,7 @@ export const getIngestionName = (
 export const shouldTestConnection = (serviceType: string) => {
   return (
     serviceType !== DatabaseServiceType.CustomDatabase &&
+    serviceType !== DatabaseServiceType.Sybase &&
     serviceType !== MessagingServiceType.CustomMessaging &&
     serviceType !== DashboardServiceType.CustomDashboard &&
     serviceType !== MlModelServiceType.CustomMlModel &&
@@ -182,7 +183,8 @@ export const getOptionalFields = (
           <label className="m-b-0">{t('label.broker-plural') + ':'}</label>
           <span
             className="m-l-xss font-normal text-grey-body"
-            data-testid="brokers">
+            data-testid="brokers"
+          >
             {getBrokers(messagingService.connection?.config)}
           </span>
         </div>
@@ -196,7 +198,8 @@ export const getOptionalFields = (
           <label className="m-b-0">{t('label.url-uppercase') + ':'}</label>
           <span
             className="m-l-xss font-normal text-grey-body"
-            data-testid="dashboard-url">
+            data-testid="dashboard-url"
+          >
             {getDashboardURL(dashboardService.connection?.config)}
           </span>
         </div>
@@ -210,7 +213,8 @@ export const getOptionalFields = (
           <label className="m-b-0">{t('label.url-uppercase') + ':'}</label>
           <span
             className="m-l-xss font-normal text-grey-body"
-            data-testid="pipeline-url">
+            data-testid="pipeline-url"
+          >
             {pipelineService.connection?.config?.hostPort || '--'}
           </span>
         </div>
@@ -226,7 +230,8 @@ export const getOptionalFields = (
             <label className="m-b-0">{t('label.registry')}:</label>
             <span
               className="m-l-xss font-normal text-grey-body"
-              data-testid="pipeline-url">
+              data-testid="pipeline-url"
+            >
               {mlmodel.connection?.config?.registryUri || '--'}
             </span>
           </div>
@@ -234,7 +239,8 @@ export const getOptionalFields = (
             <label className="m-b-0">{t('label.tracking')}:</label>
             <span
               className="m-l-xss font-normal text-grey-body"
-              data-testid="pipeline-url">
+              data-testid="pipeline-url"
+            >
               {mlmodel.connection?.config?.trackingUri || '--'}
             </span>
           </div>

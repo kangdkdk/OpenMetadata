@@ -19,6 +19,7 @@ import customDatabaseConnection from '../jsons/connectionSchemas/connections/dat
 import mysqlConnection from '../jsons/connectionSchemas/connections/database/mysqlConnection.json';
 import postgresConnection from '../jsons/connectionSchemas/connections/database/postgresConnection.json';
 import snowflakeConnection from '../jsons/connectionSchemas/connections/database/snowflakeConnection.json';
+import sybaseConnection from '../jsons/connectionSchemas/connections/database/sybaseConnection.kb-cust.json';
 import {
   ExtraDatabaseServiceDropdownOptions,
   getDatabaseConfig,
@@ -181,6 +182,15 @@ describe('getDatabaseConfig', () => {
     expect(result).toHaveProperty('schema');
     expect(result).toHaveProperty('uiSchema');
     expect(result.schema).toStrictEqual(customDatabaseConnection);
+    expect(result.uiSchema).toEqual(COMMON_UI_SCHEMA);
+  });
+
+  it('should return correct schema and UI schema for Sybase', () => {
+    const result = getDatabaseConfig(DatabaseServiceType.Sybase);
+
+    expect(result).toHaveProperty('schema');
+    expect(result).toHaveProperty('uiSchema');
+    expect(result.schema).toStrictEqual(sybaseConnection);
     expect(result.uiSchema).toEqual(COMMON_UI_SCHEMA);
   });
 
