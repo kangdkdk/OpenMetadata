@@ -10,6 +10,7 @@
 |---|---|---|
 | v1 | `custom/1.12.8-v1-sybase-add` | Sybase 데이터베이스 서비스 커넥터 추가 |
 | v2 | `custom/1.12.8-v2-tibero-add` | Tibero 데이터베이스 서비스 커넥터 추가 |
+| v3 | `custom/1.12.8-v3-logos-add` | Sybase/Tibero 공식 로고 아이콘 추가 |
 
 ## v1 — Sybase 데이터베이스 서비스 커넥터 추가
 
@@ -60,3 +61,10 @@
 | `openmetadata-ui/src/main/resources/ui/src/utils/DatabaseServiceUtils.test.tsx` | Tibero 데이터베이스 서비스 커넥터 - 단위 테스트 |
 | `openmetadata-ui/src/main/resources/ui/src/utils/EntityUtils.interface.ts` | Tibero 데이터베이스 서비스 커넥터 - UI 표시 라벨 |
 | `openmetadata-ui/src/main/resources/ui/src/utils/ServiceUtilClassBase.ts` | Tibero 데이터베이스 서비스 커넥터 - 아이콘 매핑 (기본 DB 아이콘 폴백) |
+
+## v3 — Sybase/Tibero 공식 로고 아이콘 추가
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/src/main/resources/ui/src/constants/Services.constant.ts` | Sybase/Tibero 로고 에셋 import 및 `SYBASE`/`TIBERO` 상수 export |
+| `openmetadata-ui/src/main/resources/ui/src/utils/ServiceUtilClassBase.ts` | Sybase/Tibero 아이콘 매핑을 기본 DB 아이콘 폴백에서 공식 로고로 교체 |

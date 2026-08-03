@@ -87,6 +87,7 @@ import starrocks from '../assets/img/service-icon-starrocks.png';
 import superset from '../assets/img/service-icon-superset.png';
 import synapse from '../assets/img/service-icon-synapse.png';
 import tableau from '../assets/img/service-icon-tableau.png';
+import tibero from '../assets/img/service-icon-tibero.kb-cust.png';
 import timescale from '../assets/img/service-icon-timescale.png';
 import trino from '../assets/img/service-icon-trino.png';
 import unitycatalog from '../assets/img/service-icon-unitycatalog.svg';
@@ -109,6 +110,7 @@ import googleDrive from '../assets/svg/service-icon-google-drive.svg';
 import hex from '../assets/svg/service-icon-hex.svg';
 import mlflow from '../assets/svg/service-icon-mlflow.svg';
 import sftp from '../assets/svg/service-icon-sftp.svg';
+import sybase from '../assets/svg/sybase.kb-cust.svg';
 import teradata from '../assets/svg/teradata.svg';
 import topicDefault from '../assets/svg/topic.svg';
 import { EntityType } from '../enums/entity.enum';
@@ -230,6 +232,8 @@ export const GOOGLE_DRIVE = googleDrive;
 export const SFTP = sftp;
 export const TIMESCALE = timescale;
 export const BURSTIQ = burstiq;
+export const SYBASE = sybase;
+export const TIBERO = tibero;
 export const excludedService = [
   MlModelServiceType.Sklearn,
   MetadataServiceType.MetadataES,

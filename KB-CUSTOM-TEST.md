@@ -61,6 +61,21 @@ Playwright로 실제 브라우저 렌더링까지 확인함.
   `-r false`를 붙여서 실행해야 함. 이 스크립트는 공식 파일이라 기본값은 변경하지 않음 —
   향후 로컬 재기동 시 `-r false`를 항상 명시할 것.
 
+## 2026-08-03 — v3: Sybase/Tibero 공식 로고 아이콘 추가
+
+| 항목 | 명령 | 결과 |
+|---|---|---|
+| 로고 에셋 확보 | dbdb.io에서 Sybase(svg)/Tibero(png) 로고 다운로드 | ✅ 성공 |
+| UI 타입 체크 | `npx tsc --noEmit -p .` | ✅ 관련 파일 에러 0건 |
+| UI 프로덕션 빌드 | `npx vite build` | ✅ 성공 |
+| 전체 Maven 패키징 (UI 포함) | `mvn -DskipTests clean package -rf :openmetadata-ui` | ✅ BUILD SUCCESS |
+| Docker 재기동 (DB 데이터 유지) | `docker/run_local_docker.sh -m ui -d mysql -s true -r false` | ✅ 컨테이너 재생성, 기존 Sybase/Tibero 샘플 데이터 그대로 유지됨 |
+| Playwright로 Add Service 마법사에서 로고 노출 확인 | headless Chromium | ✅ Sybase/Tibero 카드에 공식 로고(기본 DB 아이콘 아님) 표시 확인 |
+| Playwright로 서비스 상세 페이지 아이콘 확인 | headless Chromium | ✅ 서비스명 옆 아이콘이 공식 로고로 표시됨 |
+
+- 로고 출처: [dbdb.io](https://dbdb.io) (Sybase ASE, Tibero 페이지에 게재된 로고 이미지)를 다운로드하여
+  `sybase.kb-cust.svg`, `service-icon-tibero.kb-cust.png`로 저장.
+
 ## Windows 로컬 환경에서 재현할 때 필요한 사전 준비
 
 이 저장소를 Windows에서 처음 셋업하면 아래 3가지 환경 이슈를 만날 수 있습니다.

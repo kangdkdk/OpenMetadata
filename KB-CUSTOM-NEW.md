@@ -9,3 +9,5 @@
 | v1 | `openmetadata-ui/src/main/resources/ui/src/generated/entity/services/connections/database/sybaseConnection.kb-cust.ts` | Sybase 데이터베이스 서비스 커넥터 - 위 스키마의 TypeScript 타입 |
 | v2 | `openmetadata-spec/src/main/resources/json/schema/entity/services/connections/database/tiberoConnection.kb-cust.json` | Tibero 데이터베이스 서비스 커넥터 - 연결 스키마 정의 |
 | v2 | `openmetadata-ui/src/main/resources/ui/src/generated/entity/services/connections/database/tiberoConnection.kb-cust.ts` | Tibero 데이터베이스 서비스 커넥터 - 위 스키마의 TypeScript 타입 |
+| v3 | `openmetadata-ui/src/main/resources/ui/src/assets/svg/sybase.kb-cust.svg` | Sybase 서비스 카드/아이콘용 공식 로고 (출처: dbdb.io) |
+| v3 | `openmetadata-ui/src/main/resources/ui/src/assets/img/service-icon-tibero.kb-cust.png` | Tibero 서비스 카드/아이콘용 공식 로고 (출처: dbdb.io) |
