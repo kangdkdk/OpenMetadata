@@ -66,6 +66,7 @@ import starrocksConnection from '../jsons/connectionSchemas/connections/database
 import sybaseConnection from '../jsons/connectionSchemas/connections/database/sybaseConnection.kb-cust.json';
 import synapseConnection from '../jsons/connectionSchemas/connections/database/synapseConnection.json';
 import teradataConnection from '../jsons/connectionSchemas/connections/database/teradataConnection.json';
+import tiberoConnection from '../jsons/connectionSchemas/connections/database/tiberoConnection.kb-cust.json';
 import timescaleConnection from '../jsons/connectionSchemas/connections/database/timescaleConnection.json';
 import trinoConnection from '../jsons/connectionSchemas/connections/database/trinoConnection.json';
 import unityCatalogConnection from '../jsons/connectionSchemas/connections/database/unityCatalogConnection.json';
@@ -306,6 +307,11 @@ export const getDatabaseConfig = (type: DatabaseServiceType) => {
     }
     case DatabaseServiceType.Teradata: {
       schema = teradataConnection;
+
+      break;
+    }
+    case DatabaseServiceType.Tibero: {
+      schema = tiberoConnection;
 
       break;
     }

@@ -71,7 +71,8 @@
         "Dremio",
         "MicrosoftFabric",
         "BurstIQ",
-        "Informix"
+        "Informix",
+        "Tibero"
       ],
       "javaEnums": [
         {
@@ -244,6 +245,9 @@
         },
         {
           "name": "Informix"
+        },
+        {
+          "name": "Tibero"
         }
       ]
     },
@@ -421,6 +425,9 @@
             },
             {
               "$ref": "./connections/database/informixConnection.json"
+            },
+            {
+              "$ref": "./connections/database/tiberoConnection.kb-cust.json"
             }
           ]
         }

@@ -1381,6 +1381,7 @@ export enum DatabaseServiceType {
     Iceberg = "Iceberg",
     Impala = "Impala",
     Informix = "Informix",
+    Tibero = "Tibero",
     MariaDB = "MariaDB",
     MicrosoftAccess = "MicrosoftAccess",
     MicrosoftFabric = "MicrosoftFabric",

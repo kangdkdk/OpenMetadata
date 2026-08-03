@@ -7719,6 +7719,7 @@ export enum PurpleType {
     Iceberg = "Iceberg",
     Impala = "Impala",
     Informix = "Informix",
+    Tibero = "Tibero",
     Kafka = "Kafka",
     KafkaConnect = "KafkaConnect",
     Kinesis = "Kinesis",

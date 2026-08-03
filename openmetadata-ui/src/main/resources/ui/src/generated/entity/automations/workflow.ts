@@ -5394,6 +5394,7 @@ export enum ConfigType {
     Iceberg = "Iceberg",
     Impala = "Impala",
     Informix = "Informix",
+    Tibero = "Tibero",
     Kafka = "Kafka",
     KafkaConnect = "KafkaConnect",
     Kinesis = "Kinesis",

@@ -460,6 +460,7 @@ class ServiceUtilClassBase {
     [this.DatabaseServiceTypeSmallCase.Greenplum, GREENPLUM],
     [this.DatabaseServiceTypeSmallCase.Iceberg, ICEBERGE],
     [this.DatabaseServiceTypeSmallCase.Teradata, TERADATA],
+    [this.DatabaseServiceTypeSmallCase.Tibero, DATABASE_DEFAULT],
     [this.DatabaseServiceTypeSmallCase.Synapse, SYNAPSE],
     [this.DatabaseServiceTypeSmallCase.BurstIQ, BURSTIQ],
     [this.DatabaseServiceTypeSmallCase.Timescale, TIMESCALE],

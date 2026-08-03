@@ -20,6 +20,7 @@ import mysqlConnection from '../jsons/connectionSchemas/connections/database/mys
 import postgresConnection from '../jsons/connectionSchemas/connections/database/postgresConnection.json';
 import snowflakeConnection from '../jsons/connectionSchemas/connections/database/snowflakeConnection.json';
 import sybaseConnection from '../jsons/connectionSchemas/connections/database/sybaseConnection.kb-cust.json';
+import tiberoConnection from '../jsons/connectionSchemas/connections/database/tiberoConnection.kb-cust.json';
 import {
   ExtraDatabaseServiceDropdownOptions,
   getDatabaseConfig,
@@ -191,6 +192,15 @@ describe('getDatabaseConfig', () => {
     expect(result).toHaveProperty('schema');
     expect(result).toHaveProperty('uiSchema');
     expect(result.schema).toStrictEqual(sybaseConnection);
+    expect(result.uiSchema).toEqual(COMMON_UI_SCHEMA);
+  });
+
+  it('should return correct schema and UI schema for Tibero', () => {
+    const result = getDatabaseConfig(DatabaseServiceType.Tibero);
+
+    expect(result).toHaveProperty('schema');
+    expect(result).toHaveProperty('uiSchema');
+    expect(result.schema).toStrictEqual(tiberoConnection);
     expect(result.uiSchema).toEqual(COMMON_UI_SCHEMA);
   });
 

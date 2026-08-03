@@ -9,6 +9,7 @@
 | 버전 | 브랜치 | 내용 |
 |---|---|---|
 | v1 | `custom/1.12.8-v1-sybase-add` | Sybase 데이터베이스 서비스 커넥터 추가 |
+| v2 | `custom/1.12.8-v2-tibero-add` | Tibero 데이터베이스 서비스 커넥터 추가 |
 
 ## v1 — Sybase 데이터베이스 서비스 커넥터 추가
 
@@ -35,3 +36,27 @@
 | `openmetadata-ui/src/main/resources/ui/src/utils/ServiceUtilClassBase.ts` | Sybase 데이터베이스 서비스 커넥터 - 아이콘 매핑 |
 | `openmetadata-ui/src/main/resources/ui/src/utils/ServiceUtils.tsx` | Sybase 데이터베이스 서비스 커넥터 - Test Connection 제외 처리 |
 | `openmetadata-ui/src/main/resources/ui/package.json` | license-header-fix 스크립트 Windows(cmd.exe) 호환 수정 (커넥터 기능과 무관, 커밋 훅 통과를 위한 사전 정리) |
+
+## v2 — Tibero 데이터베이스 서비스 커넥터 추가
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-spec/src/main/resources/json/schema/entity/services/databaseService.json` | Tibero 데이터베이스 서비스 커넥터 - 서비스 타입 등록 |
+| `openmetadata-ui/src/main/resources/ui/src/generated/api/automations/createWorkflow.ts` | Tibero 데이터베이스 서비스 커넥터 |
+| `openmetadata-ui/src/main/resources/ui/src/generated/api/services/createDatabaseService.ts` | Tibero 데이터베이스 서비스 커넥터 |
+| `openmetadata-ui/src/main/resources/ui/src/generated/api/services/ingestionPipelines/createIngestionPipeline.ts` | Tibero 데이터베이스 서비스 커넥터 |
+| `openmetadata-ui/src/main/resources/ui/src/generated/entity/automations/testServiceConnection.ts` | Tibero 데이터베이스 서비스 커넥터 |
+| `openmetadata-ui/src/main/resources/ui/src/generated/entity/automations/workflow.ts` | Tibero 데이터베이스 서비스 커넥터 |
+| `openmetadata-ui/src/main/resources/ui/src/generated/entity/data/database.ts` | Tibero 데이터베이스 서비스 커넥터 |
+| `openmetadata-ui/src/main/resources/ui/src/generated/entity/data/databaseSchema.ts` | Tibero 데이터베이스 서비스 커넥터 |
+| `openmetadata-ui/src/main/resources/ui/src/generated/entity/data/storedProcedure.ts` | Tibero 데이터베이스 서비스 커넥터 |
+| `openmetadata-ui/src/main/resources/ui/src/generated/entity/data/table.ts` | Tibero 데이터베이스 서비스 커넥터 |
+| `openmetadata-ui/src/main/resources/ui/src/generated/entity/services/connections/serviceConnection.ts` | Tibero 데이터베이스 서비스 커넥터 |
+| `openmetadata-ui/src/main/resources/ui/src/generated/entity/services/databaseService.ts` | Tibero 데이터베이스 서비스 커넥터 |
+| `openmetadata-ui/src/main/resources/ui/src/generated/entity/services/ingestionPipelines/ingestionPipeline.ts` | Tibero 데이터베이스 서비스 커넥터 |
+| `openmetadata-ui/src/main/resources/ui/src/generated/metadataIngestion/testSuitePipeline.ts` | Tibero 데이터베이스 서비스 커넥터 |
+| `openmetadata-ui/src/main/resources/ui/src/generated/metadataIngestion/workflow.ts` | Tibero 데이터베이스 서비스 커넥터 |
+| `openmetadata-ui/src/main/resources/ui/src/utils/DatabaseServiceUtils.tsx` | Tibero 데이터베이스 서비스 커넥터 - 스키마 매핑 |
+| `openmetadata-ui/src/main/resources/ui/src/utils/DatabaseServiceUtils.test.tsx` | Tibero 데이터베이스 서비스 커넥터 - 단위 테스트 |
+| `openmetadata-ui/src/main/resources/ui/src/utils/EntityUtils.interface.ts` | Tibero 데이터베이스 서비스 커넥터 - UI 표시 라벨 |
+| `openmetadata-ui/src/main/resources/ui/src/utils/ServiceUtilClassBase.ts` | Tibero 데이터베이스 서비스 커넥터 - 아이콘 매핑 (기본 DB 아이콘 폴백) |

@@ -116,6 +116,7 @@ export enum FormattedDatabaseServiceType {
   Snowflake = 'Snowflake',
   Synapse = 'Synapse',
   Teradata = 'Teradata',
+  Tibero = 'Tibero',
   Trino = 'Trino',
   UnityCatalog = 'UnityCatalog',
   Vertica = 'Vertica',

@@ -17,6 +17,25 @@
 | 샘플 데이터 영속성 확인 | `GET` 재조회 | ✅ `serviceType: Sybase`, connection config, 컬럼 3개 그대로 저장 확인 |
 | Elasticsearch 검색 색인 확인 | `GET /api/v1/search/query?q=kb_cust_customers` | ✅ 1건 히트, service/serviceType 정상 표시 |
 
+## 2026-08-03 — v2: Tibero 데이터베이스 서비스 커넥터
+
+| 항목 | 명령 | 결과 |
+|---|---|---|
+| 백엔드 스키마 빌드 | `mvn -pl openmetadata-spec -am clean install -DskipTests` | ✅ 성공 (`TiberoConnection.java` 생성 확인) |
+| 백엔드 서비스 빌드 | `mvn -pl openmetadata-service -am clean install -DskipTests` | ✅ 성공 |
+| UI 스키마 resolve | `parseSchemas.js` | ✅ `tiberoConnection.kb-cust.json` 정상 resolve |
+| UI 유닛 테스트 | `npx jest src/utils/DatabaseServiceUtils.test.tsx` | ✅ 13/13 PASS (Tibero 케이스 포함) |
+| Docker 로컬 기동 (backend-only, `openmetadata-server`/mysql/elasticsearch) | `docker/run_local_docker.sh -m no-ui -d mysql -i false` | ✅ 성공, 전부 healthy |
+| 실서버 swagger 스키마에 Tibero 등록 확인 | `GET /swagger.json` | ✅ `DatabaseServiceType` enum에 `Tibero` 포함 |
+| Tibero 샘플 데이터 생성 (Service → Database → Schema → Table) | `POST /api/v1/services/databaseServices` 등 | ✅ 전 단계 생성 성공, `password` 필드 마스킹·`scheme` 기본값(`tibero+pyodbc`) 정상 |
+| 샘플 데이터 영속성 확인 | `GET` 재조회 | ✅ `serviceType: Tibero`, 컬럼 3개 그대로 저장 확인 |
+| Elasticsearch 검색 색인 확인 | `GET /api/v1/search/query?q=kb_cust_orders` | ✅ 1건 히트, service/serviceType 정상 표시 |
+
+- 이번엔 UI 프로덕션 빌드 없이 `-m no-ui`(backend-only) 모드로 검증함 — Sybase 때 겪은
+  Windows ARM64 rollup/node-gyp 이슈를 피하고 API 레벨 검증만으로 충분하다고 판단.
+- 테스트 시작 시 MySQL 컨테이너가 이전 세션 중단 여파로 InnoDB 크래시 상태였음(Tibero 코드와
+  무관). `docker/development/docker-volume` 삭제 후 재기동으로 해결.
+
 ## Windows 로컬 환경에서 재현할 때 필요한 사전 준비
 
 이 저장소를 Windows에서 처음 셋업하면 아래 3가지 환경 이슈를 만날 수 있습니다.
