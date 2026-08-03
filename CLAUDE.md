@@ -106,6 +106,40 @@ yarn parse-schema              # Parse JSON schemas for frontend (connection and
 4. **Ingestion**: Python connectors follow plugin pattern, use `make install_dev_env` for development
 5. **Full Testing**: Use `make run_e2e_tests` before major changes
 
+## KB Custom Change Workflow
+
+This fork tracks customizations on top of the official OpenMetadata codebase using two
+branch types: `vendor/<version>` (pristine official code, no customizations) and
+`custom/<version>-vN-<short-name>-add` (customizations layered on a vendor branch, one
+`vN` per customization added).
+
+Whenever you make a code change in this repo that is a **custom addition/modification**
+(not a plain upstream-style bugfix), follow this workflow automatically without being
+asked each time:
+
+1. **Branch**: If not already on a `custom/*` branch for this purpose, create one off
+   the current `vendor/<version>` branch, named `custom/<version>-vN-<short-name>-add`
+   (increment `N` from the highest existing custom branch for that version).
+2. **Track every file touched**:
+   - Brand-new files → add a row to `KB-CUSTOM-NEW.md` (path + one-line purpose). New
+     files must use a `.kb-cust.` suffix before the extension (e.g. `foo.kb-cust.ts`)
+     so they're visually distinguishable from official files.
+   - Modified existing files → add a row to `KB-CUSTOM-MODIFIED.md` under the matching
+     `## vN — <description>` section (create the version-history row too if this is a
+     new `vN`).
+3. **Build and test before considering the work done**: build the affected module(s)
+   (Maven for backend/spec changes, `tsc`/relevant `jest` suite for frontend changes),
+   and where practical verify end-to-end via the local Docker stack
+   (`docker/run_local_docker.sh`).
+4. **Record results in `KB-CUSTOM-TEST.md`**: append a dated/versioned entry
+   summarizing what was tested and the pass/fail outcome. Never rewrite prior entries.
+5. **Commit**: one commit per customization, message describing only the functional
+   change being added — do not mention branch-naming conventions, doc-tooling
+   housekeeping, or other meta/process details in the commit message.
+
+Keep all three `KB-CUSTOM-*.md` files terse (file/feature only) — they are a lookup
+index for future upstream-merge conflict checks, not a changelog narrative.
+
 ## Frontend Architecture Patterns
 
 ### React Component Patterns
