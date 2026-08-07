@@ -24,6 +24,11 @@ This skill is loaded automatically at session start. It ensures you follow the r
 | Connector review | `/connector-review` |
 | E2E test creation | `/playwright` |
 | Finishing implementation | `/test-enforcement` then `/verification` |
+| Vendor version upgrade | `/kb-upgrade-check <version>` first (rehearsal-only risk report) — real application follows `CLAUDE.md`'s KB Custom Change Workflow by hand |
+| New custom entity (fork-specific, not official) | `/kb-entity-scaffold` (extends `DEVELOPER.md`'s generic checklist with Explore-tree wiring and known pitfalls) then `/kb-verify` |
+| "It's fixed but I still don't see it" / phantom bug reports | `/kb-artifact-freshness` first — rule out a stale deployed bundle/image/migration state before re-reading source |
+| Custom change verification before calling work done | `/kb-verify` (runs `KB-CUSTOM-TEST.md`'s 14-item checklist) |
+| Need demo/sample data in a local deployment | `/kb-seed-sample-data` |
 
 > **Note:** Connector skills (`/connector-standards`, `/connector-building`, `/connector-review`) and `/playwright` are part of the OpenMetadata Skills plugin and ship together with this workflow skill. They are defined in the `skills/` directory alongside this file.
 

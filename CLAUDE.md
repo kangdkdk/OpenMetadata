@@ -114,6 +114,16 @@ mvn verify                     # Run integration tests
 mvn spotless:apply             # Format Java code
 ```
 
+**Scoped rebuilds and `.m2` staleness**: A full reactor build that includes `openmetadata-ui`
+(e.g. `mvn -DskipTests clean package -rf :openmetadata-ui`) must use the `install` goal, not
+just `package`, if you intend to later run a **scoped** rebuild of a different module (e.g.
+`mvn -pl openmetadata-service -am install` followed by `mvn -pl openmetadata-dist install`).
+`package` never publishes the built jar to the local `~/.m2` repository, so a later scoped
+`openmetadata-dist` build will silently fall back to whatever (possibly much older)
+`openmetadata-ui` jar happens to already be in `.m2` — the dist tarball still builds
+successfully, but ships stale frontend code with no error. If unsure whether `openmetadata-ui`
+changed, rebuild it as part of the same reactor run rather than assuming `.m2` is current.
+
 ### Python Ingestion Development
 ```bash
 cd ingestion
@@ -173,6 +183,70 @@ yarn parse-schema              # Parse JSON schemas for frontend (connection and
 3. **Frontend**: Use React/TypeScript with components from `openmetadata-ui-core-components`, test with Jest/Playwright
 4. **Ingestion**: Python connectors follow plugin pattern, use `make install_dev_env` for development
 5. **Full Testing**: Use `make run_e2e_tests` before major changes
+
+## KB Custom Change Workflow
+
+This fork tracks customizations on top of the official OpenMetadata codebase using two
+branch types: `vendor/<version>` (pristine official code, no customizations) and
+`custom/<version>-vN-<short-name>-add` (customizations layered on a vendor branch, one
+`vN` per customization added).
+
+Whenever you make a code change in this repo that is a **custom addition/modification**
+(not a plain upstream-style bugfix), follow this workflow automatically without being
+asked each time:
+
+1. **Branch**: If not already on a `custom/*` branch for this purpose, create one off
+   the current `vendor/<version>` branch, named `custom/<version>-vN-<short-name>-add`
+   (increment `N` from the highest existing custom branch for that version).
+2. **Track every file touched**:
+   - Brand-new files → add a row to `KB-CUSTOM-NEW.md` (path + one-line purpose). New
+     files must use a `-kb-cust` suffix before the extension (e.g. `foo-kb-cust.ts`,
+     `sybaseConnection-kb-cust.json`) so they're visually distinguishable from official
+     files. This suffix form (hyphen, single dot before the extension) was chosen over
+     the earlier `.kb-cust.` convention specifically because `.kb-cust.json` files under
+     `openmetadata-spec/.../connections/**` confused ingestion's
+     `datamodel-code-generator` — it mis-parsed the extra dot as a segment to import,
+     producing invalid Python (`import kb-cust as kb_cust`). Verify this is actually
+     fixed the first time a new connection schema goes through codegen; if the generator
+     still chokes, treat it the same as the Java exception below.
+     **Exception: Java files** — a public class name can't contain a hyphen either (or
+     any punctuation), so `-kb-cust` doesn't work there. Use a punctuation-free CamelCase
+     suffix instead: `FooKbCust.java` (class `FooKbCust`), and rely on `KB-CUSTOM-NEW.md`
+     to flag it as a custom file since the name alone is a weaker visual signal than the
+     hyphenated form.
+   - Modified existing files → add a row to `KB-CUSTOM-MODIFIED.md` under the matching
+     `## vN — <description>` section (create the version-history row too if this is a
+     new `vN`).
+3. **Build and test before considering the work done**: build the affected module(s)
+   (Maven for backend/spec changes, `tsc`/relevant `jest` suite for frontend changes),
+   and where practical verify end-to-end via the local Docker stack
+   (`docker/run_local_docker.sh`). Work through the **표준 검증 체크리스트** at the top
+   of `KB-CUSTOM-TEST.md` (build success, non-200 responses, console errors, search,
+   regressions, ingestion, CRUD, versioning, auth, log scan, locale JSON validity,
+   restart stability, and — critically — that the deployed artifact/bundle actually
+   matches the latest build, not just that the build exited 0). Don't report the work
+   as done if any item fails; keep going until it passes.
+4. **Record results in `KB-CUSTOM-TEST.md`**: append a dated/versioned entry
+   summarizing what was tested and the pass/fail outcome. Never rewrite prior entries.
+5. **Commit**: one commit per customization, message describing only the functional
+   change being added — do not mention branch-naming conventions, doc-tooling
+   housekeeping, or other meta/process details in the commit message.
+6. **Migration files**: if you add or modify a SQL statement in an already-applied
+   migration folder (e.g. `bootstrap/sql/migrations/native/<version>/`), re-run the full
+   migrate step (`execute-migrate-all` / `bootstrap/openmetadata-ops.sh migrate`)
+   immediately, in the same session. Deferring it lets the new statement's checksum go
+   unrecorded, which later surfaces as a confusing "pending migrations" failure on an
+   unrelated, already-applied version.
+
+Keep all three `KB-CUSTOM-*.md` files terse (file/feature only) — they are a lookup
+index for future upstream-merge conflict checks, not a changelog narrative.
+
+### Before upgrading `vendor/<version>`
+
+Before merging/rebasing onto a newer official release, work through
+`KB-CUSTOM-UPGRADE-CHECK.md` and record the result in its 점검 이력 table. Do not
+proceed with the upgrade if it flags a No-Go (currently: naming collision between our
+custom connector types and an official connector added upstream).
 
 ## Frontend Architecture Patterns
 
