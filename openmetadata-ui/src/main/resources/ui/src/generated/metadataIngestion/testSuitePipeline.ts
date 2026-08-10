@@ -303,6 +303,8 @@ export interface ServiceConnection {
  *
  * Tibero Database Connection Config
  *
+ * IBM DB2 UDB (distributed, classic edition) Connection Config
+ *
  * Kafka Connection Config
  *
  * Redpanda Connection Config
@@ -674,6 +676,8 @@ export interface ConfigObject {
      *
      * Host and port of the Tibero service.
      *
+     * Host and port of the DB2 UDB service.
+     *
      * Pub/Sub APIs URL. For local testing with the emulator, use http://localhost:8085.
      *
      * Host and port of the Amundsen Neo4j Connection. This expect a URI format like:
@@ -803,6 +807,8 @@ export interface ConfigObject {
      * Password to connect to Sybase.
      *
      * Password to connect to Tibero.
+     *
+     * Password to connect to DB2 UDB.
      *
      * password to connect to the Amundsen Neo4j Connection.
      *
@@ -941,6 +947,9 @@ export interface ConfigObject {
      *
      * Username to connect to Tibero. This user should have privileges to read all the metadata
      * in Tibero.
+     *
+     * Username to connect to DB2 UDB. This user should have privileges to read all the metadata
+     * in DB2 UDB.
      *
      * username to connect to the Amundsen Neo4j Connection.
      *
@@ -5095,6 +5104,7 @@ export enum ConfigType {
     DatabricksPipeline = "DatabricksPipeline",
     Datalake = "Datalake",
     Db2 = "Db2",
+    Db2UDB = "Db2UDB",
     DeltaLake = "DeltaLake",
     DomoDashboard = "DomoDashboard",
     DomoDatabase = "DomoDatabase",

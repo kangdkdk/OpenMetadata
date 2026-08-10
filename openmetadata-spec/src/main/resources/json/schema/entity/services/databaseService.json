@@ -74,7 +74,8 @@
         "Iomete",
         "QuestDB",
         "Sybase",
-        "Tibero"
+        "Tibero",
+        "Db2UDB"
       ],
       "javaEnums": [
         {
@@ -256,6 +257,9 @@
         },
         {
           "name": "Tibero"
+        },
+        {
+          "name": "Db2UDB"
         }
       ]
     },
@@ -442,6 +446,9 @@
             },
             {
               "$ref": "./connections/database/tiberoConnection-kb-cust.json"
+            },
+            {
+              "$ref": "./connections/database/db2UDBConnection-kb-cust.json"
             }
           ]
         }

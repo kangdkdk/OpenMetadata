@@ -294,6 +294,8 @@ export interface RequestConnection {
  *
  * Tibero Database Connection Config
  *
+ * IBM DB2 UDB (distributed, classic edition) Connection Config
+ *
  * Looker Connection Config
  *
  * Metabase Connection Config
@@ -647,6 +649,8 @@ export interface ConfigObject {
      *
      * Host and port of the Tibero service.
      *
+     * Host and port of the DB2 UDB service.
+     *
      * URL to the Looker instance.
      *
      * Host and Port of the Metabase instance.
@@ -946,6 +950,8 @@ export interface ConfigObject {
      *
      * Password to connect to Tibero.
      *
+     * Password to connect to DB2 UDB.
+     *
      * Password to connect to Metabase. Required for basic authentication.
      *
      * Password to connect to PowerBI report server.
@@ -1080,6 +1086,9 @@ export interface ConfigObject {
      *
      * Username to connect to Tibero. This user should have privileges to read all the metadata
      * in Tibero.
+     *
+     * Username to connect to DB2 UDB. This user should have privileges to read all the metadata
+     * in DB2 UDB.
      *
      * Username to connect to Metabase. Required for basic authentication.
      *
@@ -5034,6 +5043,7 @@ export enum ConfigType {
     DatabricksPipeline = "DatabricksPipeline",
     Datalake = "Datalake",
     Db2 = "Db2",
+    Db2UDB = "Db2UDB",
     DeltaLake = "DeltaLake",
     DomoDashboard = "DomoDashboard",
     DomoDatabase = "DomoDatabase",

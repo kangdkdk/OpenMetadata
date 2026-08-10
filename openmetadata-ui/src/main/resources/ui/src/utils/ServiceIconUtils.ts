@@ -21,6 +21,7 @@ import cockroach from '../assets/img/service-icon-cockroach.webp';
 import couchbase from '../assets/img/service-icon-couchbase.svg';
 import databrick from '../assets/img/service-icon-databrick.webp';
 import datalake from '../assets/img/service-icon-datalake.webp';
+import db2udb from '../assets/img/service-icon-db2udb-kb-cust.png';
 import deltalake from '../assets/img/service-icon-delta-lake.webp';
 import doris from '../assets/img/service-icon-doris.webp';
 import druid from '../assets/img/service-icon-druid.webp';
@@ -160,6 +161,7 @@ const SERVICE_ICON_LOADERS: Record<string, string> = {
   databricks: databrick,
   unitycatalog: unitycatalog,
   db2: ibmdb2,
+  db2udb: db2udb,
   doris: doris,
   starrocks: starrocks,
   druid: druid,

@@ -565,6 +565,7 @@ export enum DatabaseServiceType {
     Databricks = "Databricks",
     Datalake = "Datalake",
     Db2 = "Db2",
+    Db2UDB = "Db2UDB",
     Dbt = "Dbt",
     DeltaLake = "DeltaLake",
     DomoDatabase = "DomoDatabase",

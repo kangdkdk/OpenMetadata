@@ -295,6 +295,8 @@ export interface DatabaseConnection {
  * Sybase Database Connection Config
  *
  * Tibero Database Connection Config
+ *
+ * IBM DB2 UDB (distributed, classic edition) Connection Config
  */
 export interface Connection {
     /**
@@ -397,6 +399,8 @@ export interface Connection {
      * Host and port of the Sybase service.
      *
      * Host and port of the Tibero service.
+     *
+     * Host and port of the DB2 UDB service.
      */
     hostPort?: string;
     /**
@@ -635,6 +639,8 @@ export interface Connection {
      * Password to connect to Sybase.
      *
      * Password to connect to Tibero.
+     *
+     * Password to connect to DB2 UDB.
      */
     password?: string;
     /**
@@ -756,6 +762,9 @@ export interface Connection {
      *
      * Username to connect to Tibero. This user should have privileges to read all the metadata
      * in Tibero.
+     *
+     * Username to connect to DB2 UDB. This user should have privileges to read all the metadata
+     * in DB2 UDB.
      */
     username?: string;
     /**
@@ -2441,6 +2450,7 @@ export enum ConfigType {
     Databricks = "Databricks",
     Datalake = "Datalake",
     Db2 = "Db2",
+    Db2UDB = "Db2UDB",
     DeltaLake = "DeltaLake",
     DomoDatabase = "DomoDatabase",
     Doris = "Doris",
@@ -2592,6 +2602,7 @@ export enum DatabaseServiceType {
     Databricks = "Databricks",
     Datalake = "Datalake",
     Db2 = "Db2",
+    Db2UDB = "Db2UDB",
     Dbt = "Dbt",
     DeltaLake = "DeltaLake",
     DomoDatabase = "DomoDatabase",

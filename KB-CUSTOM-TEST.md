@@ -30,11 +30,23 @@
 
 새 커스텀 작업을 검증할 때마다 아래에 날짜별 항목을 추가하세요 (append-only, 기존 항목 수정 금지).
 
+### 2026-08-10 — v1~v3: Sybase/Tibero/DB2 UDB 데이터베이스 서비스 커넥터
+
+`mvn clean package`, `npx tsc --noEmit`(회귀 없음), Docker 로컬 스택(mysql/es/migrate/server)
+빌드 및 기동, 3개 커넥터 각각 서비스 생성 API 호출 및 검색 인덱싱까지 정상 확인. 인제스천
+Docker 이미지는 기존에 알려진 `apt-get` 실패로 이번 검증 범위에서 제외(무관 이슈).
+
 ## Windows 로컬 환경에서 재현할 때 필요한 사전 준비
 
-이 저장소를 Windows에서 처음 셋업하면 아래 3가지 환경 이슈를 만날 수 있습니다.
-Sybase 코드와는 무관한, 이 저장소의 Windows 개발 환경 이슈입니다.
+이 저장소를 Windows에서 처음 셋업하면 아래 환경 이슈를 만날 수 있습니다.
+커넥터 코드와는 무관한, 이 저장소의 Windows 개발 환경 이슈입니다.
 
+0. **ARM64 Windows에서 UI 빌드 시 32bit Node/네이티브 애드온 문제**: `frontend-maven-plugin`이
+   ARM64 호스트에서 ia32(32bit) Node를 받아와 네이티브 애드온이 전부 실패함. pom.xml의
+   기존 `<skip>true</skip>` 패턴 + 시스템 arm64 Node로 `yarn install --frozen-lockfile` 후
+   `npx vite build`를 수동 실행. `openmetadata-ui-core-components`도 `node_modules`가 오래되면
+   arm64용 `lightningcss`/`rollup`/`@tailwindcss/oxide` 네이티브 패키지가 빠질 수 있어
+   `rm -rf node_modules && yarn install`로 완전히 재설치해야 함.
 1. **`parseSchemas.js` 경로 구분자 버그**: Windows(`\`)와 스크립트 내부 하드코딩된 구분자(`/`)가
    안 맞아 `yarn parse-schema` 실행 시 `src/jsons/connectionSchemas`가 텅 빈 채로 나옴.
    확인/재현 시에만 임시 패치 필요 (커밋 대상 아님).

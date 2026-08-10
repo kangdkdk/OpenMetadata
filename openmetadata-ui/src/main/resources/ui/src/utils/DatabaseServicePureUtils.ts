@@ -27,6 +27,7 @@ import customDatabaseConnection from '../jsons/connectionSchemas/connections/dat
 import databricksConnection from '../jsons/connectionSchemas/connections/database/databricksConnection.json';
 import datalakeConnection from '../jsons/connectionSchemas/connections/database/datalakeConnection.json';
 import db2Connection from '../jsons/connectionSchemas/connections/database/db2Connection.json';
+import db2UDBConnection from '../jsons/connectionSchemas/connections/database/db2UDBConnection-kb-cust.json';
 import deltaLakeConnection from '../jsons/connectionSchemas/connections/database/deltaLakeConnection.json';
 import domoDatabaseConnection from '../jsons/connectionSchemas/connections/database/domoDatabaseConnection.json';
 import dorisConnection from '../jsons/connectionSchemas/connections/database/dorisConnection.json';
@@ -76,6 +77,7 @@ const databaseSchemaMap: Partial<Record<DatabaseServiceType, object>> = {
   [DatabaseServiceType.Databricks]: databricksConnection,
   [DatabaseServiceType.Datalake]: datalakeConnection,
   [DatabaseServiceType.Db2]: db2Connection,
+  [DatabaseServiceType.Db2UDB]: db2UDBConnection,
   [DatabaseServiceType.DeltaLake]: deltaLakeConnection,
   [DatabaseServiceType.Doris]: dorisConnection,
   [DatabaseServiceType.StarRocks]: starrocksConnection,

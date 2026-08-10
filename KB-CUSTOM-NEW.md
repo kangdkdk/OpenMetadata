@@ -21,3 +21,6 @@
 | v2 | `openmetadata-spec/src/main/resources/json/schema/entity/services/connections/database/tiberoConnection-kb-cust.json` | Tibero 커넥터 - 연결 스키마 |
 | v2 | `openmetadata-ui/src/main/resources/ui/src/generated/entity/services/connections/database/tiberoConnection-kb-cust.ts` | 위 스키마의 TypeScript 타입 |
 | v2 | `openmetadata-ui/src/main/resources/ui/src/assets/img/service-icon-tibero-kb-cust.png` | Tibero 정사각형 공식 로고 |
+| v3 | `openmetadata-spec/src/main/resources/json/schema/entity/services/connections/database/db2UDBConnection-kb-cust.json` | DB2 UDB 커넥터 - 연결 스키마 |
+| v3 | `openmetadata-ui/src/main/resources/ui/src/generated/entity/services/connections/database/db2UDBConnection-kb-cust.ts` | 위 스키마의 TypeScript 타입 |
+| v3 | `openmetadata-ui/src/main/resources/ui/src/assets/img/service-icon-db2udb-kb-cust.png` | DB2 UDB 정사각형 공식 로고 |
