@@ -294,6 +294,8 @@ export interface ServiceConnection {
  *
  * Sybase Database Connection Config
  *
+ * Tibero Database Connection Config
+ *
  * Kafka Connection Config
  *
  * Redpanda Connection Config
@@ -663,6 +665,8 @@ export interface ConfigObject {
      *
      * Host and port of the Sybase service.
      *
+     * Host and port of the Tibero service.
+     *
      * Pub/Sub APIs URL. For local testing with the emulator, use http://localhost:8085.
      *
      * Host and port of the Amundsen Neo4j Connection. This expect a URI format like:
@@ -790,6 +794,8 @@ export interface ConfigObject {
      * Password to connect to IOMETE.
      *
      * Password to connect to Sybase.
+     *
+     * Password to connect to Tibero.
      *
      * password to connect to the Amundsen Neo4j Connection.
      *
@@ -925,6 +931,9 @@ export interface ConfigObject {
      *
      * Username to connect to Sybase. This user should have privileges to read all the metadata
      * in Sybase.
+     *
+     * Username to connect to Tibero. This user should have privileges to read all the metadata
+     * in Tibero.
      *
      * username to connect to the Amundsen Neo4j Connection.
      *
@@ -4706,6 +4715,7 @@ export enum ConfigScheme {
     SqlitePysqlite = "sqlite+pysqlite",
     SybasePyodbc = "sybase+pyodbc",
     Teradatasql = "teradatasql",
+    TiberoPyodbc = "tibero+pyodbc",
     Trino = "trino",
     VerticaVerticaPython = "vertica+vertica_python",
 }
@@ -5151,6 +5161,7 @@ export enum PurpleType {
     Tableau = "Tableau",
     Teradata = "Teradata",
     ThoughtSpot = "ThoughtSpot",
+    Tibero = "Tibero",
     Timescale = "Timescale",
     Trino = "Trino",
     UnityCatalog = "UnityCatalog",

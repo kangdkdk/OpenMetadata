@@ -73,7 +73,8 @@
         "Informix",
         "Iomete",
         "QuestDB",
-        "Sybase"
+        "Sybase",
+        "Tibero"
       ],
       "javaEnums": [
         {
@@ -252,6 +253,9 @@
         },
         {
           "name": "Sybase"
+        },
+        {
+          "name": "Tibero"
         }
       ]
     },
@@ -435,6 +439,9 @@
             },
             {
               "$ref": "./connections/database/sybaseConnection-kb-cust.json"
+            },
+            {
+              "$ref": "./connections/database/tiberoConnection-kb-cust.json"
             }
           ]
         }

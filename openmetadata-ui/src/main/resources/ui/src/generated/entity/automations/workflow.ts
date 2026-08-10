@@ -836,6 +836,8 @@ export interface RequestConnection {
  *
  * Sybase Database Connection Config
  *
+ * Tibero Database Connection Config
+ *
  * Looker Connection Config
  *
  * Metabase Connection Config
@@ -1187,6 +1189,8 @@ export interface ConfigObject {
      *
      * Host and port of the Sybase service.
      *
+     * Host and port of the Tibero service.
+     *
      * URL to the Looker instance.
      *
      * Host and Port of the Metabase instance.
@@ -1484,6 +1488,8 @@ export interface ConfigObject {
      *
      * Password to connect to Sybase.
      *
+     * Password to connect to Tibero.
+     *
      * Password to connect to Metabase. Required for basic authentication.
      *
      * Password to connect to PowerBI report server.
@@ -1615,6 +1621,9 @@ export interface ConfigObject {
      *
      * Username to connect to Sybase. This user should have privileges to read all the metadata
      * in Sybase.
+     *
+     * Username to connect to Tibero. This user should have privileges to read all the metadata
+     * in Tibero.
      *
      * Username to connect to Metabase. Required for basic authentication.
      *
@@ -5096,6 +5105,7 @@ export enum ConfigScheme {
     SqlitePysqlite = "sqlite+pysqlite",
     SybasePyodbc = "sybase+pyodbc",
     Teradatasql = "teradatasql",
+    TiberoPyodbc = "tibero+pyodbc",
     Trino = "trino",
     VerticaVerticaPython = "vertica+vertica_python",
 }
@@ -5454,6 +5464,7 @@ export enum ConfigType {
     Tableau = "Tableau",
     Teradata = "Teradata",
     ThoughtSpot = "ThoughtSpot",
+    Tibero = "Tibero",
     Timescale = "Timescale",
     Trino = "Trino",
     UnityCatalog = "UnityCatalog",

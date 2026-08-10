@@ -60,6 +60,7 @@ import starrocksConnection from '../jsons/connectionSchemas/connections/database
 import sybaseConnection from '../jsons/connectionSchemas/connections/database/sybaseConnection-kb-cust.json';
 import synapseConnection from '../jsons/connectionSchemas/connections/database/synapseConnection.json';
 import teradataConnection from '../jsons/connectionSchemas/connections/database/teradataConnection.json';
+import tiberoConnection from '../jsons/connectionSchemas/connections/database/tiberoConnection-kb-cust.json';
 import timescaleConnection from '../jsons/connectionSchemas/connections/database/timescaleConnection.json';
 import trinoConnection from '../jsons/connectionSchemas/connections/database/trinoConnection.json';
 import unityCatalogConnection from '../jsons/connectionSchemas/connections/database/unityCatalogConnection.json';
@@ -97,6 +98,7 @@ const databaseSchemaMap: Partial<Record<DatabaseServiceType, object>> = {
   [DatabaseServiceType.Snowflake]: snowflakeConnection,
   [DatabaseServiceType.SQLite]: sqliteConnection,
   [DatabaseServiceType.Sybase]: sybaseConnection,
+  [DatabaseServiceType.Tibero]: tiberoConnection,
   [DatabaseServiceType.Synapse]: synapseConnection,
   [DatabaseServiceType.Trino]: trinoConnection,
   [DatabaseServiceType.Vertica]: verticaConnection,

@@ -293,6 +293,8 @@ export interface DatabaseConnection {
  * QuestDB Connection Config
  *
  * Sybase Database Connection Config
+ *
+ * Tibero Database Connection Config
  */
 export interface Connection {
     /**
@@ -393,6 +395,8 @@ export interface Connection {
      * Host and port of the QuestDB service (default PostgreSQL wire protocol port is 8812).
      *
      * Host and port of the Sybase service.
+     *
+     * Host and port of the Tibero service.
      */
     hostPort?: string;
     /**
@@ -629,6 +633,8 @@ export interface Connection {
      * Password to connect to IOMETE.
      *
      * Password to connect to Sybase.
+     *
+     * Password to connect to Tibero.
      */
     password?: string;
     /**
@@ -747,6 +753,9 @@ export interface Connection {
      *
      * Username to connect to Sybase. This user should have privileges to read all the metadata
      * in Sybase.
+     *
+     * Username to connect to Tibero. This user should have privileges to read all the metadata
+     * in Tibero.
      */
     username?: string;
     /**
@@ -2386,6 +2395,7 @@ export enum ConfigScheme {
     SqlitePysqlite = "sqlite+pysqlite",
     SybasePyodbc = "sybase+pyodbc",
     Teradatasql = "teradatasql",
+    TiberoPyodbc = "tibero+pyodbc",
     Trino = "trino",
     VerticaVerticaPython = "vertica+vertica_python",
 }
@@ -2471,6 +2481,7 @@ export enum ConfigType {
     Sybase = "Sybase",
     Synapse = "Synapse",
     Teradata = "Teradata",
+    Tibero = "Tibero",
     Timescale = "Timescale",
     Trino = "Trino",
     UnityCatalog = "UnityCatalog",
@@ -2623,6 +2634,7 @@ export enum DatabaseServiceType {
     Sybase = "Sybase",
     Synapse = "Synapse",
     Teradata = "Teradata",
+    Tibero = "Tibero",
     Timescale = "Timescale",
     Trino = "Trino",
     UnityCatalog = "UnityCatalog",

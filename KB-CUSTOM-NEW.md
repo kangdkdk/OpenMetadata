@@ -18,3 +18,6 @@
 | v1 | `openmetadata-spec/src/main/resources/json/schema/entity/services/connections/database/sybaseConnection-kb-cust.json` | Sybase 커넥터 - 연결 스키마 |
 | v1 | `openmetadata-ui/src/main/resources/ui/src/generated/entity/services/connections/database/sybaseConnection-kb-cust.ts` | 위 스키마의 TypeScript 타입 |
 | v1 | `openmetadata-ui/src/main/resources/ui/src/assets/img/service-icon-sybase-kb-cust.png` | Sybase 정사각형 공식 로고 |
+| v2 | `openmetadata-spec/src/main/resources/json/schema/entity/services/connections/database/tiberoConnection-kb-cust.json` | Tibero 커넥터 - 연결 스키마 |
+| v2 | `openmetadata-ui/src/main/resources/ui/src/generated/entity/services/connections/database/tiberoConnection-kb-cust.ts` | 위 스키마의 TypeScript 타입 |
+| v2 | `openmetadata-ui/src/main/resources/ui/src/assets/img/service-icon-tibero-kb-cust.png` | Tibero 정사각형 공식 로고 |

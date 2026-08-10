@@ -1393,6 +1393,7 @@ export enum DatabaseServiceType {
     Sybase = "Sybase",
     Synapse = "Synapse",
     Teradata = "Teradata",
+    Tibero = "Tibero",
     Timescale = "Timescale",
     Trino = "Trino",
     UnityCatalog = "UnityCatalog",
