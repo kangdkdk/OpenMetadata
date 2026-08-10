@@ -1,15 +1,3 @@
-/*
- *  Copyright 2026 Collate.
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *  http://www.apache.org/licenses/LICENSE-2.0
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- */
 /**
  * This schema defines the `Database Service` is a service such as MySQL, BigQuery,
  * Redshift, Postgres, or Snowflake. Alternative terms such as Database Cluster, Database
@@ -303,6 +291,8 @@ export interface DatabaseConnection {
  * IOMETE Connection Config
  *
  * QuestDB Connection Config
+ *
+ * Sybase Database Connection Config
  */
 export interface Connection {
     /**
@@ -401,6 +391,8 @@ export interface Connection {
      * Host and port of the IOMETE service, e.g. dev.iomete.cloud:443
      *
      * Host and port of the QuestDB service (default PostgreSQL wire protocol port is 8812).
+     *
+     * Host and port of the Sybase service.
      */
     hostPort?: string;
     /**
@@ -635,6 +627,8 @@ export interface Connection {
      * Password to connect to Informix.
      *
      * Password to connect to IOMETE.
+     *
+     * Password to connect to Sybase.
      */
     password?: string;
     /**
@@ -750,6 +744,9 @@ export interface Connection {
      * Username to connect to IOMETE.
      *
      * Username to connect to QuestDB.
+     *
+     * Username to connect to Sybase. This user should have privileges to read all the metadata
+     * in Sybase.
      */
     username?: string;
     /**
@@ -796,7 +793,7 @@ export interface Connection {
      *
      * Choose between Dremio Cloud (SaaS) or Dremio Software (self-hosted) authentication.
      */
-    authType?: AuthenticationType | NoConfigAuthenticationTypes;
+    authType?: PersonalAccessToken | AuthType;
     /**
      * Catalog of the data source(Example: hive_metastore). This is optional parameter, if you
      * would like to restrict the metadata reading to a single catalog. When left blank,
@@ -865,7 +862,7 @@ export interface Connection {
      *
      * Available sources to fetch files.
      */
-    configSource?: TaLakeConfigurationSource;
+    configSource?: DeltaLakeConfigurationSource;
     /**
      * Authentication mode to connect to hive.
      */
@@ -1313,8 +1310,6 @@ export enum AuthMechanismEnum {
 }
 
 /**
- * Choose between different authentication types for Databricks.
- *
  * Personal Access Token authentication for Databricks.
  *
  * OAuth2 Machine-to-Machine authentication using Service Principal credentials for
@@ -1323,9 +1318,9 @@ export enum AuthMechanismEnum {
  * Azure Active Directory authentication for Azure Databricks workspaces using Service
  * Principal.
  *
- * Choose Auth Config Type.
- *
  * Common Database Connection Config
+ *
+ * Choose Auth Config Type.
  *
  * IAM Auth Database Connection Config
  *
@@ -1333,11 +1328,7 @@ export enum AuthMechanismEnum {
  *
  * GCP CloudSQL Database Connection Config. Uses the Google Cloud SQL Python Connector.
  *
- * Choose Auth Configuration Type.
- *
  * Configuration for connecting to DataStax Astra DB in the cloud.
- *
- * Choose between Dremio Cloud (SaaS) or Dremio Software (self-hosted) authentication.
  *
  * Authentication configuration for Dremio Cloud using Personal Access Token (PAT). Dremio
  * Cloud is a fully managed SaaS platform.
@@ -1345,7 +1336,7 @@ export enum AuthMechanismEnum {
  * Authentication configuration for self-hosted Dremio Software using username and password.
  * Dremio Software is deployed on-premises or in your own cloud infrastructure.
  */
-export interface AuthenticationType {
+export interface PersonalAccessToken {
     /**
      * Generated Personal Access Token for Databricks workspace authentication. This token is
      * created from User Settings -> Developer -> Access Tokens in your Databricks workspace.
@@ -1605,7 +1596,7 @@ export interface GCPCredentialsConfiguration {
      *
      * Google Cloud Platform ADC ( Application Default Credentials )
      */
-    type?: string;
+    type?: CredentialsType;
     /**
      * Path of the file containing the GCP credentials info
      */
@@ -1623,7 +1614,7 @@ export interface GCPCredentialsConfiguration {
     /**
      * Google Cloud Platform account type.
      */
-    externalType?: string;
+    externalType?: GCPAccountType;
     /**
      * Google Security Token Service subject token type based on the OAuth 2.0 token exchange
      * spec.
@@ -1634,6 +1625,17 @@ export interface GCPCredentialsConfiguration {
      */
     tokenURL?: string;
     [property: string]: any;
+}
+
+export enum GCPAccountType {
+    ExternalAccount = "external_account",
+}
+
+export enum CredentialsType {
+    ExternalAccount = "external_account",
+    GcpADC = "gcp_adc",
+    GcpCredentialPath = "gcp_credential_path",
+    ServiceAccount = "service_account",
 }
 
 /**
@@ -1669,7 +1671,7 @@ export enum CloudRegion {
  *
  * Database Authentication types not requiring config.
  */
-export enum NoConfigAuthenticationTypes {
+export enum AuthType {
     BasicAuth = "BasicAuth",
     OAuth2 = "OAuth2",
     OAuth2Credentials = "OAuth2Credentials",
@@ -1715,13 +1717,9 @@ export enum Authentication {
 }
 
 /**
- * Available sources to fetch the metadata.
- *
  * Deltalake Metastore configuration.
  *
  * DeltaLake Storage Connection Config
- *
- * Available sources to fetch files.
  *
  * Local config source where no extra information needs to be sent.
  *
@@ -1731,7 +1729,7 @@ export enum Authentication {
  *
  * DataLake S3 bucket will ingest metadata of files in bucket
  */
-export interface TaLakeConfigurationSource {
+export interface DeltaLakeConfigurationSource {
     /**
      * pySpark App Name.
      */
@@ -1754,8 +1752,6 @@ export interface TaLakeConfigurationSource {
 }
 
 /**
- * Metastore connection configuration, depending on your metastore type.
- *
  * Available sources to fetch files.
  *
  * DataLake S3 bucket will ingest metadata of files in bucket
@@ -1891,15 +1887,10 @@ export interface Credentials {
 }
 
 /**
- * Choose between local file system path (object) or S3 bucket location (object) for Access
- * database files.
- *
  * Local filesystem path to a single Access database file or a directory containing Access
  * files.
  *
  * S3 Connection.
- *
- * Choose between Database connection or HDB User Store connection.
  *
  * Sap Hana Database SQL Connection Config
  *
@@ -2048,7 +2039,7 @@ export interface HiveMetastoreConnectionDetails {
     /**
      * Choose Auth Config Type.
      */
-    authType?: AuthTypeClass;
+    authType?: AuthConfigurationType;
     /**
      * Custom OpenMetadata Classification name for Postgres policy tags.
      */
@@ -2150,8 +2141,6 @@ export interface HiveMetastoreConnectionDetails {
 }
 
 /**
- * Choose Auth Config Type.
- *
  * Common Database Connection Config
  *
  * IAM Auth Database Connection Config
@@ -2160,7 +2149,7 @@ export interface HiveMetastoreConnectionDetails {
  *
  * GCP CloudSQL Database Connection Config. Uses the Google Cloud SQL Python Connector.
  */
-export interface AuthTypeClass {
+export interface AuthConfigurationType {
     /**
      * Password to connect to source.
      *
@@ -2395,6 +2384,7 @@ export enum ConfigScheme {
     RedshiftPsycopg2 = "redshift+psycopg2",
     Snowflake = "snowflake",
     SqlitePysqlite = "sqlite+pysqlite",
+    SybasePyodbc = "sybase+pyodbc",
     Teradatasql = "teradatasql",
     Trino = "trino",
     VerticaVerticaPython = "vertica+vertica_python",
@@ -2478,6 +2468,7 @@ export enum ConfigType {
     Snowflake = "Snowflake",
     Ssas = "SSAS",
     StarRocks = "StarRocks",
+    Sybase = "Sybase",
     Synapse = "Synapse",
     Teradata = "Teradata",
     Timescale = "Timescale",
@@ -2629,6 +2620,7 @@ export enum DatabaseServiceType {
     Snowflake = "Snowflake",
     Ssas = "SSAS",
     StarRocks = "StarRocks",
+    Sybase = "Sybase",
     Synapse = "Synapse",
     Teradata = "Teradata",
     Timescale = "Timescale",

@@ -15,3 +15,6 @@
 
 | 버전 | 파일 | 기능 |
 |---|---|---|
+| v1 | `openmetadata-spec/src/main/resources/json/schema/entity/services/connections/database/sybaseConnection-kb-cust.json` | Sybase 커넥터 - 연결 스키마 |
+| v1 | `openmetadata-ui/src/main/resources/ui/src/generated/entity/services/connections/database/sybaseConnection-kb-cust.ts` | 위 스키마의 TypeScript 타입 |
+| v1 | `openmetadata-ui/src/main/resources/ui/src/assets/img/service-icon-sybase-kb-cust.png` | Sybase 정사각형 공식 로고 |

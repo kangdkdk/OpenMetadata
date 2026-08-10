@@ -1,15 +1,3 @@
-/*
- *  Copyright 2026 Collate.
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *  http://www.apache.org/licenses/LICENSE-2.0
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- */
 /**
  * Test Service Connection to test user provided configuration is valid or not.
  */
@@ -183,6 +171,8 @@ export interface TestServiceConnectionConnection {
  * IOMETE Connection Config
  *
  * QuestDB Connection Config
+ *
+ * Sybase Database Connection Config
  *
  * Looker Connection Config
  *
@@ -452,7 +442,7 @@ export interface ConfigObject {
      *
      * GCP Credentials for Google Drive API
      */
-    credentials?: PurpleGCPCredentials;
+    credentials?: CredentialsClass;
     /**
      * Regex to only include/exclude databases that matches the pattern.
      *
@@ -532,6 +522,8 @@ export interface ConfigObject {
      * Host and port of the IOMETE service, e.g. dev.iomete.cloud:443
      *
      * Host and port of the QuestDB service (default PostgreSQL wire protocol port is 8812).
+     *
+     * Host and port of the Sybase service.
      *
      * URL to the Looker instance.
      *
@@ -828,6 +820,8 @@ export interface ConfigObject {
      *
      * Password to connect to IOMETE.
      *
+     * Password to connect to Sybase.
+     *
      * Password to connect to Metabase. Required for basic authentication.
      *
      * Password to connect to PowerBI report server.
@@ -957,6 +951,9 @@ export interface ConfigObject {
      *
      * Username to connect to QuestDB.
      *
+     * Username to connect to Sybase. This user should have privileges to read all the metadata
+     * in Sybase.
+     *
      * Username to connect to Metabase. Required for basic authentication.
      *
      * Username to connect to PowerBI report server.
@@ -1032,7 +1029,7 @@ export interface ConfigObject {
      *
      * Authentication method: username/password or SSH private key
      */
-    authType?: AuthenticationType | NoConfigAuthenticationTypes;
+    authType?: PersonalAccessToken | AuthType;
     /**
      * Catalog of the data source(Example: hive_metastore). This is optional parameter, if you
      * would like to restrict the metadata reading to a single catalog. When left blank,
@@ -1053,7 +1050,7 @@ export interface ConfigObject {
      *
      * Connection timeout in seconds.
      */
-    connectionTimeout?: number | number;
+    connectionTimeout?: number;
     /**
      * Databricks compute resources URL.
      */
@@ -1099,7 +1096,7 @@ export interface ConfigObject {
      * Choose between Basic authentication (for self-hosted) or OAuth 2.0 client credentials
      * (for Airbyte Cloud)
      */
-    auth?: Authentication | AuthEnum;
+    auth?: Authentication | AuthenticationMode;
     /**
      * Authentication options to pass to Hive connector. These options are based on SQLAlchemy.
      *
@@ -1150,7 +1147,7 @@ export interface ConfigObject {
      *
      * Choose between mysql and postgres connection for alation database
      */
-    connection?: ConfigConnection;
+    connection?: AccessDatabaseLocationLocalPathOrS3;
     /**
      * Use slow logs to extract lineage.
      */
@@ -1718,13 +1715,13 @@ export interface ConfigObject {
     /**
      * Space types of Qlik Cloud to filter the dashboards ingested into the platform.
      */
-    spaceTypes?: SpaceType[];
+    spaceTypes?: [SpaceType, ...SpaceType[]];
     /**
      * ThoughtSpot authentication configuration
      *
      * Choose between Connected App (OAuth 2.0) or Basic Authentication.
      */
-    authentication?: Authenticationation;
+    authentication?: AuthenticationClass;
     /**
      * Org ID for multi-tenant ThoughtSpot instances. This is applicable for ThoughtSpot Cloud
      * only.
@@ -1809,7 +1806,7 @@ export interface ConfigObject {
     /**
      * security.protocol consumer config property
      */
-    securityProtocol?: KafkaSecurityProtocol;
+    securityProtocol?: SecurityProtocol;
     /**
      * Regex to only fetch topics that matches the pattern.
      */
@@ -1817,7 +1814,7 @@ export interface ConfigObject {
     /**
      * GCP credentials configuration for authenticating with Pub/Sub.
      */
-    gcpConfig?: GcpConfigClass;
+    gcpConfig?: GCPCredentials;
     /**
      * Include dead letter topics in metadata extraction.
      */
@@ -2380,9 +2377,6 @@ export interface FilterPattern {
 }
 
 /**
- * Choose between Basic authentication (for self-hosted) or OAuth 2.0 client credentials
- * (for Airbyte Cloud)
- *
  * Username and password authentication
  *
  * OAuth 2.0 client credentials authentication for Airbyte Cloud
@@ -2409,7 +2403,7 @@ export interface Authentication {
 /**
  * Authentication mode to connect to hive.
  */
-export enum AuthEnum {
+export enum AuthenticationMode {
     Basic = "BASIC",
     Custom = "CUSTOM",
     Gssapi = "GSSAPI",
@@ -2452,8 +2446,6 @@ export enum AuthProvider {
 }
 
 /**
- * Choose between different authentication types for Databricks.
- *
  * Personal Access Token authentication for Databricks.
  *
  * OAuth2 Machine-to-Machine authentication using Service Principal credentials for
@@ -2462,9 +2454,9 @@ export enum AuthProvider {
  * Azure Active Directory authentication for Azure Databricks workspaces using Service
  * Principal.
  *
- * Choose Auth Config Type.
- *
  * Common Database Connection Config
+ *
+ * Choose Auth Config Type.
  *
  * IAM Auth Database Connection Config
  *
@@ -2472,11 +2464,7 @@ export enum AuthProvider {
  *
  * GCP CloudSQL Database Connection Config. Uses the Google Cloud SQL Python Connector.
  *
- * Choose Auth Configuration Type.
- *
  * Configuration for connecting to DataStax Astra DB in the cloud.
- *
- * Choose between Dremio Cloud (SaaS) or Dremio Software (self-hosted) authentication.
  *
  * Authentication configuration for Dremio Cloud using Personal Access Token (PAT). Dremio
  * Cloud is a fully managed SaaS platform.
@@ -2484,22 +2472,13 @@ export enum AuthProvider {
  * Authentication configuration for self-hosted Dremio Software using username and password.
  * Dremio Software is deployed on-premises or in your own cloud infrastructure.
  *
- * Types of methods used to authenticate to the tableau instance
- *
  * Basic Auth Credentials
  *
  * Access Token Auth Credentials
  *
- * Choose Basic Auth (username/password) for on-premise or OAuth 2.0 Client Credentials for
- * SAP S/4HANA Cloud.
- *
  * Username and password credentials for SAP S/4HANA.
  *
  * OAuth 2.0 client credentials for SAP S/4HANA Cloud.
- *
- * ThoughtSpot authentication configuration
- *
- * Types of methods used to authenticate to the alation instance
  *
  * API Access Token Auth Credentials
  *
@@ -2519,13 +2498,11 @@ export enum AuthProvider {
  *
  * Configuration for connecting to Ranger Basic Auth.
  *
- * Authentication method: username/password or SSH private key
- *
  * Username and password authentication for SFTP
  *
  * SSH private key authentication for SFTP
  */
-export interface AuthenticationType {
+export interface PersonalAccessToken {
     /**
      * Generated Personal Access Token for Databricks workspace authentication. This token is
      * created from User Settings -> Developer -> Access Tokens in your Databricks workspace.
@@ -2584,7 +2561,7 @@ export interface AuthenticationType {
     /**
      * GCP credentials to use. If not provided, Application Default Credentials will be used.
      */
-    gcpConfig?: GcpConfigClass;
+    gcpConfig?: GCPCredentials;
     /**
      * JWT to connect to source.
      */
@@ -2639,7 +2616,7 @@ export interface AuthenticationType {
     /**
      * Authentication type identifier.
      */
-    authType?: AuthType;
+    authType?: AuthTypeEnum;
     /**
      * OAuth 2.0 token endpoint URL (e.g. /sap/bc/security/oauth2/token).
      */
@@ -2715,7 +2692,7 @@ export interface AuthenticationType {
 /**
  * Authentication type identifier.
  */
-export enum AuthType {
+export enum AuthTypeEnum {
     Basic = "basic",
     Oauth2 = "oauth2",
 }
@@ -2849,7 +2826,7 @@ export interface DataStaxAstraDBConfiguration {
  *
  * GCP Credentials for Google Drive API
  */
-export interface GcpConfigClass {
+export interface GCPCredentials {
     /**
      * We support two ways of authenticating to GCP i.e via GCP Credentials Values or GCP
      * Credentials Path
@@ -2915,7 +2892,7 @@ export interface GCPCredentialsConfiguration {
      *
      * Google Cloud Platform ADC ( Application Default Credentials )
      */
-    type?: string;
+    type?: CredentialsType;
     /**
      * Path of the file containing the GCP credentials info
      */
@@ -2933,7 +2910,7 @@ export interface GCPCredentialsConfiguration {
     /**
      * Google Cloud Platform account type.
      */
-    externalType?: string;
+    externalType?: GCPAccountType;
     /**
      * Google Security Token Service subject token type based on the OAuth 2.0 token exchange
      * spec.
@@ -2944,6 +2921,17 @@ export interface GCPCredentialsConfiguration {
      */
     tokenURL?: string;
     [property: string]: any;
+}
+
+export enum GCPAccountType {
+    ExternalAccount = "external_account",
+}
+
+export enum CredentialsType {
+    ExternalAccount = "external_account",
+    GcpADC = "gcp_adc",
+    GcpCredentialPath = "gcp_credential_path",
+    ServiceAccount = "service_account",
 }
 
 /**
@@ -2979,26 +2967,20 @@ export enum CloudRegion {
  *
  * Database Authentication types not requiring config.
  */
-export enum NoConfigAuthenticationTypes {
+export enum AuthType {
     BasicAuth = "BasicAuth",
     OAuth2 = "OAuth2",
     OAuth2Credentials = "OAuth2Credentials",
 }
 
 /**
- * ThoughtSpot authentication configuration
- *
- * Types of methods used to authenticate to the alation instance
- *
  * Basic Auth Credentials
  *
  * API Access Token Auth Credentials
  *
- * Choose between Connected App (OAuth 2.0) or Basic Authentication.
- *
  * OAuth 2.0 client credentials authentication for Airbyte Cloud
  */
-export interface Authenticationation {
+export interface AuthenticationClass {
     /**
      * Password to access the service.
      */
@@ -3095,7 +3077,7 @@ export interface BrokerConfiguration {
     /**
      * Kafka security protocol config.
      */
-    securityProtocol?: KafkaSecurityProtocol;
+    securityProtocol?: SecurityProtocol;
     /**
      * Max allowed inactivity time.
      *
@@ -3172,7 +3154,7 @@ export enum SaslMechanismType {
  *
  * security.protocol consumer config property
  */
-export enum KafkaSecurityProtocol {
+export enum SecurityProtocol {
     Plaintext = "PLAINTEXT",
     SSL = "SSL",
     SaslPlaintext = "SASL_PLAINTEXT",
@@ -3253,13 +3235,9 @@ export enum CloudProvider {
 }
 
 /**
- * Available sources to fetch the metadata.
- *
  * Deltalake Metastore configuration.
  *
  * DeltaLake Storage Connection Config
- *
- * Available sources to fetch files.
  *
  * Local config source where no extra information needs to be sent.
  *
@@ -3322,8 +3300,6 @@ export interface DeltaLakeConfigurationSource {
 }
 
 /**
- * Metastore connection configuration, depending on your metastore type.
- *
  * Available sources to fetch files.
  *
  * DataLake S3 bucket will ingest metadata of files in bucket
@@ -3475,21 +3451,14 @@ export interface SecurityConfigClass {
 }
 
 /**
- * Choose between local file system path (object) or S3 bucket location (object) for Access
- * database files.
- *
  * Local filesystem path to a single Access database file or a directory containing Access
  * files.
  *
  * S3 Connection.
  *
- * Choose between Database connection or HDB User Store connection.
- *
  * Sap Hana Database SQL Connection Config
  *
  * Sap Hana Database HDB User Store Connection Config
- *
- * Choose between API or database connection fetch metadata from superset.
  *
  * Superset API Connection Config
  *
@@ -3497,24 +3466,17 @@ export interface SecurityConfigClass {
  *
  * Mysql Database Connection Config
  *
- * Choose between database connection or REST API connection to fetch metadata from
- * Airflow.
- *
  * Airflow REST API Connection Config for connecting via REST API.
  *
  * Lineage Backend Connection Config
  *
  * SQLite Database Connection Config
  *
- * Matillion Auth Configuration
- *
  * Matillion ETL Auth Config.
  *
  * Matillion Data Productivity Cloud Auth Config.
- *
- * Choose between mysql and postgres connection for alation database
  */
-export interface ConfigConnection {
+export interface AccessDatabaseLocationLocalPathOrS3 {
     /**
      * Absolute path to the .accdb or .mdb file, or a directory. Supports ~ expansion (e.g.
      * ~/data/sales.accdb). All .accdb and .mdb files found recursively in a directory will be
@@ -3622,7 +3584,7 @@ export interface ConfigConnection {
     /**
      * Choose Auth Config Type.
      */
-    authType?: AuthTypeClass;
+    authType?: AuthConfigurationType;
     /**
      * Custom OpenMetadata Classification name for Postgres policy tags.
      */
@@ -3760,7 +3722,7 @@ export interface AuthenticationConfiguration {
     /**
      * GCP credentials configuration.
      */
-    credentials?: GcpConfigClass;
+    credentials?: GCPCredentials;
     /**
      * MWAA credentials and environment configuration.
      */
@@ -3782,8 +3744,6 @@ export interface MWAAConfiguration {
 }
 
 /**
- * Choose Auth Config Type.
- *
  * Common Database Connection Config
  *
  * IAM Auth Database Connection Config
@@ -3792,7 +3752,7 @@ export interface MWAAConfiguration {
  *
  * GCP CloudSQL Database Connection Config. Uses the Google Cloud SQL Python Connector.
  */
-export interface AuthTypeClass {
+export interface AuthConfigurationType {
     /**
      * Password to connect to source.
      *
@@ -3808,7 +3768,7 @@ export interface AuthTypeClass {
     /**
      * GCP credentials to use. If not provided, Application Default Credentials will be used.
      */
-    gcpConfig?: GcpConfigClass;
+    gcpConfig?: GCPCredentials;
 }
 
 /**
@@ -4040,7 +4000,7 @@ export enum VerifySSL {
  *
  * Azure Credentials
  */
-export interface PurpleGCPCredentials {
+export interface CredentialsClass {
     /**
      * We support two ways of authenticating to GCP i.e via GCP Credentials Values or GCP
      * Credentials Path
@@ -4289,7 +4249,7 @@ export interface HiveMetastoreConnectionDetails {
     /**
      * Choose Auth Config Type.
      */
-    authType?: AuthTypeClass;
+    authType?: AuthConfigurationType;
     /**
      * Custom OpenMetadata Classification name for Postgres policy tags.
      */
@@ -4519,7 +4479,7 @@ export interface S3Connection {
     /**
      * Service Type
      */
-    type?: S3ConnectionType;
+    type?: S3Type;
 }
 
 /**
@@ -4527,7 +4487,7 @@ export interface S3Connection {
  *
  * S3 service type
  */
-export enum S3ConnectionType {
+export enum S3Type {
     S3 = "S3",
 }
 
@@ -4635,6 +4595,7 @@ export enum ConfigScheme {
     RedshiftPsycopg2 = "redshift+psycopg2",
     Snowflake = "snowflake",
     SqlitePysqlite = "sqlite+pysqlite",
+    SybasePyodbc = "sybase+pyodbc",
     Teradatasql = "teradatasql",
     Trino = "trino",
     VerticaVerticaPython = "vertica+vertica_python",
@@ -5034,6 +4995,7 @@ export enum ConfigType {
     StarRocks = "StarRocks",
     Stitch = "Stitch",
     Superset = "Superset",
+    Sybase = "Sybase",
     Synapse = "Synapse",
     Tableau = "Tableau",
     Teradata = "Teradata",

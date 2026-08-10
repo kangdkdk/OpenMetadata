@@ -51,6 +51,7 @@ import snowflake from '../assets/img/service-icon-snowflakes.webp';
 import mysql from '../assets/img/service-icon-sql.webp';
 import sqlite from '../assets/img/service-icon-sqlite.webp';
 import starrocks from '../assets/img/service-icon-starrocks.webp';
+import sybase from '../assets/img/service-icon-sybase-kb-cust.png';
 import timescale from '../assets/img/service-icon-timescale.webp';
 import trino from '../assets/img/service-icon-trino.webp';
 import unitycatalog from '../assets/img/service-icon-unitycatalog.svg';
@@ -183,6 +184,7 @@ const SERVICE_ICON_LOADERS: Record<string, string> = {
   questdb: questdb,
   domodatabase: domo,
   customdatabase: databasedefault,
+  sybase: sybase,
 
   // Messaging services
   kafka: kafka,
