@@ -21,6 +21,7 @@
 | v7 | `custom/1.13.3-v2-instance-code-report-project-add` | InstanceCode 코드그룹 표 뷰 + ReportProject 연도별 그룹 뷰 추가 (참고 구현 이식) |
 | v1 | `custom/1.13.3-v2-instance-code-report-project-add` | 테이블 Schema 탭 컬럼 목록에 16개 메타데이터 필드 추가 (Custom Properties 기반) |
 | v2 | `custom/1.13.3-v2-instance-code-report-project-add` | 신규 12개 컬럼을 "컬럼 관리" 드롭다운 뒤에 숨기지 않고 기본 노출로 변경 |
+| v3 | `custom/1.13.3-v2-instance-code-report-project-add` | 16개 필드를 사용자가 요청한 정확한 순서로 재배열, 라벨을 요청 단어에 맞게 수정 |
 
 ## v1 — Sybase 데이터베이스 서비스 커넥터 추가
 
@@ -249,3 +250,25 @@ v1에서 신규 12개 컬럼(순서/PK여부 + 커스텀 속성 10개)을 기존
 | 파일 | 기능 |
 |---|---|
 | `openmetadata-ui/.../constants/TableKeys.constants.ts` | `DEFAULT_SCHEMA_TABLE_VISIBLE_COLUMNS`에 신규 12개 컬럼 키 추가 |
+
+## v3 — 16개 필드 순서/라벨 수정
+
+사용자가 지정한 정확한 순서(순서→컬럼명→PK여부→속성명→타입&길이→인스턴스명→인포타입→
+변수명→컬럼정의→최종변경일시→업무규칙→암호화변환정보→암호화여부→사용자 정의 컬럼설명→
+태그→분류체계 항목)로 `columns` 배열을 재배열(antd Table의 실제 렌더 순서는 `columns` prop
+배열 순서를 따르며 `DEFAULT_SCHEMA_TABLE_VISIBLE_COLUMNS`는 표시 여부만 결정하고 순서에는
+영향 없음 — `getReorderedColumns`가 `columns` 배열 순서 기반으로 정렬함을 확인). 순서/컬럼명
+두 컬럼을 `fixed: 'left'`로 나란히 고정해 스크롤 시에도 순서가 유지되도록 함. 기존
+Description/글로서리 용어/Data Quality 컬럼은 요청 목록에 없어 기본 노출에서 제외(정의는
+유지, 드롭다운으로 여전히 켤 수 있음).
+
+라벨 수정: "순서" 컬럼이 기존 `label.ordinal-position`("서수 위치")을 재사용하고 있던 것을
+지적받아 전용 키로 교체. "컬럼명"/"PK여부"/"타입&길이" 헤더도 전용 키 신설. 커스텀 속성
+11개 중 10개는 v1에서 한국어 번역 없이 영어 폴백 텍스트(`yarn i18n`이 채운 placeholder)가
+그대로 남아있던 버그를 발견 — ko-kr.json에 실제 한국어 텍스트로 수정.
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/.../components/Database/SchemaTable/SchemaTable.component.tsx` | 컬럼 배열 순서 재배열, 타입 컬럼에 길이(dataLength) 결합 표시 |
+| `openmetadata-ui/.../locale/languages/en-us.json` | 신규 라벨 키 4개 추가(`order-kb-cust`, `column-name-header-kb-cust`, `primary-key-flag-kb-cust`, `type-length-kb-cust`), `instance-code-name-kb-cust` 영문 텍스트 수정 |
+| `openmetadata-ui/.../locale/languages/ko-kr.json` | 위 4개 신규 키 + 기존 10개 커스텀 속성 키의 한국어 번역 수정(영어 폴백 → 실제 한글) |

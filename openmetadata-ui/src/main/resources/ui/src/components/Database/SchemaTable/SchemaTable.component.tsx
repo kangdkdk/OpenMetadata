@@ -542,11 +542,15 @@ const SchemaTable = () => {
           return NO_DATA_PLACEHOLDER;
         }
 
+        const displayValueWithLength = record.dataLength
+          ? `${displayValue}(${record.dataLength})`
+          : displayValue;
+
         return (
           <Typography.Paragraph
             className="cursor-pointer"
-            ellipsis={{ tooltip: displayValue, rows: 3 }}>
-            {highlightSearchArrayElement(dataTypeDisplay, searchText)}
+            ellipsis={{ tooltip: displayValueWithLength, rows: 3 }}>
+            {highlightSearchArrayElement(displayValueWithLength, searchText)}
           </Typography.Paragraph>
         );
       },
@@ -818,14 +822,74 @@ const SchemaTable = () => {
     );
   }, []);
 
-  const columnCustomPropertyColumns: ColumnsType<Column> = useMemo(
+  const columns: ColumnsType<Column> = useMemo(
     () => [
+      {
+        title: t('label.order-kb-cust'),
+        dataIndex: TABLE_COLUMNS_KEYS.ORDINAL_POSITION,
+        key: TABLE_COLUMNS_KEYS.ORDINAL_POSITION,
+        width: 80,
+        fixed: 'left',
+        render: (ordinalPosition: Column['ordinalPosition']) =>
+          isEmpty(ordinalPosition) && ordinalPosition !== 0
+            ? NO_DATA_PLACEHOLDER
+            : ordinalPosition,
+      },
+      {
+        title: (
+          <Button
+            className="d-flex items-center cursor-pointer bg-transparent border-none p-0 h-auto hover:bg-transparent"
+            data-testid="name-column-header"
+            type="text"
+            onClick={handleColumnHeaderSortToggle}>
+            <span
+              className={sortBy === 'name' ? 'text-primary font-medium' : ''}>
+              {t('label.column-name-header-kb-cust')}
+            </span>
+            <IconSortIndicator
+              className="m-l-xss"
+              data-testid="sort-indicator"
+              height={12}
+              style={{
+                color: sortBy === 'name' ? 'var(--primary-color)' : '#6B7280',
+                transform: sortOrder === 'desc' ? 'rotate(180deg)' : 'none',
+                transition: 'transform 0.2s ease',
+              }}
+              width={8}
+            />
+          </Button>
+        ),
+        dataIndex: TABLE_COLUMNS_KEYS.NAME,
+        key: TABLE_COLUMNS_KEYS.NAME,
+        width: 200,
+        fixed: 'left',
+        onCell: (record: Column) => ({
+          onClick: (event) => handleColumnClick(record, event),
+          'data-testid': 'column-name-cell',
+        }),
+        render: renderDisplayName,
+      },
+      {
+        title: t('label.primary-key-flag-kb-cust'),
+        dataIndex: TABLE_COLUMNS_KEYS.CONSTRAINT,
+        key: TABLE_COLUMNS_KEYS.PRIMARY_KEY,
+        width: 100,
+        render: (constraint: Column['constraint']) =>
+          constraint === Constraint.PrimaryKey ? 'Y' : 'N',
+      },
       {
         title: t('label.attribute-name-kb-cust'),
         dataIndex: TABLE_COLUMNS_KEYS.ATTRIBUTE_NAME,
         key: TABLE_COLUMNS_KEYS.ATTRIBUTE_NAME,
         width: 150,
         render: renderExtensionText('attributeName'),
+      },
+      {
+        title: t('label.type-length-kb-cust'),
+        dataIndex: TABLE_COLUMNS_KEYS.DATA_TYPE_DISPLAY,
+        key: TABLE_COLUMNS_KEYS.DATA_TYPE_DISPLAY,
+        width: 150,
+        render: renderDataTypeDisplay,
       },
       {
         title: t('label.instance-code-name-kb-cust'),
@@ -891,67 +955,6 @@ const SchemaTable = () => {
         render: renderExtensionMarkdown('userDefinedColumnDescription'),
       },
       {
-        title: t('label.classification-item-kb-cust'),
-        dataIndex: TABLE_COLUMNS_KEYS.CLASSIFICATION_ITEM,
-        key: TABLE_COLUMNS_KEYS.CLASSIFICATION_ITEM,
-        width: 180,
-        render: renderExtensionText('classificationItem'),
-      },
-    ],
-    [t, renderExtensionText, renderExtensionMarkdown, renderInstanceCodeName]
-  );
-
-  const columns: ColumnsType<Column> = useMemo(
-    () => [
-      {
-        title: (
-          <Button
-            className="d-flex items-center cursor-pointer bg-transparent border-none p-0 h-auto hover:bg-transparent"
-            data-testid="name-column-header"
-            type="text"
-            onClick={handleColumnHeaderSortToggle}>
-            <span
-              className={sortBy === 'name' ? 'text-primary font-medium' : ''}>
-              {t('label.name')}
-            </span>
-            <IconSortIndicator
-              className="m-l-xss"
-              data-testid="sort-indicator"
-              height={12}
-              style={{
-                color: sortBy === 'name' ? 'var(--primary-color)' : '#6B7280',
-                transform: sortOrder === 'desc' ? 'rotate(180deg)' : 'none',
-                transition: 'transform 0.2s ease',
-              }}
-              width={8}
-            />
-          </Button>
-        ),
-        dataIndex: TABLE_COLUMNS_KEYS.NAME,
-        key: TABLE_COLUMNS_KEYS.NAME,
-        width: 200,
-        fixed: 'left',
-        onCell: (record: Column) => ({
-          onClick: (event) => handleColumnClick(record, event),
-          'data-testid': 'column-name-cell',
-        }),
-        render: renderDisplayName,
-      },
-      {
-        title: t('label.type'),
-        dataIndex: TABLE_COLUMNS_KEYS.DATA_TYPE_DISPLAY,
-        key: TABLE_COLUMNS_KEYS.DATA_TYPE_DISPLAY,
-        width: 150,
-        render: renderDataTypeDisplay,
-      },
-      {
-        title: t('label.description'),
-        dataIndex: TABLE_COLUMNS_KEYS.DESCRIPTION,
-        key: TABLE_COLUMNS_KEYS.DESCRIPTION,
-        width: 300,
-        render: renderDescription,
-      },
-      {
         title: t('label.tag-plural'),
         dataIndex: TABLE_COLUMNS_KEYS.TAGS,
         key: TABLE_COLUMNS_KEYS.TAGS,
@@ -975,6 +978,20 @@ const SchemaTable = () => {
         filteredValue: activeTagFilter.tags.length
           ? activeTagFilter.tags
           : null,
+      },
+      {
+        title: t('label.classification-item-kb-cust'),
+        dataIndex: TABLE_COLUMNS_KEYS.CLASSIFICATION_ITEM,
+        key: TABLE_COLUMNS_KEYS.CLASSIFICATION_ITEM,
+        width: 180,
+        render: renderExtensionText('classificationItem'),
+      },
+      {
+        title: t('label.description'),
+        dataIndex: TABLE_COLUMNS_KEYS.DESCRIPTION,
+        key: TABLE_COLUMNS_KEYS.DESCRIPTION,
+        width: 300,
+        render: renderDescription,
       },
       {
         title: t('label.glossary-term-plural'),
@@ -1008,25 +1025,6 @@ const SchemaTable = () => {
         width: 120,
         render: renderDataQuality,
       },
-      {
-        title: t('label.ordinal-position'),
-        dataIndex: TABLE_COLUMNS_KEYS.ORDINAL_POSITION,
-        key: TABLE_COLUMNS_KEYS.ORDINAL_POSITION,
-        width: 100,
-        render: (ordinalPosition: Column['ordinalPosition']) =>
-          isEmpty(ordinalPosition) && ordinalPosition !== 0
-            ? NO_DATA_PLACEHOLDER
-            : ordinalPosition,
-      },
-      {
-        title: t('label.primary-key'),
-        dataIndex: TABLE_COLUMNS_KEYS.CONSTRAINT,
-        key: TABLE_COLUMNS_KEYS.PRIMARY_KEY,
-        width: 100,
-        render: (constraint: Column['constraint']) =>
-          constraint === Constraint.PrimaryKey ? 'Y' : 'N',
-      },
-      ...columnCustomPropertyColumns,
     ],
     [
       tableFqn,
@@ -1038,12 +1036,14 @@ const SchemaTable = () => {
       renderDescription,
       renderDisplayName,
       renderDataQuality,
+      renderExtensionText,
+      renderExtensionMarkdown,
+      renderInstanceCodeName,
       tagFilter,
       activeTagFilter,
       sortBy,
       sortOrder,
       handleColumnHeaderSortToggle,
-      columnCustomPropertyColumns,
     ]
   );
 

@@ -194,6 +194,30 @@ md5가 로컬 `dist/`와 완전히 일치함을 재확인(`9a53888338c5a08dc0b57
 서버 `healthy` 재확인. 여전히 브라우저 자동화 도구가 없어 실제 화면 렌더링(신규 12개
 컬럼이 스크롤 없이/있이 실제로 표에 그려지는지)은 사용자가 직접 확인 필요.
 
+### 2026-08-10 — v3: 16개 필드 순서/라벨 수정
+
+사용자가 지정한 정확한 순서와 다르게 컬럼이 배치돼 있었고("순서" 필드를 요청한 적 없는
+"서수 위치"로 잘못 표기), 커스텀 속성 11개 중 10개의 한국어 번역이 v1 당시 `yarn i18n`이
+채운 영어 폴백 텍스트 그대로 남아있던 걸 재확인 — ko-kr.json에서 직접 grep해 확인.
+
+수정: `columns` 배열을 요청 순서대로 재배열(antd 렌더 순서가 `DEFAULT_SCHEMA_TABLE_
+VISIBLE_COLUMNS` 순서가 아니라 `columns` prop 배열 순서 자체를 따른다는 것을
+`CustomizeColumnUtils.tsx`의 `getReorderedColumns` 구현을 직접 읽어 확인 후 반영),
+"순서"/"컬럼명"을 나란히 `fixed: 'left'`로 고정, "타입" 컬럼을 "타입&길이"로 개명하고
+`dataLength`를 결합 표시, 신규 라벨 키 4개 추가, ko-kr.json의 10개 커스텀 속성 키를 실제
+한글로 수정. Description/글로서리 용어/Data Quality는 요청 목록에 없어 기본 노출에서만
+제외(정의는 유지).
+
+`npx eslint --fix` 0건, `npx tsc --noEmit` 0건(대상 파일 기준), `npx prettier --write`,
+`npx eslint --fix`로 en-us.json/ko-kr.json의 `jsonc/sort-keys` 정렬 오류 수정 후 재검증
+통과, `python -c "json.load(...)"`로 두 파일 모두 유효성 확인, `sync-i18n`으로 신규 키 4개를
+나머지 15개 로케일에 전파. 세션 도중 Docker Desktop이 예기치 않게 완전히 종료된 것을
+확인(`docker ps` → "system cannot find the file specified") — GUI 앱을 직접 재실행하여
+재기동, MySQL/Elasticsearch/서버 컨테이너가 정상적으로 재기동됨을 확인 후 배포 재수행.
+배포된 jar 내 `assets/assets/index-*.js`가 로컬 `dist/`와 md5 완전 일치
+(`af40154d36f342dbb0391396fcbc4240`) 확인, 서버 `healthy` 재확인. 브라우저 자동화 도구
+부재로 실제 화면에서 순서가 요청대로 보이는지는 사용자 확인 필요.
+
 ## Windows 로컬 환경에서 재현할 때 필요한 사전 준비
 
 이 저장소를 Windows에서 처음 셋업하면 아래 환경 이슈를 만날 수 있습니다.
