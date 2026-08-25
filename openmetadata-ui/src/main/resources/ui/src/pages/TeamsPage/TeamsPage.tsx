@@ -248,6 +248,7 @@ const TeamsPage = () => {
           TabSpecificField.PARENTS,
           TabSpecificField.PROFILE,
           TabSpecificField.OWNERS,
+          TabSpecificField.EXTENSION,
         ],
         include: Include.All,
       });

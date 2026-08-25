@@ -98,6 +98,7 @@ import { AssetsOfEntity } from '../../../Glossary/GlossaryTerms/tabs/AssetsTabs.
 import { LearningIcon } from '../../../Learning/LearningIcon/LearningIcon.component';
 import { useApplicationsProvider } from '../../Applications/ApplicationsProvider/ApplicationsProvider';
 import ListEntities from './RolesAndPoliciesList';
+import TeamContactInfo from './TeamContactInfo-kb-cust';
 import { TeamsPageTab } from './team.interface';
 import {
   AddAttribute,
@@ -1037,6 +1038,24 @@ const TeamDetailsV1 = ({
             onDescriptionUpdate={onDescriptionUpdate}
           />
         </div>
+        <TeamContactInfo
+          address={
+            (currentTeam.extension as Record<string, string> | undefined)
+              ?.kbDvsnAddr
+          }
+          branchCode={
+            (currentTeam.extension as Record<string, string> | undefined)
+              ?.kbBrncd
+          }
+          contactNumber={
+            (currentTeam.extension as Record<string, string> | undefined)
+              ?.kbDvsnTelno
+          }
+          faxNumber={
+            (currentTeam.extension as Record<string, string> | undefined)
+              ?.kbDvsnFaxno
+          }
+        />
       </>
     ),
     [
