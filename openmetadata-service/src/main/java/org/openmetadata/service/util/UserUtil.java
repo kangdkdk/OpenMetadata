@@ -496,7 +496,8 @@ public final class UserUtil {
         .withRoles(EntityUtil.toEntityReferences(create.getRoles(), Entity.ROLE))
         .withDomains(EntityUtil.getEntityReferences(Entity.DOMAIN, create.getDomains()))
         .withExternalId(create.getExternalId())
-        .withScimUserName(create.getScimUserName());
+        .withScimUserName(create.getScimUserName())
+        .withExtension(create.getExtension());
   }
 
   public static void validateUserPersonaPreferencesImage(LandingPageSettings settings) {

@@ -109,9 +109,9 @@ public class UserRepository extends EntityRepository<User> {
   public static final String AUTH_MECHANISM_FIELD = "authenticationMechanism";
   public static final String ALLOW_IMPERSONATION_FIELD = "allowImpersonation";
   static final String USER_PATCH_FIELDS =
-      "profile,roles,teams,authenticationMechanism,isEmailVerified,personas,defaultPersona,domains,personaPreferences";
+      "profile,roles,teams,authenticationMechanism,isEmailVerified,personas,defaultPersona,domains,personaPreferences,extension";
   static final String USER_UPDATE_FIELDS =
-      "profile,roles,teams,authenticationMechanism,isEmailVerified,personas,defaultPersona,domains,personaPreferences";
+      "profile,roles,teams,authenticationMechanism,isEmailVerified,personas,defaultPersona,domains,personaPreferences,extension";
   private volatile EntityReference organization;
   private InheritedFieldEntitySearch inheritedFieldEntitySearch;
 

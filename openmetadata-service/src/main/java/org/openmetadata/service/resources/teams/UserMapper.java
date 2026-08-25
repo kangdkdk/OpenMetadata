@@ -28,6 +28,7 @@ public class UserMapper implements EntityMapper<User, CreateUser> {
         .withUpdatedAt(System.currentTimeMillis())
         .withTeams(EntityUtil.validateToEntityReferences(create.getTeams(), Entity.TEAM))
         .withRoles(EntityUtil.validateToEntityReferences(create.getRoles(), Entity.ROLE))
-        .withDomains(EntityUtil.getEntityReferences(Entity.DOMAIN, create.getDomains()));
+        .withDomains(EntityUtil.getEntityReferences(Entity.DOMAIN, create.getDomains()))
+        .withExtension(create.getExtension());
   }
 }

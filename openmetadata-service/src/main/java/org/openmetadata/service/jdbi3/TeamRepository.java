@@ -113,9 +113,9 @@ public class TeamRepository extends EntityRepository<Team> {
   static final String PARENTS_FIELD = "parents";
   static final String USERS_FIELD = "users";
   static final String TEAM_UPDATE_FIELDS =
-      "profile,users,defaultRoles,defaultPersona,parents,children,policies,teamType,email,domains";
+      "profile,users,defaultRoles,defaultPersona,parents,children,policies,teamType,email,domains,extension";
   static final String TEAM_PATCH_FIELDS =
-      "profile,users,defaultRoles,defaultPersona,parents,children,policies,teamType,email,domains";
+      "profile,users,defaultRoles,defaultPersona,parents,children,policies,teamType,email,domains,extension";
   private static final String DEFAULT_ROLES = "defaultRoles";
   private static final String DEFAULT_PERSONA = "defaultPersona";
   private Team organization = null;
