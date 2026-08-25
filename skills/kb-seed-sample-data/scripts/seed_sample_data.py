@@ -188,15 +188,57 @@ COLUMN_CUSTOM_PROPERTIES = [
 ]
 
 
-def seed_column_custom_properties(client: OMClient):
+TABLE_CUSTOM_PROPERTIES = [
+    {
+        "name": "systemInfraKbCust", "displayName": "시스템인프라", "description": "시스템 인프라 (System Infra)", "fieldType": "enum",
+        "config": {"values": ["ON_PREMISE", "CLOUD"], "multiSelect": False},
+    },
+    {"name": "serverNameKbCust", "displayName": "서버명", "description": "서버명 (Server Name)", "fieldType": "string"},
+    {"name": "datasetSchemaKbCust", "displayName": "스키마", "description": "데이터셋 스키마 (Schema)", "fieldType": "string"},
+    {
+        "name": "externalDataYnKbCust", "displayName": "외부데이터여부", "description": "외부 데이터 여부 (External Data Y/N)", "fieldType": "enum",
+        "config": {"values": ["Y", "N"], "multiSelect": False},
+    },
+    {"name": "serverCodeKbCust", "displayName": "서버코드", "description": "서버 코드 (Server Code)", "fieldType": "string"},
+    {
+        "name": "myDataYnKbCust", "displayName": "마이데이터여부", "description": "마이데이터 여부 (MyData Y/N)", "fieldType": "enum",
+        "config": {"values": ["Y", "N"], "multiSelect": False},
+    },
+    {
+        "name": "lastLoadDateTimeKbCust", "displayName": "최종적재일시", "description": "최종 적재 일시 (Last Load Date Time)", "fieldType": "dateTime-cp",
+        "config": "yyyy-MM-dd'T'HH:mm:ss",
+    },
+    {"name": "workCycleKbCust", "displayName": "작업주기", "description": "작업 주기 (Work Cycle)", "fieldType": "string"},
+    {
+        "name": "tableNewDateKbCust", "displayName": "테이블신규일", "description": "테이블 신규일 (Table New Date)", "fieldType": "date-cp",
+        "config": "yyyy-MM-dd",
+    },
+    {
+        "name": "odateKbCust", "displayName": "기준일자(ODATE)", "description": "기준일자 ODATE", "fieldType": "date-cp",
+        "config": "yyyy-MM-dd",
+    },
+    {"name": "holidayCaseKbCust", "displayName": "휴일일 경우", "description": "휴일일 경우 처리 (Holiday Case)", "fieldType": "string"},
+    {"name": "tableTypeKbCust", "displayName": "테이블종류", "description": "테이블 종류 (Table Type)", "fieldType": "string"},
+    {
+        "name": "qualityCheckResultKbCust", "displayName": "품질점검결과", "description": "품질 점검 결과 (Quality Check Result)", "fieldType": "enum",
+        "config": {"values": ["통과", "실패"], "multiSelect": False},
+    },
+    {
+        "name": "changeHistoryKbCust", "displayName": "테이블 변경이력",
+        "description": "테이블 변경이력 - JSON 배열 문자열로 저장 (Table Change History)", "fieldType": "string",
+    },
+]
+
+
+def seed_entity_custom_properties(client: OMClient, entity_type_name: str, properties: list):
     field_types = client.get("metadata/types?category=field&limit=50")["data"]
     field_type_ids = {t["name"]: t["id"] for t in field_types}
 
-    table_column_type = client.get("metadata/types/name/tableColumn?fields=customProperties")
-    existing_names = {p["name"] for p in table_column_type.get("customProperties", [])}
+    entity_type = client.get(f"metadata/types/name/{entity_type_name}?fields=customProperties")
+    existing_names = {p["name"] for p in entity_type.get("customProperties", [])}
 
     created = 0
-    for prop in COLUMN_CUSTOM_PROPERTIES:
+    for prop in properties:
         if prop["name"] in existing_names:
             print(f"  skip {prop['name']}: already exists")
             continue
@@ -208,10 +250,10 @@ def seed_column_custom_properties(client: OMClient):
         }
         if "config" in prop:
             body["customPropertyConfig"] = {"config": prop["config"]}
-        client.put(f"metadata/types/{table_column_type['id']}", body)
+        client.put(f"metadata/types/{entity_type['id']}", body)
         created += 1
         print(f"  created {prop['name']} ({prop['fieldType']})")
-    print(f"  {created} column custom properties created, {len(existing_names)} already present")
+    print(f"  {created} {entity_type_name} custom properties created, {len(existing_names)} already present")
 
 
 def main():
@@ -247,6 +289,11 @@ def main():
         help="Idempotently create the tableColumn custom properties for the Schema tab extra fields",
     )
 
+    sub.add_parser(
+        "table-info-custom-properties",
+        help="Idempotently create the table custom properties for the Dataset Info panel + change history modal",
+    )
+
     args = parser.parse_args()
     client = OMClient(args.base_url, args.email, args.password_b64)
 
@@ -261,7 +308,9 @@ def main():
     elif args.command == "report-projects":
         seed_report_projects(client, args.target_service, args.count)
     elif args.command == "column-custom-properties":
-        seed_column_custom_properties(client)
+        seed_entity_custom_properties(client, "tableColumn", COLUMN_CUSTOM_PROPERTIES)
+    elif args.command == "table-info-custom-properties":
+        seed_entity_custom_properties(client, "table", TABLE_CUSTOM_PROPERTIES)
 
 
 if __name__ == "__main__":

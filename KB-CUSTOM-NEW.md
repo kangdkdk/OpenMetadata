@@ -63,3 +63,10 @@
 | 버전 | 파일 | 기능 |
 |---|---|---|
 | v1 | `openmetadata-ui/.../components/common/CustomPropertyTable/InstanceCodePopoverValue-kb-cust.tsx` | 컬럼 목록/커스텀 속성 패널에서 인스턴스명 클릭 시 InstanceCode 상세를 보여주는 팝오버 |
+
+## 신규 기능: 테이블 데이터셋 정보 패널 라인
+
+| 버전 | 파일 | 기능 |
+|---|---|---|
+| v1 | `openmetadata-ui/.../components/Database/SchemaTable/DatasetInfoPanel-kb-cust.tsx` | Schema 탭에서 설명과 컬럼 목록 사이에 표시되는 "데이터셋 정보"/"데이터셋 운영 정보" 요약 패널 |
+| v1 | `openmetadata-ui/.../components/Database/SchemaTable/ChangeHistoryModal-kb-cust.tsx` | "테이블 변경이력" 조회 클릭 시 뜨는 정렬 가능한 이력 표 모달 |

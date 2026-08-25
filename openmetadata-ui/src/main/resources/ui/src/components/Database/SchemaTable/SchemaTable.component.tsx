@@ -120,6 +120,7 @@ import { ModalWithMarkdownEditor } from '../../Modals/ModalWithMarkdownEditor/Mo
 import { ColumnFilter } from '../ColumnFilter/ColumnFilter.component';
 import TableDescription from '../TableDescription/TableDescription.component';
 import TableTags from '../TableTags/TableTags.component';
+import DatasetInfoPanel from './DatasetInfoPanel-kb-cust';
 import { TableCellRendered } from './SchemaTable.interface';
 
 const SchemaTable = () => {
@@ -1134,6 +1135,9 @@ const SchemaTable = () => {
 
   return (
     <Row gutter={[0, 16]}>
+      <Col span={24}>
+        <DatasetInfoPanel table={table} />
+      </Col>
       <Col id="schemaDetails" span={24}>
         <Table
           className="align-table-filter-left"

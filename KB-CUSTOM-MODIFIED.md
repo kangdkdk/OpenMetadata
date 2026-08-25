@@ -22,6 +22,7 @@
 | v1 | `custom/1.13.3-v2-instance-code-report-project-add` | 테이블 Schema 탭 컬럼 목록에 16개 메타데이터 필드 추가 (Custom Properties 기반) |
 | v2 | `custom/1.13.3-v2-instance-code-report-project-add` | 신규 12개 컬럼을 "컬럼 관리" 드롭다운 뒤에 숨기지 않고 기본 노출로 변경 |
 | v3 | `custom/1.13.3-v2-instance-code-report-project-add` | 16개 필드를 사용자가 요청한 정확한 순서로 재배열, 라벨을 요청 단어에 맞게 수정 |
+| v1 | `custom/1.13.3-v2-instance-code-report-project-add` | 테이블 Schema 탭에 "데이터셋 정보" 패널 + "테이블 변경이력" 조회 모달 추가 (Custom Properties 기반) |
 
 ## v1 — Sybase 데이터베이스 서비스 커넥터 추가
 
@@ -272,3 +273,42 @@ Description/글로서리 용어/Data Quality 컬럼은 요청 목록에 없어 �
 | `openmetadata-ui/.../components/Database/SchemaTable/SchemaTable.component.tsx` | 컬럼 배열 순서 재배열, 타입 컬럼에 길이(dataLength) 결합 표시 |
 | `openmetadata-ui/.../locale/languages/en-us.json` | 신규 라벨 키 4개 추가(`order-kb-cust`, `column-name-header-kb-cust`, `primary-key-flag-kb-cust`, `type-length-kb-cust`), `instance-code-name-kb-cust` 영문 텍스트 수정 |
 | `openmetadata-ui/.../locale/languages/ko-kr.json` | 위 4개 신규 키 + 기존 10개 커스텀 속성 키의 한국어 번역 수정(영어 폴백 → 실제 한글) |
+
+## 신규 기능: 테이블 데이터셋 정보 패널 라인
+
+## v1 — "데이터셋 정보" 패널 + "테이블 변경이력" 조회 모달 추가
+
+사용자가 첨부한 스크린샷 2장을 근거로, Table 엔티티의 Schema 탭에서 설명(Description)과
+컬럼 목록(SchemaTable) 사이에 "데이터셋 정보"/"데이터셋 운영 정보" 요약 패널을 추가하고,
+"테이블 변경이력" 옆 "조회" 클릭 시 정렬 가능한 이력 표 모달이 뜨도록 구현. 컬럼 확장과
+동일하게 `table` 엔티티 타입(카테고리=entity)에 Custom Properties 14개를 등록해 Table의
+기존 `extension` 필드에 저장 — 핵심 스키마 변경 없음.
+
+필드 매핑: 시스템인프라(`systemInfraKbCust`, enum)/서버명(`serverNameKbCust`, string)/
+스키마(`datasetSchemaKbCust`, string)/외부데이터여부(`externalDataYnKbCust`, enum)/
+서버코드(`serverCodeKbCust`, string)/마이데이터여부(`myDataYnKbCust`, enum)/
+최종적재일시(`lastLoadDateTimeKbCust`, dateTime-cp)/작업주기(`workCycleKbCust`, string)/
+테이블신규일(`tableNewDateKbCust`, date-cp)/기준일자(`odateKbCust`, date-cp)/
+휴일일경우(`holidayCaseKbCust`, string)/테이블종류(`tableTypeKbCust`, string)/
+품질점검결과(`qualityCheckResultKbCust`, enum, "통과"/"실패")/
+테이블변경이력(`changeHistoryKbCust`, string — JSON 배열 문자열로 직렬화). "플랫폼"
+필드는 별도 속성을 만들지 않고 기존 `table.serviceType` + 서비스 아이콘을 재사용.
+
+`table-cp`(테이블형 커스텀 속성) 타입은 최대 3컬럼 제약이 있어 5컬럼(변경년월일/변경구분/
+변경대상/대상컬럼/변경상세내용)이 필요한 변경이력에는 부적합함을 확인 — 대신 `string` 타입에
+JSON 배열을 직렬화해 저장하고, 전용 모달 컴포넌트가 직접 파싱/렌더링하도록 구현(범용
+CustomPropertyTable 에디터에 의존하지 않는 읽기 전용 표시).
+
+Table 상세 페이지 레이아웃은 `TableClassBase.getDefaultLayout()`의 위젯 그리드 설정으로
+구동되는 공용 커스터마이즈 가능 레이아웃 엔진(`GenericTab`/`CommonWidgets`/
+`LeftPanelContainer`)을 따로 확장하는 대신, `SchemaTable.component.tsx`(Schema 탭의
+TABLE_SCHEMA 위젯 콘텐츠 자체) 최상단에 새 패널을 렌더링하는 방식으로 구현 — Description
+위젯 바로 다음이 TABLE_SCHEMA 위젯이므로 시각적으로 "설명과 컬럼 사이"에 위치하면서도
+공용 위젯/커스터마이즈 시스템(다른 엔티티 타입도 공유)을 건드리지 않는 저위험 경로.
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/.../components/Database/SchemaTable/SchemaTable.component.tsx` | `DatasetInfoPanel` 임포트 및 컬럼 표 바로 위에 렌더링 |
+| `openmetadata-ui/.../locale/languages/en-us.json` | 신규 라벨 키 21개 추가 (데이터셋 정보/운영 정보 패널 + 변경이력 모달) |
+| `openmetadata-ui/.../locale/languages/ko-kr.json` | 위 21개 키의 실제 한국어 텍스트 (스크린샷 문구 그대로) |
+| `skills/kb-seed-sample-data/scripts/seed_sample_data.py` | `table-info-custom-properties` 서브커맨드(멱등) 추가, 기존 컬럼 속성 생성 로직과 공통 헬퍼로 통합 |

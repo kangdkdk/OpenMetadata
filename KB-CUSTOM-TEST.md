@@ -218,6 +218,46 @@ VISIBLE_COLUMNS` 순서가 아니라 `columns` prop 배열 순서 자체를 따�
 (`af40154d36f342dbb0391396fcbc4240`) 확인, 서버 `healthy` 재확인. 브라우저 자동화 도구
 부재로 실제 화면에서 순서가 요청대로 보이는지는 사용자 확인 필요.
 
+### 2026-08-11 — 테이블 "데이터셋 정보" 패널 + "테이블 변경이력" 모달 신규 추가
+
+사용자가 첨부한 스크린샷 2장(패널 레이아웃, 변경이력 표)을 근거로 신규 구현. `table`
+엔티티 타입에 커스텀 속성 14개 생성(API로 직접 생성 후 확인 — 마지막 `changeHistoryKbCust`
+속성 1건은 `dateTime-cp`/`date-cp` 타입 속성에 `customPropertyConfig.config`(포맷 문자열)
+없이 보내면 "Invalid dateTime format must have Config populated with format." 400 에러가
+난다는 걸 이전 세션(컬럼 확장 작업)에서 이미 학습한 상태라 처음부터 포맷 문자열을 포함해
+1회에 성공). `table-cp` 타입이 최대 3컬럼 제약이 있어 5컬럼 변경이력에는 못 쓴다는 걸
+`tableConfig.json` 스키마 확인으로 사전에 발견 — `string` 타입에 JSON 배열을 직렬화해
+저장하는 방식으로 우회.
+
+프런트: `DatasetInfoPanel-kb-cust.tsx`(패널) + `ChangeHistoryModal-kb-cust.tsx`(모달, react-
+aria 기반 `@openmetadata/ui-core-components`의 `Table`로 정렬 가능한 표 구현, `sortDescriptor`
+타입은 자체 정의 대신 `react-aria-components`가 재노출하는 `SortDescriptor`를 그대로 사용해야
+타입 에러가 안 남을 확인) 신규 작성, `SchemaTable.component.tsx`의 컬럼 표 바로 위에 배치.
+`npx eslint --fix` 0건, `npx tsc --noEmit` 0건(대상 파일 기준), `npx prettier --write`로
+포맷 정리(특히 `organize-imports-cli`가 import 블록을 4-space로 재포맷해버려서 이후 반드시
+prettier로 되돌려야 했음 — 순서 그대로 두면 CI checkstyle의 2-space 규칙에 걸림).
+
+Table 상세 페이지 자체가 `TableClassBase`의 위젯 그리드 설정으로 구동되는 공용 커스터마이즈
+레이아웃 엔진임을 백그라운드 리서치 에이전트로 먼저 확인 — 위젯 키를 새로 등록해 그
+엔진에 편입시키는 대신, Schema 탭(TABLE_SCHEMA 위젯) 콘텐츠인 `SchemaTable.component.tsx`
+최상단에 직접 렌더링하는 저위험 경로를 선택. Description 위젯 바로 다음이 TABLE_SCHEMA
+위젯이라 시각적으로 동일한 위치 효과를 내면서 다른 엔티티도 공유하는 레이아웃 엔진은
+건드리지 않음.
+
+샘플 데이터: `kb_cust_sybase_demo.kb_cust_db.kb_cust_schema.customers` 테이블에 스크린샷
+예시값 그대로(서버명 "ADW DB(ddmdbo01)", 서버코드 "S07S1" 등) + 변경이력 19건을 JSON Patch
+(`PATCH /tables/{id}`, `add /extension`)로 주입 — enum 타입 커스텀 속성 값은 배열로 감싸야
+한다는 것(`["N"]`이지 `"N"`이 아님)을 잊고 처음엔 400 에러(`invalid JSON [: string found,
+array expected]`)를 받았다가 수정. 이후 `fields=extension` 파라미터 없이 조회하면
+`extension` 필드 자체가 응답에서 빠진다는 것도 재확인.
+
+배포: `vite build` → `mvn install`(ui) → `mvn package`(dist) → Docker 이미지 재빌드 →
+재기동, 배포된 jar 내 `assets/assets/index-*.js`가 로컬 `dist/`와 md5 완전 일치
+(`a7c053649f3a967bf17579fa9d1e5619`) 확인, 서버 `healthy` 재확인, 커스텀 속성 14개와
+테이블 extension 데이터가 API로 정상 조회됨을 재확인. `table-info-custom-properties`
+서브커맨드를 이미 속성이 존재하는 상태에서 재실행해 14개 전부 `skip` 처리되는 멱등성 확인.
+브라우저 자동화 도구가 없어 실제 화면에서 패널 레이아웃/모달 렌더링은 사용자 확인 필요.
+
 ## Windows 로컬 환경에서 재현할 때 필요한 사전 준비
 
 이 저장소를 Windows에서 처음 셋업하면 아래 환경 이슈를 만날 수 있습니다.
