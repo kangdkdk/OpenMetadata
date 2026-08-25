@@ -106,6 +106,39 @@ export const UserRoles = React.memo(({ userName }: { userName: string }) => {
   ) : null;
 });
 
+export const UserContactInfo = React.memo(
+  ({ userName }: { userName: string }) => {
+    const { userProfilePics } = useApplicationStore();
+    const userData = userProfilePics[userName];
+    const extension = userData?.extension as Record<string, string> | undefined;
+    const { t } = useTranslation();
+
+    const positionAndLevel = [extension?.kbJobtlName, extension?.kbJobclName]
+      .filter(Boolean)
+      .join(' / ');
+
+    if (!positionAndLevel && !extension?.kbExno && !extension?.kbTaskAssignmentName) {
+      return null;
+    }
+
+    return (
+      <div className="m-t-xs">
+        {positionAndLevel && (
+          <p className="text-grey-body text-xs m-b-xss">{positionAndLevel}</p>
+        )}
+        {extension?.kbExno && (
+          <p className="text-grey-body text-xs m-b-xss">{extension.kbExno}</p>
+        )}
+        {extension?.kbTaskAssignmentName && (
+          <p className="text-grey-body text-xs m-b-xss">
+            {t('label.duty-kb-cust')}: {extension.kbTaskAssignmentName}
+          </p>
+        )}
+      </div>
+    );
+  }
+);
+
 export const PopoverContent = React.memo(
   ({
     userName,
@@ -133,6 +166,7 @@ export const PopoverContent = React.memo(
             TabSpecificField.TEAMS,
             TabSpecificField.ROLES,
             TabSpecificField.PROFILE,
+            TabSpecificField.EXTENSION,
           ],
         });
         user = getUserWithImage(user);
@@ -166,6 +200,7 @@ export const PopoverContent = React.memo(
               <span>{t('message.no-data-available')}</span>
             ) : (
               <Fragment>
+                <UserContactInfo userName={userName} />
                 <UserTeams userName={userName} />
                 <UserRoles userName={userName} />
               </Fragment>

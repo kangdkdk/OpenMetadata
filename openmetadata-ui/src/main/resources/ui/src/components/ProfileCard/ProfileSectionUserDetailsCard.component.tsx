@@ -131,6 +131,14 @@ const ProfileSectionUserDetailsCard = ({
     [userData.email]
   );
 
+  const positionAndLevel = useMemo(() => {
+    const extension = userData.extension as Record<string, string> | undefined;
+    const jobTitle = extension?.kbJobtlName;
+    const jobLevel = extension?.kbJobclName;
+
+    return [jobTitle, jobLevel].filter(Boolean).join(' / ');
+  }, [userData.extension]);
+
   const handleRestore = async () => {
     try {
       setIsRestoring(true);
@@ -260,6 +268,13 @@ const ProfileSectionUserDetailsCard = ({
           {getEntityName(userData)}
         </p>
         {userEmailRender}
+        {positionAndLevel && (
+          <Typography.Text
+            className="text-sm text-grey-muted"
+            data-testid="user-position-level">
+            {positionAndLevel}
+          </Typography.Text>
+        )}
         {onlineStatus && (
           <div className="m-t-sm">
             <Badge

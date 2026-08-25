@@ -55,6 +55,7 @@ import UserProfilePersonas from './UserProfilePersona/UserProfilePersona.compone
 import { Props, UserPageTabs } from './Users.interface';
 import './users.less';
 import UserPermissions from './UsersProfile/UserPermissions/UserPermissions.component';
+import UserProfileContactInfo from './UsersProfile/UserProfileContactInfo-kb-cust';
 import UserProfileRoles from './UsersProfile/UserProfileRoles/UserProfileRoles.component';
 import UserProfileTeams from './UsersProfile/UserProfileTeams/UserProfileTeams.component';
 
@@ -382,6 +383,16 @@ const Users = ({
               handleRestoreUser={handleRestoreUser}
               updateUserDetails={updateUserDetails}
               userData={userData}
+            />
+            <UserProfileContactInfo
+              duty={
+                (userData.extension as Record<string, string> | undefined)
+                  ?.kbTaskAssignmentName
+              }
+              phone={
+                (userData.extension as Record<string, string> | undefined)
+                  ?.kbExno
+              }
             />
             <UserProfilePersonas
               updateUserDetails={updateUserDetails}
