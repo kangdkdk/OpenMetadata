@@ -31,6 +31,16 @@
 | v3 | `custom/1.13.3-v2-instance-code-report-project-add` | ReportProject 상세/목록 화면에서 "유형" 필드 표시 제거, 쿼리 뷰어를 완전 읽기전용(nocursor)으로 변경 |
 | v1 | `custom/1.13.3-v2-instance-code-report-project-add` | Explore 탐색창/전역 검색에서 Column(테이블 컬럼) 항목 제거 |
 | v1 | `custom/1.13.3-v2-instance-code-report-project-add` | User/Team 엔티티에 Custom Properties(extension) 지원 추가 |
+| v1 | `custom/1.13.3-v2-instance-code-report-project-add` | User 프로필 사이드바/호버 카드에 직급/직책/전화번호/담당업무 표시 |
+| v1 | `custom/1.13.3-v2-instance-code-report-project-add` | 로그인 후 버전 업데이트/GitHub 팝업 제거 |
+| v1 | `custom/1.13.3-v2-instance-code-report-project-add` | ingestion 이미지에 vim 추가 |
+| v1 | `custom/1.13.3-v2-instance-code-report-project-add` | KB 데이터카탈로그 브랜딩 적용 (로그인 화면 로고/파비콘/브랜드명, 기본 로케일 한국어) |
+| v1 | `custom/1.13.3-v2-instance-code-report-project-add` | InstanceCode 전역 검색 자동완성 추가 |
+| v1 | `custom/1.13.3-v2-instance-code-report-project-add` | EntityListingTable에 체크박스 비활성화 옵션 추가 |
+| v1 | `custom/1.13.3-v2-instance-code-report-project-add` | InstanceCode 목록 2컬럼(이름/담당자) 재구성, 상세 화면 정의·식별자·표준구분 실값 표시 및 담당자를 실제 User 아바타로 표시 |
+| v1 | `custom/1.13.3-v2-instance-code-report-project-add` | ReportProject 연도 카드 표기·정렬 수정, 목록 체크박스 제거, 쿼리 편집창에서 보고서명/설명 수정 지원(서비스 필드 제거), 연관테이블/담당자 표시 |
+| v1 | `custom/1.13.3-v2-instance-code-report-project-add` | Team 상세 화면에 부서 주소/팩스/연락처/브랜치코드 표시 |
+| v1 | `custom/1.13.3-v2-instance-code-report-project-add` | 로컬 개발 MySQL 볼륨을 named volume으로 전환 (InnoDB 손상 방지) |
 
 ## v1 — Sybase 데이터베이스 서비스 커넥터 추가
 
@@ -665,3 +675,110 @@ import와 배열 항목을 제거하고 빈 배열을 반환하도록 수정.
 빌드 산출물 문제였음). `target/classes/assets` 삭제 후 재빌드하여 해결(jar 크기도
 349MB → 46MB로 정상화). 앞으로 UI를 반복 재빌드할 때는 `mvn clean`을 끼워 넣거나
 `target/classes/assets`를 수동 삭제하는 것을 권장.
+
+## 신규 기능: ingestion 이미지 개발 편의성 개선 라인
+
+## v1 — ingestion 이미지에 vim 추가
+
+인제스천 파드 안에서 파일을 직접 편집(HRIS 이관 스크립트 등)할 수 있도록 `vim` 패키지 추가.
+
+| 파일 | 기능 |
+|---|---|
+| `ingestion/Dockerfile.ci` | apt-get 설치 목록에 `vim` 추가 |
+
+## 신규 기능: KB 브랜딩 라인
+
+## v1 — KB 데이터카탈로그 브랜딩 적용
+
+로그인 화면 로고를 KB 브러시마크 이미지로 교체(기본 번들 asset로 베이킹, 런타임 설정 아님),
+브랜드명을 "KB 데이터카탈로그"로 변경, 파비콘/매니페스트 아이콘 전체 교체, 기본 로케일을
+한국어로 변경.
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/.../src/assets/svg/logo.svg`, `logo-monogram.svg` | KB 로고 이미지를 base64 data URI로 임베드 |
+| `openmetadata-ui/.../public/favicon.png`, `favicons/*`, `logo192.png`, `manifest.json` | 파비콘/PWA 아이콘 전체 교체 |
+| `openmetadata-ui/.../vite.config.ts` | `BRAND_NAME` 기본값을 "KB 데이터카탈로그"로 변경 |
+| `openmetadata-ui/.../index.html` | 타이틀/메타 설명 변경 |
+| `openmetadata-ui/.../utils/i18next/i18nextUtil.ts` | 기본/폴백 로케일을 `ko-KR`로 변경 |
+| `openmetadata-ui/.../pages/LoginPage/SignInPage.tsx`, `login.style.less` | 로고 크기 확대, 로고-텍스트 간격 축소 |
+| `openmetadata-ui/.../components/Layout/CarouselLayout/CarouselLayout.tsx` | 우측 캐러셀 패널 제거, 로그인 폼 중앙 정렬 |
+
+## 신규 기능: InstanceCode 검색 통합 라인
+
+## v1 — InstanceCode 전역 검색 자동완성 추가
+
+상단 검색창 자동완성 결과에 InstanceCode를 새 그룹으로 추가.
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/.../components/AppBar/Suggestions.tsx` | `instanceCodeSuggestions` 그룹 추가 |
+| `openmetadata-ui/.../utils/SearchClassBase.ts` | InstanceCode 그룹 라벨/아이콘 추가 |
+| `openmetadata-ui/.../context/.../GlobalSearchSuggestions.interface.ts` | `InstanceCodeSource` 타입 추가 |
+
+## 신규 기능: 목록 화면 체크박스 옵션 라인
+
+## v1 — EntityListingTable에 체크박스 비활성화 옵션 추가
+
+InstanceCode/ReportProject처럼 다중 선택이 필요 없는 목록에서 체크박스 컬럼을 없앨 수 있도록
+`disableSelection` prop 추가.
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/.../EntityListingTable/EntityListingTable.interface.ts`, `.component.tsx` | `disableSelection` prop 추가 (`selectionMode="none"`) |
+
+## 신규 기능: InstanceCode 담당자/실값 표시 라인
+
+## v1 — InstanceCode 목록/상세 화면 개선
+
+목록 화면을 "인스턴스코드명(코드번호)" / "담당자" 2컬럼으로 재구성(체크박스 제거).
+상세 화면은 인스턴스 정의/식별자/표준구분을 실제 값으로 표시(과거엔 정적 설명 문구가
+고정 노출됐음)하고, 담당자를 실제 User 아바타(호버 카드 포함)로 표시, IT담당자 유형별로
+그룹핑.
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/.../pages/InstanceCodePage/InstanceCodeListPage-kb-cust.tsx` | 2컬럼 재구성, 담당자 아바타 그룹 표시 |
+| `openmetadata-ui/.../pages/InstanceCodePage/InstanceCodeGroupDetailsPage-kb-cust.tsx` | 정의/식별자/표준구분 실값 표시, 담당자 유형별 그룹 표시, 헤더 순서(이름/코드) 조정 |
+
+## 신규 기능: ReportProject 개선 라인
+
+## v1 — 연도 카드/목록/쿼리 편집 개선
+
+연도 카드에 "YYYY년" 표기 및 최신순 정렬 수정, 연도별 목록에서 체크박스 제거 및
+보고서번호/보고서명/담당자 3컬럼 구성(담당자는 InstanceCode와 동일한 아바타 컴포넌트 재사용),
+쿼리 편집창에서 서비스 필드를 없애고 대신 보고서명/설명을 수정할 수 있도록 변경, 상세
+화면에 연관테이블(쿼리 SQL에서 FROM/JOIN 파싱)과 담당자 패널 추가.
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/.../pages/ReportProjectPage/ReportProjectListPage-kb-cust.tsx` | 연도 라벨/정렬 수정 |
+| `openmetadata-ui/.../pages/ReportProjectPage/ReportProjectYearDetailsPage-kb-cust.tsx` | 체크박스 제거, 3컬럼 재구성, 담당자 아바타 표시 |
+| `openmetadata-ui/.../pages/ReportProjectPage/ReportProjectQueryModal-kb-cust.tsx` | 서비스 필드 제거, 보고서명/설명 입력 추가 |
+| `openmetadata-ui/.../pages/ReportProjectPage/ReportProjectDetailsPage-kb-cust.tsx` | 연관테이블/담당자 패널 추가, 보고서명/설명 저장 로직 추가 |
+| `openmetadata-ui/.../utils/ReportProjectUtils-kb-cust.ts` | 연도 라벨/정렬, SQL 테이블명 파싱, 담당자 파싱 유틸 추가 |
+| `openmetadata-spec/.../entity/data/reportProject_kb_cust.json` | `reportQuery`에서 `service` 필드 제거 |
+
+## 신규 기능: Team 부서 연락처 표시 라인
+
+## v1 — Team 상세 화면에 부서 연락처 정보 표시
+
+Team의 extension(HRIS 이관 데이터)에 담긴 주소/팩스번호/브랜치코드/연락처를 상세 화면에
+표시.
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/.../components/Settings/Team/TeamDetails/TeamDetailsV1.tsx` | `TeamContactInfo` 컴포넌트 연결 |
+| `openmetadata-ui/.../pages/TeamsPage/TeamsPage.tsx` | Team 조회 시 `EXTENSION` 필드 포함하도록 수정 |
+
+## 신규 기능: 로컬 개발 환경 안정화 라인
+
+## v1 — MySQL 볼륨을 named volume으로 전환
+
+로컬 개발용 MySQL 데이터 디렉터리가 Windows 바인드 마운트(NTFS)로 잡혀 있어 InnoDB
+손상이 반복 발생 — Docker named volume(Docker Desktop VM 내부 리눅스 파일시스템)으로
+전환.
+
+| 파일 | 기능 |
+|---|---|
+| `docker/development/docker-compose.yml` | mysql 볼륨을 바인드 마운트에서 named volume(`mysql-data`)으로 변경 |

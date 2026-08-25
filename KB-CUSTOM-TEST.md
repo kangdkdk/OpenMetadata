@@ -608,3 +608,52 @@ grep 0건 확인 → `mvn -pl openmetadata-dist install` → dist jar에서도 g
 | 로그인 후 버전 업데이트/GitHub 팝업 제거 | 배포된 jar에서 관련 문자열 0건으로 최종 확인 |
 | 서버 컨테이너 healthy 및 API 응답 | 확인(`/api/v1/system/version` → 200) |
 
+### 2026-08-20 — 내부망 배포용 amd64 이미지 재빌드 (server/ingestion 최신화)
+
+이번 세션 커밋 7개(파일명 리네임, Column 숨김, User/Team extension, 프로필 인사정보,
+로그인 팝업 제거 등) 반영을 위해 `openmetadata-server`/`openmetadata-ingestion` amd64
+이미지를 재빌드. mysql/elasticsearch는 이번 세션 변경사항과 무관해(관련 코드 diff 없음)
+2026-08-11에 빌드해둔 기존 tar.gz를 그대로 재사용.
+
+빌드 중 `docker buildx build --platform linux/amd64`가 `exec format error`로 실패하는
+문제 발견 — 이 Windows ARM64 머신의 QEMU binfmt 에뮬레이션 핸들러가 (원인 불명, 이전
+세션 이후 리셋된 것으로 추정) 등록 안 되어 있었음. `docker run --privileged --rm
+tonistiigi/binfmt --install all`로 재설치 후 `docker run --rm --platform linux/amd64
+alpine:3 uname -m` → `x86_64` 확인 후 정상 진행.
+
+`ingestion` 이미지 코드젠 단계(`datamodel_generation.py`)에서 이전에 고친 `-kb-cust` →
+`_kb_cust` 파일명 하이픈 버그가 재발하지 않고 정상 통과함을 재확인(회귀 없음).
+
+| 이미지 | 상태 | 크기 |
+|---|---|---|
+| `openmetadata-server-1.13.3-amd64.tar.gz` | 재빌드 | 402 MB |
+| `ingestion-amd64.tar.gz` | 재빌드(`INGESTION_DEPENDENCY=mysql,postgres,mssql,oracle,hive,glue,db2`, 2026-08-11과 동일 커넥터 세트 유지) | 1.18 GB |
+| `mysql-amd64.tar.gz` | 재사용(무변경) | 163 MB |
+| `elasticsearch-9.3.0-amd64.tar.gz` | 재사용(무변경) | 724 MB |
+
+`docker image inspect`로 server/ingestion 둘 다 `amd64/linux` 아키텍처 확인, `gzip -t`로
+4개 tar.gz 전부 무결성 확인. `docker-images-amd64/`는 `.gitignore`에 등록되어 git
+미추적(로컬 전송용).
+
+### 2026-08-20 — ingestion 이미지에 vim 추가 후 amd64 재빌드
+
+`ingestion/Dockerfile.ci`의 apt-get 설치 목록에 `vim` 추가 후 `openmetadata-ingestion:amd64`
+재빌드. 이미지 엔트리포인트가 `airflow` CLI라 `docker run <image> which vim`은 airflow
+서브커맨드로 오인식되어 실패 — `--entrypoint which <image> vim`으로 재검증해 `/usr/bin/vim`
+설치 확인. `docker image inspect`로 `amd64/linux` 아키텍처 재확인, `gzip -t`로 재export한
+`ingestion-amd64.tar.gz` 무결성 확인.
+
+### 2026-08-24~25 — KB 브랜딩/InstanceCode·ReportProject 담당자 표시/Team 연락처 표시 검증
+
+로컬 MySQL InnoDB 손상 재발로 named volume 전환 후 클린 재시딩(서비스 11개, InstanceCode
+7건, ReportProject 4건, 테이블 22건), Elasticsearch 인덱스도 `drop-indexes`→`create-indexes`→
+`reindex --force`로 재생성 및 전체 재색인. `dataAsset` 검색 결과에 column 타입이 더 이상
+섞이지 않음을 재확인(과거 커밋 반영은 됐었으나 ES가 인덱스 생성 시점에만 alias를 반영하는
+구조라, 그 이후 재배포만으로는 기존 인덱스의 alias가 갱신되지 않았던 것 — 인덱스를 명시적으로
+재생성해야 실제 반영됨). KB 브랜딩(로고/파비콘/브랜드명/기본 로케일), InstanceCode 전역 검색
+자동완성, InstanceCode/ReportProject 목록·상세 화면의 담당자 아바타 표시, ReportProject 쿼리
+편집창(서비스 필드 제거 + 보고서명/설명 수정) 모두 실제 API 호출로 라운드트립 검증 완료.
+UI 재빌드 시 `openmetadata-ui/target`뿐 아니라 `openmetadata-ui/src/main/resources/ui/dist`도
+같이 지워야 stale 청크가 안 남는다는 점 재확인(target만 지우면 `process-resources` 단계가
+dist의 이전 빌드 결과를 먼저 복사해버림).
+

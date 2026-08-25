@@ -81,3 +81,16 @@
 | 버전 | 파일 | 기능 |
 |---|---|---|
 | v1 | `openmetadata-ui/.../pages/TableDetailsPageV1/TableIndexTab-kb-cust.tsx` | Schema 탭과 활동 피드 및 작업 탭 사이의 신규 "테이블 인덱스" 탭 — 인덱스별 컬럼을 rowSpan으로 묶어 표시 |
+
+## 신규 기능: InstanceCode 담당자 표시 라인
+
+| 버전 | 파일 | 기능 |
+|---|---|---|
+| v1 | `openmetadata-ui/.../utils/InstanceCodeOwnerUtils-kb-cust.ts` | InstanceCode description에 박아둔 "empId\|type" 담당자 목록/정의/표준구분 라벨 파싱 유틸 |
+| v1 | `openmetadata-ui/.../components/common/OwnerAvatarGroup/OwnerAvatarGroup-kb-cust.tsx` | 실제 User 아바타 + 팝오버로 담당자 목록을 보여주는 공용 컴포넌트(InstanceCode/ReportProject 공용, 개수 많으면 "더보기") |
+
+## 신규 기능: Team 부서 연락처 표시 라인
+
+| 버전 | 파일 | 기능 |
+|---|---|---|
+| v1 | `openmetadata-ui/.../components/Settings/Team/TeamDetails/TeamContactInfo-kb-cust.tsx` | Team 상세 화면에 extension의 주소/팩스번호/브랜치코드/연락처를 표시 |
