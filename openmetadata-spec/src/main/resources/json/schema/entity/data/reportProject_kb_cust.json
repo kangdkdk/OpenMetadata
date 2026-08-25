@@ -13,19 +13,15 @@
       "enum": ["Daily", "Weekly", "Monthly", "Adhoc"]
     },
     "reportQuery": {
-      "description": "A single saved query against a target service.",
+      "description": "A single saved query.",
       "type": "object",
       "properties": {
-        "service": {
-          "description": "Fully qualified name of the service this query targets.",
-          "type": "string"
-        },
         "query": {
           "description": "The saved SQL query text.",
           "type": "string"
         }
       },
-      "required": ["service", "query"],
+      "required": ["query"],
       "additionalProperties": false
     }
   },

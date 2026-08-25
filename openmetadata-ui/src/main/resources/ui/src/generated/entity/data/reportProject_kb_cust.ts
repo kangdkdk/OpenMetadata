@@ -145,17 +145,13 @@ export interface FieldChange {
 }
 
 /**
- * A single saved query against a target service.
+ * A single saved query.
  */
 export interface ReportQuery {
     /**
      * The saved SQL query text.
      */
     query: string;
-    /**
-     * Fully qualified name of the service this query targets.
-     */
-    service: string;
 }
 
 /**

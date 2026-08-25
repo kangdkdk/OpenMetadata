@@ -33,6 +33,7 @@ import { getReportProjects } from '../../rest/reportProjectAPI-kb-cust';
 import {
   getReportProjectYear,
   getReportProjectYearLabel,
+  UNKNOWN_REPORT_PROJECT_YEAR,
 } from '../../utils/ReportProjectUtils-kb-cust';
 import { getReportProjectYearPath } from '../../utils/RouterUtils';
 import { showErrorToast } from '../../utils/ToastUtils';
@@ -51,7 +52,16 @@ const groupByYear = (reportProjects: ReportProject[]): YearGroup[] => {
 
   return Array.from(yearMap.entries())
     .map(([year, count]) => ({ year, count }))
-    .sort((a, b) => b.year.localeCompare(a.year));
+    .sort((a, b) => {
+      if (a.year === UNKNOWN_REPORT_PROJECT_YEAR) {
+        return 1;
+      }
+      if (b.year === UNKNOWN_REPORT_PROJECT_YEAR) {
+        return -1;
+      }
+
+      return Number(b.year) - Number(a.year);
+    });
 };
 
 const ReportProjectListPage = () => {
@@ -145,7 +155,11 @@ const ReportProjectListPage = () => {
                 </Badge>
               </Box>
               <Typography size="text-md" weight="semibold">
-                {getReportProjectYearLabel(group.year, t('label.unknown'))}
+                {getReportProjectYearLabel(
+                  group.year,
+                  t('label.unknown'),
+                  t('label.year')
+                )}
               </Typography>
             </Box>
           </Card>

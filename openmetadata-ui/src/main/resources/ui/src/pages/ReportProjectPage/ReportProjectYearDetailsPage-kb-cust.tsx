@@ -19,6 +19,7 @@ import { useBreadcrumbs } from '../../components/common/atoms/navigation/useBrea
 import EntityListingTable from '../../components/common/EntityListingTable/EntityListingTable.component';
 import { ColumnDef } from '../../components/common/EntityListingTable/EntityListingTable.interface';
 import ErrorPlaceHolder from '../../components/common/ErrorWithPlaceholder/ErrorPlaceHolder';
+import OwnerAvatarGroup from '../../components/common/OwnerAvatarGroup/OwnerAvatarGroup-kb-cust';
 import { NO_DATA } from '../../constants/constants';
 import { ERROR_PLACEHOLDER_TYPE } from '../../enums/common.enum';
 import { EntityType } from '../../enums/entity.enum';
@@ -29,6 +30,7 @@ import { getEntityDetailsPath } from '../../utils/RouterUtils';
 import {
   getReportProjectYear,
   getReportProjectYearLabel,
+  parseReportProjectOwners,
 } from '../../utils/ReportProjectUtils-kb-cust';
 import { showErrorToast } from '../../utils/ToastUtils';
 
@@ -64,7 +66,7 @@ const ReportProjectYearDetailsPage = () => {
     items: [
       { name: t('label.report-project-plural-kb-cust'), url: '/reportProjects' },
       {
-        name: getReportProjectYearLabel(year, t('label.unknown')),
+        name: getReportProjectYearLabel(year, t('label.unknown'), t('label.year')),
         url: '',
         isActive: true,
       },
@@ -73,8 +75,9 @@ const ReportProjectYearDetailsPage = () => {
 
   const columns: ColumnDef[] = useMemo(
     () => [
-      { id: 'name', label: t('label.name') },
-      { id: 'displayName', label: t('label.display-name') },
+      { id: 'name', label: t('label.report-project-number-kb-cust') },
+      { id: 'displayName', label: t('label.report-project-name-kb-cust') },
+      { id: 'owners', label: t('label.owner-kb-cust') },
     ],
     [t]
   );
@@ -94,6 +97,8 @@ const ReportProjectYearDetailsPage = () => {
               {entity.displayName || NO_DATA}
             </Typography>
           );
+        case 'owners':
+          return <OwnerAvatarGroup owners={parseReportProjectOwners(entity)} />;
         default:
           return null;
       }
@@ -130,6 +135,7 @@ const ReportProjectYearDetailsPage = () => {
       <EntityListingTable
         ariaLabel={t('label.report-project-plural-kb-cust')}
         columns={columns}
+        disableSelection
         entities={reportProjects}
         loading={loading}
         renderCell={renderCell}

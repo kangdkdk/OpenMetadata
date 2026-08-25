@@ -23,33 +23,45 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ReportQuery } from '../../generated/entity/data/reportProject_kb_cust';
 
+export interface ReportProjectQuerySubmitValue {
+  displayName: string;
+  description: string;
+  query: ReportQuery;
+}
+
 interface ReportProjectQueryModalProps {
   open: boolean;
-  initialValue: ReportQuery | null;
+  initialDisplayName: string;
+  initialDescription: string;
+  initialQuery: ReportQuery | null;
   isSaving: boolean;
   onCancel: () => void;
-  onSubmit: (value: ReportQuery) => void;
+  onSubmit: (value: ReportProjectQuerySubmitValue) => void;
 }
 
 const ReportProjectQueryModal = ({
   open,
-  initialValue,
+  initialDisplayName,
+  initialDescription,
+  initialQuery,
   isSaving,
   onCancel,
   onSubmit,
 }: ReportProjectQueryModalProps) => {
   const { t } = useTranslation();
-  const [service, setService] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [description, setDescription] = useState('');
   const [query, setQuery] = useState('');
 
   useEffect(() => {
     if (open) {
-      setService(initialValue?.service ?? '');
-      setQuery(initialValue?.query ?? '');
+      setDisplayName(initialDisplayName);
+      setDescription(initialDescription);
+      setQuery(initialQuery?.query ?? '');
     }
-  }, [open, initialValue]);
+  }, [open, initialDisplayName, initialDescription, initialQuery]);
 
-  const isSubmitDisabled = !service.trim() || !query.trim();
+  const isSubmitDisabled = !displayName.trim() || !query.trim();
 
   return (
     <ModalOverlay
@@ -61,7 +73,7 @@ const ReportProjectQueryModal = ({
           showCloseButton
           data-testid="report-project-query-modal"
           title={
-            initialValue
+            initialQuery
               ? t('label.edit-entity', { entity: t('label.query') })
               : t('label.add-entity', { entity: t('label.query') })
           }
@@ -71,15 +83,28 @@ const ReportProjectQueryModal = ({
             <div className="tw:flex tw:flex-col tw:gap-4">
               <div className="tw:flex tw:flex-col tw:gap-1.5">
                 <Typography size="text-sm" weight="medium">
-                  {t('label.service')}
+                  {t('label.report-project-name-kb-cust')}
                 </Typography>
                 <Input
-                  aria-label={t('label.service')}
-                  data-testid="query-service-input"
+                  aria-label={t('label.report-project-name-kb-cust')}
+                  data-testid="report-project-display-name-input"
                   isDisabled={isSaving}
-                  placeholder={t('label.service')}
-                  value={service}
-                  onChange={setService}
+                  placeholder={t('label.report-project-name-kb-cust')}
+                  value={displayName}
+                  onChange={setDisplayName}
+                />
+              </div>
+              <div className="tw:flex tw:flex-col tw:gap-1.5">
+                <Typography size="text-sm" weight="medium">
+                  {t('label.description')}
+                </Typography>
+                <TextArea
+                  aria-label={t('label.description')}
+                  data-testid="report-project-description-input"
+                  isDisabled={isSaving}
+                  rows={3}
+                  value={description}
+                  onChange={setDescription}
                 />
               </div>
               <div className="tw:flex tw:flex-col tw:gap-1.5">
@@ -111,7 +136,13 @@ const ReportProjectQueryModal = ({
                 isDisabled={isSubmitDisabled}
                 isLoading={isSaving}
                 size="sm"
-                onPress={() => onSubmit({ service: service.trim(), query })}>
+                onPress={() =>
+                  onSubmit({
+                    displayName: displayName.trim(),
+                    description: description.trim(),
+                    query: { query },
+                  })
+                }>
                 {t('label.save')}
               </Button>
             </div>

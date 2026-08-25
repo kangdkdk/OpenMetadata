@@ -19,29 +19,38 @@ import {
 import { Edit01 } from '@untitledui/icons';
 import { AxiosError } from 'axios';
 import { compare } from 'fast-json-patch';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import CopyToClipboardButton from '../../components/common/CopyToClipboardButton/CopyToClipboardButton';
 import ErrorPlaceHolder from '../../components/common/ErrorWithPlaceholder/ErrorPlaceHolder';
 import Loader from '../../components/common/Loader/Loader';
+import OwnerAvatarGroup from '../../components/common/OwnerAvatarGroup/OwnerAvatarGroup-kb-cust';
 import RichTextEditorPreviewerV1 from '../../components/common/RichTextEditor/RichTextEditorPreviewerV1';
 import SchemaEditor from '../../components/Database/SchemaEditor/SchemaEditor';
 import PageHeader from '../../components/PageHeader/PageHeader.component';
 import { NO_DATA_PLACEHOLDER } from '../../constants/constants';
 import { CSMode } from '../../enums/codemirror.enum';
 import { ERROR_PLACEHOLDER_TYPE } from '../../enums/common.enum';
-import {
-  ReportProject,
-  ReportQuery,
-} from '../../generated/entity/data/reportProject_kb_cust';
+import { EntityType } from '../../enums/entity.enum';
+import { ReportProject } from '../../generated/entity/data/reportProject_kb_cust';
+import { Table } from '../../generated/entity/data/table';
 import { useFqn } from '../../hooks/useFqn';
 import {
   getReportProjectByFqn,
   patchReportProject,
 } from '../../rest/reportProjectAPI-kb-cust';
+import { getTableList } from '../../rest/tableAPI';
 import { getEntityName } from '../../utils/EntityNameUtils';
+import entityUtilClassBase from '../../utils/EntityUtilClassBase';
+import {
+  parseReportProjectOwners,
+  parseTableNamesFromQuery,
+} from '../../utils/ReportProjectUtils-kb-cust';
 import { showErrorToast, showSuccessToast } from '../../utils/ToastUtils';
-import ReportProjectQueryModal from './ReportProjectQueryModal-kb-cust';
+import ReportProjectQueryModal, {
+  ReportProjectQuerySubmitValue,
+} from './ReportProjectQueryModal-kb-cust';
 
 const ReportProjectDetailsPage = () => {
   const { t } = useTranslation();
@@ -51,6 +60,9 @@ const ReportProjectDetailsPage = () => {
   const [isError, setIsError] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isQueryModalOpen, setIsQueryModalOpen] = useState<boolean>(false);
+  const [relatedTables, setRelatedTables] = useState<Table[]>([]);
+  const [relatedTablesLoading, setRelatedTablesLoading] =
+    useState<boolean>(true);
 
   const fetchReportProject = useCallback(async () => {
     setIsLoading(true);
@@ -71,7 +83,40 @@ const ReportProjectDetailsPage = () => {
     }
   }, [reportProjectFqn]);
 
-  const handleQuerySubmit = async (value: ReportQuery) => {
+  const queryText = reportProject?.queries?.[0]?.query;
+
+  useEffect(() => {
+    const fetchRelatedTables = async () => {
+      const tableNames = parseTableNamesFromQuery(queryText);
+      if (tableNames.length === 0) {
+        setRelatedTables([]);
+        setRelatedTablesLoading(false);
+
+        return;
+      }
+      setRelatedTablesLoading(true);
+      try {
+        const response = await getTableList({ limit: 200 });
+        const nameSet = new Set(tableNames);
+        setRelatedTables(
+          response.data.filter((table) => nameSet.has(table.name.toLowerCase()))
+        );
+      } catch (error) {
+        showErrorToast(error as AxiosError);
+      } finally {
+        setRelatedTablesLoading(false);
+      }
+    };
+
+    fetchRelatedTables();
+  }, [queryText]);
+
+  const owners = useMemo(
+    () => (reportProject ? parseReportProjectOwners(reportProject) : []),
+    [reportProject]
+  );
+
+  const handleQuerySubmit = async (value: ReportProjectQuerySubmitValue) => {
     if (!reportProject) {
       return;
     }
@@ -79,7 +124,9 @@ const ReportProjectDetailsPage = () => {
     try {
       const jsonPatch = compare(reportProject, {
         ...reportProject,
-        queries: [value],
+        displayName: value.displayName,
+        description: value.description,
+        queries: [value.query],
       });
       const updated = await patchReportProject(
         reportProject.id ?? '',
@@ -88,7 +135,7 @@ const ReportProjectDetailsPage = () => {
       setReportProject(updated);
       showSuccessToast(
         t('message.entity-saved-successfully', {
-          entity: t('label.query'),
+          entity: t('label.report-project-kb-cust'),
         })
       );
       setIsQueryModalOpen(false);
@@ -173,52 +220,101 @@ const ReportProjectDetailsPage = () => {
         </div>
       </Card>
 
-      <Card className="tw:p-5">
-        <Box align="center" className="tw:mb-3" justify="between">
-          <Typography size="text-md" weight="semibold">
-            {t('label.query')}
-          </Typography>
-          {query && (
-            <Box className="tw:gap-1">
-              <CopyToClipboardButton copyText={query.query} />
-              <Button
-                color="tertiary"
-                data-testid="edit-query-button"
-                iconLeading={Edit01}
-                size="sm"
-                onClick={() => setIsQueryModalOpen(true)}>
-                {t('label.edit')}
-              </Button>
+      <div className="tw:grid tw:grid-cols-1 tw:gap-4 tw:lg:grid-cols-3">
+        <div className="tw:lg:col-span-2">
+          <Card className="tw:p-5">
+            <Box align="center" className="tw:mb-3" justify="between">
+              <Typography size="text-md" weight="semibold">
+                {t('label.query')}
+              </Typography>
+              {query && (
+                <Box className="tw:gap-1">
+                  <CopyToClipboardButton copyText={query.query} />
+                  <Button
+                    color="tertiary"
+                    data-testid="edit-query-button"
+                    iconLeading={Edit01}
+                    size="sm"
+                    onClick={() => setIsQueryModalOpen(true)}>
+                    {t('label.edit')}
+                  </Button>
+                </Box>
+              )}
             </Box>
-          )}
-        </Box>
-        {query ? (
-          <SchemaEditor
-            className="report-project-query-editor-kb-cust"
-            data-testid="query-display"
-            mode={{ name: CSMode.SQL }}
-            options={{ readOnly: 'nocursor' }}
-            showCopyButton={false}
-            value={query.query}
-          />
-        ) : (
-          <Box align="center" className="tw:gap-3" direction="col">
-            <Typography className="tw:text-tertiary" size="text-sm">
-              {t('label.no-entity', { entity: t('label.query') })}
+            {query ? (
+              <SchemaEditor
+                className="report-project-query-editor-kb-cust"
+                data-testid="query-display"
+                mode={{ name: CSMode.SQL }}
+                options={{ readOnly: 'nocursor' }}
+                showCopyButton={false}
+                value={query.query}
+              />
+            ) : (
+              <Box align="center" className="tw:gap-3" direction="col">
+                <Typography className="tw:text-tertiary" size="text-sm">
+                  {t('label.no-entity', { entity: t('label.query') })}
+                </Typography>
+                <Button
+                  color="primary"
+                  data-testid="add-query-button"
+                  size="sm"
+                  onClick={() => setIsQueryModalOpen(true)}>
+                  {t('label.add-entity', { entity: t('label.query') })}
+                </Button>
+              </Box>
+            )}
+          </Card>
+        </div>
+        <Box direction="col" gap={4}>
+          <Card className="tw:p-5">
+            <Typography className="tw:mb-3" size="text-md" weight="semibold">
+              {t('label.related-table-plural-kb-cust')}
             </Typography>
-            <Button
-              color="primary"
-              data-testid="add-query-button"
-              size="sm"
-              onClick={() => setIsQueryModalOpen(true)}>
-              {t('label.add-entity', { entity: t('label.query') })}
-            </Button>
-          </Box>
-        )}
-      </Card>
+            {relatedTablesLoading ? (
+              <Loader size="small" />
+            ) : relatedTables.length === 0 ? (
+              <Typography className="tw:text-tertiary" size="text-sm">
+                {t('message.no-data-message', {
+                  entity: t('label.related-table-plural-kb-cust'),
+                })}
+              </Typography>
+            ) : (
+              <Box direction="col" gap={3}>
+                {relatedTables.map((table) => (
+                  <Link
+                    className="no-underline"
+                    key={table.id}
+                    to={entityUtilClassBase.getEntityLink(
+                      EntityType.TABLE,
+                      table.fullyQualifiedName ?? ''
+                    )}>
+                    <Typography
+                      className="tw:text-brand"
+                      size="text-sm"
+                      weight="medium">
+                      {table.displayName || table.name}
+                    </Typography>
+                  </Link>
+                ))}
+              </Box>
+            )}
+          </Card>
+          <Card className="tw:p-5">
+            <Typography className="tw:mb-3" size="text-md" weight="semibold">
+              {t('label.owner-kb-cust')}
+            </Typography>
+            <OwnerAvatarGroup owners={owners} />
+          </Card>
+        </Box>
+      </div>
 
       <ReportProjectQueryModal
-        initialValue={query ?? null}
+        initialDescription={reportProject.description ?? ''}
+        initialDisplayName={
+          reportProject.displayName ?? reportProject.name
+        }
+        initialQuery={query ?? null}
         isSaving={isSaving}
         open={isQueryModalOpen}
         onCancel={() => setIsQueryModalOpen(false)}
