@@ -29,6 +29,7 @@ import { ReactComponent as DriveIcon } from '../assets/svg/ic-drive-service.svg'
 import { ReactComponent as FileIcon } from '../assets/svg/ic-file.svg';
 import { ReactComponent as MlModelIcon } from '../assets/svg/ic-ml-model.svg';
 import { ReactComponent as PipelineIcon } from '../assets/svg/ic-pipeline.svg';
+import { ReactComponent as QueryIcon } from '../assets/svg/query-colored-new.svg';
 import { ReactComponent as SchemaIcon } from '../assets/svg/ic-schema.svg';
 import { ReactComponent as SearchIcon } from '../assets/svg/ic-search.svg';
 import { ReactComponent as SpreadsheetIcon } from '../assets/svg/ic-spreadsheet.svg';
@@ -391,37 +392,16 @@ class SearchClassBase {
         ],
       },
       {
-        title: t('label.kb-custom-entities'),
-        key: 'KbCustomEntities',
-        data: {
-          isRoot: true,
-          childEntities: [EntityType.INSTANCE_CODE, EntityType.REPORT_PROJECT],
-        },
-        icon: GovernIcon,
-        children: [
-          {
-            title: t('label.instance-code-plural-kb-cust'),
-            key: EntityType.INSTANCE_CODE,
-            isLeaf: true,
-            icon: TableIcon,
-            data: {
-              entityType: EntityType.INSTANCE_CODE,
-              isStatic: true,
-              dataId: 'InstanceCodes',
-            },
-          },
-          {
-            title: t('label.report-project-plural-kb-cust'),
-            key: EntityType.REPORT_PROJECT,
-            isLeaf: true,
-            icon: ChartIcon,
-            data: {
-              entityType: EntityType.REPORT_PROJECT,
-              isStatic: true,
-              dataId: 'ReportProjects',
-            },
-          },
-        ],
+        title: t('label.instance-code-plural-kb-cust'),
+        key: SearchIndex.INSTANCE_CODE,
+        data: { isRoot: true, childEntities: [EntityType.INSTANCE_CODE] },
+        icon: TableIcon,
+      },
+      {
+        title: t('label.report-project-plural-kb-cust'),
+        key: SearchIndex.REPORT_PROJECT,
+        data: { isRoot: true, childEntities: [EntityType.REPORT_PROJECT] },
+        icon: QueryIcon,
       },
     ];
   }
@@ -625,7 +605,7 @@ class SearchClassBase {
         sortingFields: tagSortingFields,
         sortField: TAGS_INITIAL_SORT_FIELD,
         path: ExplorePageTabs.REPORT_PROJECT,
-        icon: ChartIcon,
+        icon: QueryIcon,
       },
     };
   }

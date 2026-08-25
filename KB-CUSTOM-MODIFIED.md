@@ -14,6 +14,7 @@
 | v3 | `custom/1.13.3-v1-database-connectors-add` | DB2 UDB 데이터베이스 서비스 커넥터 추가 |
 | v1 | `custom/1.13.3-v2-instance-code-report-project-add` | InstanceCode / ReportProject 신규 엔티티 추가 |
 | v2 | `custom/1.13.3-v2-instance-code-report-project-add` | InstanceCode / ReportProject Explore 탐색창(트리) 노출 |
+| v3 | `custom/1.13.3-v2-instance-code-report-project-add` | Explore 트리 구조를 Databases와 동일 레벨로 변경 + ReportProject 아이콘 교체 |
 
 ## v1 — Sybase 데이터베이스 서비스 커넥터 추가
 
@@ -77,3 +78,14 @@
 | `openmetadata-ui/.../context/PermissionProvider/PermissionProvider.interface.ts` | `ResourceEntity.INSTANCE_CODE`/`REPORT_PROJECT` 추가 |
 | `openmetadata-ui/.../constants/mockTourData.constants.ts` | 투어 모크 카운트 객체에 누락되어 있던 `chart`/`tableColumn`과 신규 2개 엔티티 추가 |
 | `openmetadata-ui/.../locale/languages/*.json` (19개 파일) | `yarn i18n`으로 라벨 키 동기화 |
+
+## v3 — Explore 트리 구조를 Databases와 동일 레벨로 변경 + ReportProject 아이콘 교체
+
+v2의 "KB Custom Entities" 상위 래퍼 노드를 제거하고, `Database`/`Dashboard`/`Pipeline`과
+동일한 패턴(각각 독립된 `isRoot: true` 단일 노드)으로 변경 — InstanceCode, ReportProject가
+각자 최상위 카테고리로 노출됨. ReportProject 아이콘을 `ChartIcon`에서 설정 메뉴에서 이미
+"Query" 개념으로 쓰이는 `query-colored-new.svg`(`QueryIcon`)로 교체.
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/.../utils/SearchClassBase.ts` | 래퍼 노드 제거, InstanceCode/ReportProject를 독립 루트 노드로 변경, ReportProject 아이콘을 QueryIcon으로 교체 |

@@ -69,6 +69,18 @@ Docker 이미지는 기존에 알려진 `apt-get` 실패로 이번 검증 범위
 세션 이전(InstanceCode/ReportProject 최초 도입) 히스토리에 남아있던 "API·검색은 되는데
 트리에 안 보였다"는 문제의 실제 원인이 이것일 가능성이 높음.
 
+### 2026-08-10 — v3: Explore 트리 구조 변경(Databases와 동일 레벨) + ReportProject 아이콘 교체
+
+사용자 피드백 반영: "KB Custom Entities" 상위 래퍼 노드를 없애고 InstanceCode/ReportProject를
+Database/Dashboard/Pipeline과 동일하게 각자 독립된 최상위 `isRoot` 노드로 변경, ReportProject
+아이콘을 ChartIcon → QueryIcon(`query-colored-new.svg`)으로 교체. `npx tsc --noEmit` 415건
+(변동 없음, 회귀 없음). `vite build` → `mvn install`(ui) → `mvn package`(dist) → Docker
+이미지 재빌드 → 재기동까지 정상 완료. 배포된 번들 해시가 로컬 빌드와 일치함을 `md5sum`으로
+재확인, 번들 내 `kb-custom-entities` 문자열이 더 이상 없고 `instanceCode`/`reportProject`는
+여전히 포함됨을 grep으로 확인. `GET /api/v1/instanceCodes`·`/v1/reportProjects` 각 5건 데이터
+유지 확인, `index=dataAsset` 집계에서도 두 엔티티 모두 `doc_count: 5` 정상 유지. 이번에도
+브라우저 자동화 도구가 없어 최종 시각 확인은 사용자에게 위임.
+
 ## Windows 로컬 환경에서 재현할 때 필요한 사전 준비
 
 이 저장소를 Windows에서 처음 셋업하면 아래 환경 이슈를 만날 수 있습니다.
