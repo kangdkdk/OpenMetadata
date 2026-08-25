@@ -57,3 +57,9 @@
 | v7 | `openmetadata-ui/.../pages/ReportProjectPage/ReportProjectListPage-kb-cust.tsx` | 연도별 카드 목록 |
 | v7 | `openmetadata-ui/.../pages/ReportProjectPage/ReportProjectYearDetailsPage-kb-cust.tsx` | 연도 내 ReportProject 목록 |
 | v7 | `openmetadata-ui/.../utils/ReportProjectUtils-kb-cust.ts` | `updatedAt` 기반 연도 추출 유틸 |
+
+## 신규 기능: 테이블 컬럼 메타데이터 확장 라인
+
+| 버전 | 파일 | 기능 |
+|---|---|---|
+| v1 | `openmetadata-ui/.../components/common/CustomPropertyTable/InstanceCodePopoverValue-kb-cust.tsx` | 컬럼 목록/커스텀 속성 패널에서 인스턴스명 클릭 시 InstanceCode 상세를 보여주는 팝오버 |

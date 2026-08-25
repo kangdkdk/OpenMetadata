@@ -139,6 +139,48 @@ InstanceCode/ReportProject 샘플 데이터 5+5건 유지 재확인. 브라우�
 카드 클릭 → 그룹/연도 페이지 이동 → 표/목록 렌더링까지 이어지는 실제 흐름은 사용자 확인
 필요.
 
+### 2026-08-10 — v1: 테이블 Schema 탭 컬럼 목록 16개 필드 추가 (Custom Properties)
+
+`tableColumn` Type(id `de29fcea-d1c4-4cd8-af33-f0a3e3c897eb`)에 Custom Property 11개를
+`PUT /metadata/types/{id}`로 생성 — 처음엔 `lastModifiedDateTime`(dateTime-cp)에
+`customPropertyConfig.config` 없이 보내 `Invalid dateTime format must have Config
+populated with format.` 400을 받았고, enum 2개(`infoType`/`isEncrypted`)는 값을 문자열로
+보내 `Custom field infoType has invalid JSON [: string found, array expected]` 400을
+받음 — 각각 포맷 문자열(`yyyy-MM-dd'T'HH:mm:ss`)과 배열(`["값"]`)로 고쳐서 재시도 후 11개
+전부 200 확인. `GET tableColumn?fields=customProperties`로 최종 11개 존재 및 한글
+displayName이 깨지지 않고 저장됐는지 확인(터미널 출력은 cp949 콘솔 탓에 깨져 보였지만
+파일로 저장 후 UTF-8로 다시 읽어 실제 저장값은 정상임을 확인).
+
+프런트: `npx tsc --noEmit` 베이스라인과 동일 에러 수(우리 파일 관련 0건), `npx eslint`
+0건, `yarn organize-imports:cli` + `npx prettier --write`로 포맷 정리, `yarn i18n`으로
+17개 로케일 전체에 신규 라벨 11개 동기화 확인(최초 실행 시 `Missing keys` 없이 조용히
+끝나 의심했으나 `--check` 모드로 실제로는 아직 안 들어갔음을 확인하고 재실행해서 정상
+반영됨 — sync-i18n 첫 실행이 이유 없이 no-op 처리된 케이스, 재현 원인 불명).
+
+`vite build` → `mvn install`(ui) → `mvn package`(dist) → Docker 이미지 재빌드 → 재기동,
+배포된 jar 내 `assets/assets/index-*.js`의 md5가 로컬 `dist/`와 완전히 일치함을 확인하고
+그 안에 `attribute-name-kb-cust` 문자열이 실제로 포함돼 있음을 grep으로 확인(번들 최신화
+검증).
+
+**컬럼 extension 저장 CRUD 검증**: 샘플 테이블 `customers`의 `name` 컬럼에
+`PUT /columns/name/{fqn}?entityType=table`로 11개 속성 값 전부(인스턴스명은 실제
+InstanceCode 1건에 링크) 세팅 → `GET /tables/name/{fqn}/columns?fields=extension`으로
+프런트가 쓰는 것과 동일한 API를 통해 값이 정상 반환되는지 확인. 이 과정에서 인스턴스명
+entityReference가 `id`/`type`만 담고 `fullyQualifiedName`/`name`은 채워지지 않는다는 걸
+실측으로 발견 — 최초 구현한 `getInstanceCodeByFqn` 기반 지연 조회(호버 시 fqn으로 조회)로는
+동작하지 않았을 것이므로, `getInstanceCodeById` 신규 함수를 추가해 컬럼 마운트 시 `id`
+기준으로 즉시 조회하도록 수정하고 재빌드/재배포까지 다시 수행.
+
+서버 재기동 후 서버가 `healthy` 상태로 재기동됐고, `tableColumn` 커스텀 속성 11개와
+방금 세팅한 컬럼 extension 값이 재기동 후에도 그대로 유지됨을 재확인(MySQL 데이터라
+애플리케이션 계층 재배포와 무관하게 보존됨). `skills/kb-seed-sample-data/scripts/
+seed_sample_data.py column-custom-properties` 서브커맨드를 이미 속성이 존재하는 상태에서
+재실행해 11개 전부 `skip` 처리되는 멱등성 확인.
+
+브라우저 자동화 도구가 없어 Schema 탭에서 실제 컬럼 관리 드롭다운을 열어 신규 컬럼을
+켜고 인스턴스명 팝오버에 마우스를 올려보는 것까지는 이번 세션에서 직접 확인하지 못함 —
+API 레벨 검증만 완료, 화면상 최종 확인은 사용자 필요.
+
 ## Windows 로컬 환경에서 재현할 때 필요한 사전 준비
 
 이 저장소를 Windows에서 처음 셋업하면 아래 환경 이슈를 만날 수 있습니다.

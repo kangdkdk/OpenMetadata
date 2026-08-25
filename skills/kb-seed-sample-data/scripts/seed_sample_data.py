@@ -36,6 +36,27 @@ class OMClient:
             r.raise_for_status()
         return r.json()
 
+    def get(self, path: str) -> dict:
+        r = requests.get(
+            f"{self.base_url}/{path}",
+            headers={"Authorization": f"Bearer {self.token}"},
+        )
+        if r.status_code >= 300:
+            print(f"FAIL GET {path}: {r.status_code} {r.text[:500]}", file=sys.stderr)
+            r.raise_for_status()
+        return r.json()
+
+    def put(self, path: str, payload: dict) -> dict:
+        r = requests.put(
+            f"{self.base_url}/{path}",
+            json=payload,
+            headers={"Authorization": f"Bearer {self.token}", "Content-Type": "application/json"},
+        )
+        if r.status_code >= 300:
+            print(f"FAIL PUT {path}: {r.status_code} {r.text[:500]}", file=sys.stderr)
+            r.raise_for_status()
+        return r.json()
+
 
 DEFAULT_TABLE_DEFS = [
     ("orders", [
@@ -128,6 +149,71 @@ def seed_report_projects(client: OMClient, target_service: str, count: int):
     print(f"  {count} ReportProject entries created")
 
 
+COLUMN_CUSTOM_PROPERTIES = [
+    {"name": "attributeName", "displayName": "속성명", "description": "속성명 (Attribute Name)", "fieldType": "string"},
+    {
+        "name": "instanceCodeName",
+        "displayName": "인스턴스명",
+        "description": "연결된 인스턴스 코드 (Instance Code)",
+        "fieldType": "entityReference",
+        "config": {"entityTypes": ["instanceCode"]},
+    },
+    {
+        "name": "infoType",
+        "displayName": "인포타입",
+        "description": "정보 유형 분류 (Info Type)",
+        "fieldType": "enum",
+        "config": {"values": ["일반정보", "개인정보", "민감정보", "기타"], "multiSelect": False},
+    },
+    {"name": "variableName", "displayName": "변수명", "description": "변수명 (Variable Name)", "fieldType": "string"},
+    {"name": "columnDefinitionKbCust", "displayName": "컬럼정의", "description": "컬럼 정의 (Column Definition)", "fieldType": "markdown"},
+    {
+        "name": "lastModifiedDateTime",
+        "displayName": "최종변경일시",
+        "description": "최종 변경 일시 (Last Modified Date Time)",
+        "fieldType": "dateTime-cp",
+        "config": "yyyy-MM-dd'T'HH:mm:ss",
+    },
+    {"name": "businessRule", "displayName": "업무규칙", "description": "업무 규칙 (Business Rule)", "fieldType": "markdown"},
+    {"name": "encryptionTransformInfo", "displayName": "암호화변환정보", "description": "암호화 변환 정보 (Encryption Transform Info)", "fieldType": "string"},
+    {
+        "name": "isEncrypted",
+        "displayName": "암호화여부",
+        "description": "암호화 여부 (Is Encrypted)",
+        "fieldType": "enum",
+        "config": {"values": ["Y", "N"], "multiSelect": False},
+    },
+    {"name": "userDefinedColumnDescription", "displayName": "사용자 정의 컬럼설명", "description": "사용자 정의 컬럼 설명 (User Defined Column Description)", "fieldType": "markdown"},
+    {"name": "classificationItem", "displayName": "분류체계 항목", "description": "분류체계 항목 (Classification Item)", "fieldType": "string"},
+]
+
+
+def seed_column_custom_properties(client: OMClient):
+    field_types = client.get("metadata/types?category=field&limit=50")["data"]
+    field_type_ids = {t["name"]: t["id"] for t in field_types}
+
+    table_column_type = client.get("metadata/types/name/tableColumn?fields=customProperties")
+    existing_names = {p["name"] for p in table_column_type.get("customProperties", [])}
+
+    created = 0
+    for prop in COLUMN_CUSTOM_PROPERTIES:
+        if prop["name"] in existing_names:
+            print(f"  skip {prop['name']}: already exists")
+            continue
+        body = {
+            "name": prop["name"],
+            "displayName": prop["displayName"],
+            "description": prop["description"],
+            "propertyType": {"id": field_type_ids[prop["fieldType"]], "type": "type"},
+        }
+        if "config" in prop:
+            body["customPropertyConfig"] = {"config": prop["config"]}
+        client.put(f"metadata/types/{table_column_type['id']}", body)
+        created += 1
+        print(f"  created {prop['name']} ({prop['fieldType']})")
+    print(f"  {created} column custom properties created, {len(existing_names)} already present")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base-url", default=DEFAULT_BASE_URL)
@@ -156,6 +242,11 @@ def main():
     p_rp.add_argument("--target-service", required=True, help="Fully qualified service name the sample queries reference")
     p_rp.add_argument("--count", type=int, default=2)
 
+    sub.add_parser(
+        "column-custom-properties",
+        help="Idempotently create the tableColumn custom properties for the Schema tab extra fields",
+    )
+
     args = parser.parse_args()
     client = OMClient(args.base_url, args.email, args.password_b64)
 
@@ -169,6 +260,8 @@ def main():
         seed_instance_codes(client, args.code_group, args.code_group_name, args.count)
     elif args.command == "report-projects":
         seed_report_projects(client, args.target_service, args.count)
+    elif args.command == "column-custom-properties":
+        seed_column_custom_properties(client)
 
 
 if __name__ == "__main__":

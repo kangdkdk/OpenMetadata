@@ -55,12 +55,14 @@ import {
 import { EntityType } from '../../../enums/entity.enum';
 import {
   Column,
+  Constraint,
   Table as TableType,
 } from '../../../generated/entity/data/table';
 import {
   Suggestion,
   SuggestionType,
 } from '../../../generated/entity/feed/suggestion';
+import { EntityReference } from '../../../generated/entity/type';
 import { TestSummary } from '../../../generated/tests/testCase';
 import { TagSource } from '../../../generated/type/schema';
 import { TagLabel } from '../../../generated/type/tagLabel';
@@ -101,9 +103,11 @@ import {
 } from '../../../utils/TableUtils';
 import { showErrorToast } from '../../../utils/ToastUtils';
 import CopyLinkButton from '../../common/CopyLinkButton/CopyLinkButton';
+import InstanceCodePopoverValue from '../../common/CustomPropertyTable/InstanceCodePopoverValue-kb-cust';
 import { EntityAttachmentProvider } from '../../common/EntityDescription/EntityAttachmentProvider/EntityAttachmentProvider';
 import FilterTablePlaceHolder from '../../common/ErrorWithPlaceholder/FilterTablePlaceHolder';
 import { PagingHandlerParams } from '../../common/NextPrevious/NextPrevious.interface';
+import RichTextEditorPreviewerV1 from '../../common/RichTextEditor/RichTextEditorPreviewerV1';
 import Table from '../../common/Table/Table';
 import TestCaseStatusSummaryIndicator from '../../common/TestCaseStatusSummaryIndicator/TestCaseStatusSummaryIndicator.component';
 import { useGenericContext } from '../../Customization/GenericProvider/GenericProvider';
@@ -780,6 +784,123 @@ const SchemaTable = () => {
     [testCaseCounts]
   );
 
+  const renderExtensionText = useCallback(
+    (propertyName: string) => (_: unknown, record: Column) => {
+      const value = record.extension?.[propertyName];
+
+      return isEmpty(value) ? NO_DATA_PLACEHOLDER : String(value);
+    },
+    []
+  );
+
+  const renderExtensionMarkdown = useCallback(
+    (propertyName: string) => (_: unknown, record: Column) => {
+      const value = record.extension?.[propertyName];
+
+      return isEmpty(value) ? (
+        NO_DATA_PLACEHOLDER
+      ) : (
+        <RichTextEditorPreviewerV1 markdown={String(value)} />
+      );
+    },
+    []
+  );
+
+  const renderInstanceCodeName = useCallback((_: unknown, record: Column) => {
+    const value = record.extension?.instanceCodeName as
+      | EntityReference
+      | undefined;
+
+    return isEmpty(value) ? (
+      NO_DATA_PLACEHOLDER
+    ) : (
+      <InstanceCodePopoverValue item={value as EntityReference} />
+    );
+  }, []);
+
+  const columnCustomPropertyColumns: ColumnsType<Column> = useMemo(
+    () => [
+      {
+        title: t('label.attribute-name-kb-cust'),
+        dataIndex: TABLE_COLUMNS_KEYS.ATTRIBUTE_NAME,
+        key: TABLE_COLUMNS_KEYS.ATTRIBUTE_NAME,
+        width: 150,
+        render: renderExtensionText('attributeName'),
+      },
+      {
+        title: t('label.instance-code-name-kb-cust'),
+        dataIndex: TABLE_COLUMNS_KEYS.INSTANCE_CODE_NAME,
+        key: TABLE_COLUMNS_KEYS.INSTANCE_CODE_NAME,
+        width: 180,
+        render: renderInstanceCodeName,
+      },
+      {
+        title: t('label.info-type-kb-cust'),
+        dataIndex: TABLE_COLUMNS_KEYS.INFO_TYPE,
+        key: TABLE_COLUMNS_KEYS.INFO_TYPE,
+        width: 130,
+        render: renderExtensionText('infoType'),
+      },
+      {
+        title: t('label.variable-name-kb-cust'),
+        dataIndex: TABLE_COLUMNS_KEYS.VARIABLE_NAME,
+        key: TABLE_COLUMNS_KEYS.VARIABLE_NAME,
+        width: 150,
+        render: renderExtensionText('variableName'),
+      },
+      {
+        title: t('label.column-definition-kb-cust'),
+        dataIndex: TABLE_COLUMNS_KEYS.COLUMN_DEFINITION,
+        key: TABLE_COLUMNS_KEYS.COLUMN_DEFINITION,
+        width: 250,
+        render: renderExtensionMarkdown('columnDefinitionKbCust'),
+      },
+      {
+        title: t('label.last-modified-date-time-kb-cust'),
+        dataIndex: TABLE_COLUMNS_KEYS.LAST_MODIFIED_DATE_TIME,
+        key: TABLE_COLUMNS_KEYS.LAST_MODIFIED_DATE_TIME,
+        width: 180,
+        render: renderExtensionText('lastModifiedDateTime'),
+      },
+      {
+        title: t('label.business-rule-kb-cust'),
+        dataIndex: TABLE_COLUMNS_KEYS.BUSINESS_RULE,
+        key: TABLE_COLUMNS_KEYS.BUSINESS_RULE,
+        width: 250,
+        render: renderExtensionMarkdown('businessRule'),
+      },
+      {
+        title: t('label.encryption-transform-info-kb-cust'),
+        dataIndex: TABLE_COLUMNS_KEYS.ENCRYPTION_TRANSFORM_INFO,
+        key: TABLE_COLUMNS_KEYS.ENCRYPTION_TRANSFORM_INFO,
+        width: 200,
+        render: renderExtensionText('encryptionTransformInfo'),
+      },
+      {
+        title: t('label.is-encrypted-kb-cust'),
+        dataIndex: TABLE_COLUMNS_KEYS.IS_ENCRYPTED,
+        key: TABLE_COLUMNS_KEYS.IS_ENCRYPTED,
+        width: 120,
+        render: renderExtensionText('isEncrypted'),
+      },
+      {
+        title: t('label.user-defined-column-description-kb-cust'),
+        dataIndex: TABLE_COLUMNS_KEYS.USER_DEFINED_COLUMN_DESCRIPTION,
+        key: TABLE_COLUMNS_KEYS.USER_DEFINED_COLUMN_DESCRIPTION,
+        width: 250,
+        render: renderExtensionMarkdown('userDefinedColumnDescription'),
+      },
+      {
+        title: t('label.classification-item-kb-cust'),
+        dataIndex: TABLE_COLUMNS_KEYS.CLASSIFICATION_ITEM,
+        key: TABLE_COLUMNS_KEYS.CLASSIFICATION_ITEM,
+        width: 180,
+        render: renderExtensionText('classificationItem'),
+      },
+    ],
+    [t, renderExtensionText, renderExtensionMarkdown, renderInstanceCodeName]
+  );
+
   const columns: ColumnsType<Column> = useMemo(
     () => [
       {
@@ -887,6 +1008,25 @@ const SchemaTable = () => {
         width: 120,
         render: renderDataQuality,
       },
+      {
+        title: t('label.ordinal-position'),
+        dataIndex: TABLE_COLUMNS_KEYS.ORDINAL_POSITION,
+        key: TABLE_COLUMNS_KEYS.ORDINAL_POSITION,
+        width: 100,
+        render: (ordinalPosition: Column['ordinalPosition']) =>
+          isEmpty(ordinalPosition) && ordinalPosition !== 0
+            ? NO_DATA_PLACEHOLDER
+            : ordinalPosition,
+      },
+      {
+        title: t('label.primary-key'),
+        dataIndex: TABLE_COLUMNS_KEYS.CONSTRAINT,
+        key: TABLE_COLUMNS_KEYS.PRIMARY_KEY,
+        width: 100,
+        render: (constraint: Column['constraint']) =>
+          constraint === Constraint.PrimaryKey ? 'Y' : 'N',
+      },
+      ...columnCustomPropertyColumns,
     ],
     [
       tableFqn,
@@ -903,6 +1043,7 @@ const SchemaTable = () => {
       sortBy,
       sortOrder,
       handleColumnHeaderSortToggle,
+      columnCustomPropertyColumns,
     ]
   );
 

@@ -33,6 +33,19 @@ export const TABLE_COLUMNS_KEYS = {
   DATA_QUALITY_TEST: 'dataQualityTest',
   REQUEST_METHOD: 'requestMethod',
   ORDINAL_POSITION: 'ordinalPosition',
+  CONSTRAINT: 'constraint',
+  PRIMARY_KEY: 'primaryKeyKbCust',
+  ATTRIBUTE_NAME: 'attributeName',
+  INSTANCE_CODE_NAME: 'instanceCodeName',
+  INFO_TYPE: 'infoType',
+  VARIABLE_NAME: 'variableName',
+  COLUMN_DEFINITION: 'columnDefinitionKbCust',
+  LAST_MODIFIED_DATE_TIME: 'lastModifiedDateTime',
+  BUSINESS_RULE: 'businessRule',
+  ENCRYPTION_TRANSFORM_INFO: 'encryptionTransformInfo',
+  IS_ENCRYPTED: 'isEncrypted',
+  USER_DEFINED_COLUMN_DESCRIPTION: 'userDefinedColumnDescription',
+  CLASSIFICATION_ITEM: 'classificationItem',
 };
 
 export const COMMON_STATIC_TABLE_VISIBLE_COLUMNS = [TABLE_COLUMNS_KEYS.NAME];

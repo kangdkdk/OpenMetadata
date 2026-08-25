@@ -30,6 +30,17 @@ export const getInstanceCodes = async (params: ListParams) => {
   return response.data;
 };
 
+export const getInstanceCodeById = async (id: string, params?: ListParams) => {
+  const response = await APIClient.get<InstanceCode>(`/instanceCodes/${id}`, {
+    params: {
+      ...params,
+      include: params?.include ?? Include.All,
+    },
+  });
+
+  return response.data;
+};
+
 export const getInstanceCodeByFqn = async (
   fqn: string,
   params?: ListParams

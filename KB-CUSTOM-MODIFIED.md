@@ -19,6 +19,7 @@
 | v5 | `custom/1.13.3-v2-instance-code-report-project-add` | ES 매핑에 `entityType.keyword` 서브필드 누락으로 인한 검색 결과 0건 문제 수정 (진짜 원인) |
 | v6 | `custom/1.13.3-v2-instance-code-report-project-add` | 상세 페이지 디자인 시스템 적용 + ReportProject 쿼리 CRUD·복사 기능 추가 |
 | v7 | `custom/1.13.3-v2-instance-code-report-project-add` | InstanceCode 코드그룹 표 뷰 + ReportProject 연도별 그룹 뷰 추가 (참고 구현 이식) |
+| v1 | `custom/1.13.3-v2-instance-code-report-project-add` | 테이블 Schema 탭 컬럼 목록에 16개 메타데이터 필드 추가 (Custom Properties 기반) |
 
 ## v1 — Sybase 데이터베이스 서비스 커넥터 추가
 
@@ -183,3 +184,54 @@ Badge, PageHeader 등) 기반으로 재작성 — `IntakeFormsPage`의 테이블
 | `openmetadata-ui/.../components/Explore/ExploreTree/ExploreTree.tsx` | 두 엔티티 트리 노드 클릭 시 퀵필터 대신 전용 목록 페이지로 이동하는 특수 케이스 추가 |
 | `openmetadata-ui/.../utils/SearchClassBase.ts` | 트리 노드에서 지난 라운드에 추가했던 `isLeaf`/`entityType` 등 불필요해진 필드 제거(참고 구현과 동일하게 단순화) |
 | `openmetadata-ui/.../locale/languages/*.json` (19개 파일) | `copy-table`/`unknown`/그룹·연도 설명 라벨 추가, `yarn i18n` 동기화 |
+
+## 신규 기능: 테이블 컬럼 메타데이터 확장 라인
+
+## v1 — 테이블 Schema 탭 컬럼 목록에 16개 메타데이터 필드 추가 (Custom Properties 기반)
+
+사용자 요청: 순서/컬럼명/PK여부/속성명/타입&길이/인스턴스명/인포타입/변수명/컬럼정의/
+최종변경일시/업무규칙/암호화변환정보/암호화여부/사용자 정의 컬럼설명/태그/분류체계 항목
+16개 필드를 Table 상세 페이지의 Schema 탭 컬럼 목록에 노출. 코어 `Column` JSON 스키마를
+직접 확장하는 방법과 OpenMetadata 기본 Custom Properties(`Column.extension` 필드 재사용)
+활용 방법 중 사용자가 후자를 명시적으로 선택 — 코어 스키마는 건드리지 않음.
+
+**필드 매핑**: 5개는 기존 네이티브 Column 필드 재사용(컬럼명=`name`, 타입&길이=
+`dataTypeDisplay`+`dataLength`, 태그=`tags` — 이미 노출 중; 순서=`ordinalPosition`,
+PK여부=`constraint`— 이번에 컬럼 추가). 나머지 11개는 `tableColumn` Type(엔티티 타입
+category, id `de29fcea-d1c4-4cd8-af33-f0a3e3c897eb`)에 새 Custom Property로 등록:
+`attributeName`(string), `instanceCodeName`(entityReference, `entityTypes:["instanceCode"]`
+로 InstanceCode에만 링크 제한), `infoType`/`isEncrypted`(enum — enum 값은 API상 배열로
+전송해야 함, 단일값이어도 `["값"]` 형태 필요), `variableName`(string),
+`columnDefinitionKbCust`(markdown), `lastModifiedDateTime`(dateTime-cp —
+`customPropertyConfig.config`에 포맷 문자열 필수, 없으면 400），`businessRule`(markdown),
+`encryptionTransformInfo`(string), `userDefinedColumnDescription`(markdown),
+`classificationItem`(string).
+
+**인스턴스명 팝오버**: `PropertyValue.tsx`의 기존 entityReference 렌더러
+(`getEntityRefLinkValue`)는 페이지 이동 `<Link>`만 지원 — `item.type === EntityType.INSTANCE_CODE`
+분기를 추가해 신규 `InstanceCodePopoverValue-kb-cust.tsx`로 위임. 이 컴포넌트는 컬럼
+extension에 저장된 entityReference가 `id`/`type`만 갖고 `fullyQualifiedName`/`name`이
+없다는 걸 실측으로 확인(추가로 hydrate되지 않음) — 그래서 `fullyQualifiedName` 기반 조회
+대신 `id` 기반 `getInstanceCodeById`로 즉시(mount 시) 조회해 트리거 라벨과 팝오버 내용을
+채움. `SchemaTable.component.tsx`에서도 동일 컴포넌트를 그대로 재사용.
+
+**컬럼 노출**: Schema 탭 표는 이미 `defaultVisibleColumns`/`staticVisibleColumns` 기반의
+컬럼 관리(show/hide) 드롭다운을 갖추고 있어(사용자별 로컬 저장) 신규 컬럼 전용 UI를 새로
+만들 필요 없음. 새 11개 컬럼은 `columnCustomPropertyColumns`로 분리해 `columns` 배열에
+합치고 `DEFAULT_SCHEMA_TABLE_VISIBLE_COLUMNS`는 그대로 둬 초기 화면은 기존과 동일, 나머지는
+드롭다운에서 켜서 사용.
+
+**재현성**: Custom Property는 런타임 API로 생성되는 DB 상태라 `docker compose down -v` 등
+DB 초기화 시 사라짐 — `skills/kb-seed-sample-data/scripts/seed_sample_data.py`에
+`column-custom-properties` 서브커맨드(멱등, 이미 존재하는 속성은 skip)를 추가해 재현 가능하게
+함.
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/.../components/Database/SchemaTable/SchemaTable.component.tsx` | 순서/PK여부 네이티브 컬럼 + 11개 Custom Property 컬럼 추가 |
+| `openmetadata-ui/.../constants/TableKeys.constants.ts` | 신규 컬럼 키 12개 추가 |
+| `openmetadata-ui/.../components/common/CustomPropertyTable/PropertyValue.tsx` | entityReference 렌더러에 InstanceCode 팝오버 분기 추가 |
+| `openmetadata-ui/.../components/common/CustomPropertyTable/InstanceCodePopoverValue-kb-cust.tsx` | InstanceCode 상세를 보여주는 팝오버(신규) |
+| `openmetadata-ui/.../rest/instanceCodeAPI-kb-cust.ts` | `getInstanceCodeById` 함수 추가 |
+| `openmetadata-ui/.../locale/languages/*.json` (17개 파일) | 11개 신규 라벨 키 추가, `yarn i18n` 동기화 |
+| `skills/kb-seed-sample-data/scripts/seed_sample_data.py` | `column-custom-properties` 서브커맨드(멱등) 추가 |

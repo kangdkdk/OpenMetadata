@@ -58,6 +58,7 @@ import {
 } from '../../../constants/CustomProperty.constants';
 import { TIMESTAMP_UNIX_IN_MILLISECONDS_REGEX } from '../../../constants/regex.constants';
 import { CSMode } from '../../../enums/codemirror.enum';
+import { EntityType } from '../../../enums/entity.enum';
 import { SearchIndex } from '../../../enums/search.enum';
 import { EntityReference } from '../../../generated/entity/type';
 import { Hyperlink } from '../../../generated/type/customProperties/complexTypes';
@@ -82,6 +83,7 @@ import {
   PropertyValueType,
   TimeIntervalType,
 } from './CustomPropertyTable.interface';
+import InstanceCodePopoverValue from './InstanceCodePopoverValue-kb-cust';
 import './property-value.less';
 import { PropertyInput } from './PropertyInput';
 import EditTableTypePropertyModal from './TableTypeProperty/EditTableTypePropertyModal';
@@ -844,33 +846,39 @@ export const PropertyValue: FC<PropertyValueProps> = ({
     }
   };
 
-  const getEntityRefLinkValue = (item: EntityReference) => (
-    <Link
-      className="entity-ref-link"
-      to={entityUtilClassBase.getEntityLink(
-        item.type,
-        item.fullyQualifiedName ?? item.name ?? ''
-      )}>
-      <div className="entity-icon m-r-xs">
-        {['user', 'team'].includes(item.type) ? (
-          <ProfilePicture
-            className="d-flex"
-            isTeam={item.type === 'team'}
-            name={item.name ?? ''}
-            type="circle"
-            width="18"
-          />
-        ) : (
-          searchClassBase.getEntityIcon(item.type)
-        )}
-      </div>
-      <Typography.Text
-        className="text-left text-primary truncate w-max-full"
-        ellipsis={{ tooltip: true }}>
-        {getEntityName(item)}
-      </Typography.Text>
-    </Link>
-  );
+  const getEntityRefLinkValue = (item: EntityReference) => {
+    if (item.type === EntityType.INSTANCE_CODE) {
+      return <InstanceCodePopoverValue item={item} />;
+    }
+
+    return (
+      <Link
+        className="entity-ref-link"
+        to={entityUtilClassBase.getEntityLink(
+          item.type,
+          item.fullyQualifiedName ?? item.name ?? ''
+        )}>
+        <div className="entity-icon m-r-xs">
+          {['user', 'team'].includes(item.type) ? (
+            <ProfilePicture
+              className="d-flex"
+              isTeam={item.type === 'team'}
+              name={item.name ?? ''}
+              type="circle"
+              width="18"
+            />
+          ) : (
+            searchClassBase.getEntityIcon(item.type)
+          )}
+        </div>
+        <Typography.Text
+          className="text-left text-primary truncate w-max-full"
+          ellipsis={{ tooltip: true }}>
+          {getEntityName(item)}
+        </Typography.Text>
+      </Link>
+    );
+  };
 
   const getPropertyValue = () => {
     if (isVersionView) {
