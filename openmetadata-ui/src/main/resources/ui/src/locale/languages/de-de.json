@@ -447,6 +447,7 @@
     "cron": "Cron",
     "cross-glossary": "Glossarübergreifend",
     "csv": "CSV",
+    "csv-download-kb-cust": "CSV Download",
     "curated-asset-plural": "Kuratierte Assets",
     "current-default": "Aktueller Standard",
     "current-entity": "Aktuelle {{entity}}",

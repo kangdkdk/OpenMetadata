@@ -447,6 +447,7 @@
     "cron": "크론",
     "cross-glossary": "교차 용어집",
     "csv": "CSV",
+    "csv-download-kb-cust": "CSV 다운로드",
     "curated-asset-plural": "선별된 자산",
     "current-default": "현재 기본값",
     "current-entity": "현재 {{entity}}",

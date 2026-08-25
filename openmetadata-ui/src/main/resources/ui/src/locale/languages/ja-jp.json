@@ -447,6 +447,7 @@
     "cron": "クロン",
     "cross-glossary": "用語集間",
     "csv": "CSV",
+    "csv-download-kb-cust": "CSV Download",
     "curated-asset-plural": "キュレートされたアセット",
     "current-default": "現在のデフォルト",
     "current-entity": "現在の{{entity}}",

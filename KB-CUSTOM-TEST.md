@@ -285,6 +285,27 @@ install`(ui) → `mvn package`(dist) → Docker 이미지 재빌드 → 재기�
 API 조회 재확인. 브라우저 자동화 도구가 없어 탭 위치/rowSpan 병합이 스크린샷과 동일하게
 렌더링되는지는 사용자 확인 필요.
 
+### 2026-08-11 — Explore 검색 결과 + Schema 탭 컬럼 목록 CSV 다운로드 버튼 추가
+
+작업 시작 전 백그라운드 리서치 에이전트로 기존 CSV export 인프라를 먼저 조사 — Explore
+검색 결과 CSV export가 "Tools" 드롭다운 안에 이미 완전히 구현되어 있음을 발견(백엔드
+`GET /search/export`, `SearchResultCsvExporter.java`). 처음부터 새로 만들지 않고 같은
+`handleOpenExportScopeModal` 핸들러를 그대로 재사용하는 눈에 띄는 버튼만 툴바에 추가해
+중복 구현을 피함 — 리서치를 먼저 하지 않았다면 기존 백엔드 export 로직을 그대로
+재발명했을 것.
+
+Schema 탭 컬럼 CSV는 대응하는 백엔드 엔드포인트가 없어(테이블 전체 bulk-edit CSV만 존재)
+순수 프런트엔드로 구현 — 이미 로드된 `tableColumns`에서 16개 필드를 뽑아 CSV 문자열을
+만들고 기존 `downloadFile()` 유틸(Blob + anchor 다운로드, 신규 백엔드 호출 없음)로 다운로드.
+CSV 필드 이스케이프(쉼표/따옴표/개행 포함 시 큰따옴표로 감싸고 내부 따옴표는 이중화)를
+직접 구현. `npx eslint --fix`, `npx prettier --write`, `npx tsc --noEmit` 모두 대상 파일
+기준 0건 확인.
+
+`vite build` → `mvn install`(ui) → `mvn package`(dist) → Docker 이미지 재빌드 → 재기동,
+배포된 jar 내 `assets/assets/index-*.js`가 로컬 `dist/`와 md5 완전 일치
+(`321d66ea4be88cd3c0f3a9b22bcb364e`) 확인, 서버 `healthy` 및 API 응답 재확인. 브라우저
+자동화 도구가 없어 실제 CSV 다운로드 클릭 동작과 파일 내용은 사용자 확인 필요.
+
 ## Windows 로컬 환경에서 재현할 때 필요한 사전 준비
 
 이 저장소를 Windows에서 처음 셋업하면 아래 환경 이슈를 만날 수 있습니다.

@@ -563,6 +563,16 @@ const ExploreV1: React.FC<ExploreProps> = ({
               </Typography.Text>
             )}
 
+            <Button
+              className="tw:p-0"
+              color="tertiary"
+              data-testid="csv-download-button-kb-cust"
+              iconLeading={<Download01 size={14} />}
+              size="sm"
+              onPress={handleOpenExportScopeModal}>
+              {t('label.csv-download-kb-cust')}
+            </Button>
+
             <Dropdown.Root>
               <Button
                 className="tw:p-0"

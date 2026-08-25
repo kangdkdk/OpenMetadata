@@ -447,6 +447,7 @@
     "cron": "Крон",
     "cross-glossary": "Межглоссарный",
     "csv": "CSV",
+    "csv-download-kb-cust": "CSV Download",
     "curated-asset-plural": "Выбранные активы",
     "current-default": "Текущий по умолчанию",
     "current-entity": "Текущий {{entity}}",

@@ -447,6 +447,7 @@
     "cron": "克朗",
     "cross-glossary": "跨词汇表",
     "csv": "CSV",
+    "csv-download-kb-cust": "CSV Download",
     "curated-asset-plural": "精选资产",
     "current-default": "当前默认",
     "current-entity": "当前 {{entity}}",

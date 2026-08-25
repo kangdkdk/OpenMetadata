@@ -86,6 +86,7 @@ import {
   highlightSearchArrayElement,
   highlightSearchText,
 } from '../../../utils/EntitySearchUtils';
+import { downloadFile } from '../../../utils/Export/ExportUtils';
 import { getEntityColumnFQN } from '../../../utils/FeedUtils';
 import { stringToHTML } from '../../../utils/StringUtils';
 import { columnFilterIcon } from '../../../utils/TableColumn.util';
@@ -1080,6 +1081,82 @@ const SchemaTable = () => {
     navigate(getEntityBulkEditPath(EntityType.TABLE, tableFqn));
   };
 
+  const escapeCsvField = (value: unknown): string => {
+    const stringValue = isEmpty(value) && value !== 0 ? '' : String(value);
+
+    return /[",\n]/.test(stringValue)
+      ? `"${stringValue.replace(/"/g, '""')}"`
+      : stringValue;
+  };
+
+  const getExtensionValueAsText = (value: unknown): string =>
+    Array.isArray(value) ? value.join(', ') : String(value ?? '');
+
+  const buildColumnsCsv = useCallback(
+    (columns: Column[]) => {
+      const headers = [
+        t('label.order-kb-cust'),
+        t('label.column-name-header-kb-cust'),
+        t('label.primary-key-flag-kb-cust'),
+        t('label.attribute-name-kb-cust'),
+        t('label.type-length-kb-cust'),
+        t('label.instance-code-name-kb-cust'),
+        t('label.info-type-kb-cust'),
+        t('label.variable-name-kb-cust'),
+        t('label.column-definition-kb-cust'),
+        t('label.last-modified-date-time-kb-cust'),
+        t('label.business-rule-kb-cust'),
+        t('label.encryption-transform-info-kb-cust'),
+        t('label.is-encrypted-kb-cust'),
+        t('label.user-defined-column-description-kb-cust'),
+        t('label.tag-plural'),
+        t('label.classification-item-kb-cust'),
+      ];
+
+      const rows = columns.map((column) => {
+        const extension = column.extension ?? {};
+        const dataTypeWithLength = column.dataLength
+          ? `${column.dataTypeDisplay ?? column.dataType}(${column.dataLength})`
+          : column.dataTypeDisplay ?? column.dataType;
+        const instanceCodeName = extension.instanceCodeName as
+          | EntityReference
+          | undefined;
+
+        return [
+          column.ordinalPosition,
+          getEntityName(column),
+          column.constraint === Constraint.PrimaryKey ? 'Y' : 'N',
+          extension.attributeName,
+          dataTypeWithLength,
+          instanceCodeName?.name ?? '',
+          getExtensionValueAsText(extension.infoType),
+          extension.variableName,
+          extension.columnDefinitionKbCust,
+          extension.lastModifiedDateTime,
+          extension.businessRule,
+          extension.encryptionTransformInfo,
+          getExtensionValueAsText(extension.isEncrypted),
+          extension.userDefinedColumnDescription,
+          (column.tags ?? []).map((tag) => tag.tagFQN).join(', '),
+          extension.classificationItem,
+        ]
+          .map(escapeCsvField)
+          .join(',');
+      });
+
+      return [headers.map(escapeCsvField).join(','), ...rows].join('\n');
+    },
+    [t]
+  );
+
+  const handleDownloadColumnsCsv = useCallback(() => {
+    const csv = buildColumnsCsv(tableColumns);
+    const fileName = `${tableFqn || 'table'}_columns_${new Date()
+      .toISOString()
+      .slice(0, 10)}.csv`;
+    downloadFile(csv, fileName, 'text/csv;charset=utf-8;');
+  }, [tableColumns, tableFqn, buildColumnsCsv]);
+
   useEffect(() => {
     setExpandedRowKeys((prev) => {
       const depth = searchText || hasTagFilter ? Number.MAX_SAFE_INTEGER : 1;
@@ -1165,6 +1242,13 @@ const SchemaTable = () => {
                 tablePermissions.EditAll && !deleted,
                 handleEditTable
               )}
+              <Button
+                className="text-primary p-0 remove-button-background-hover"
+                data-testid="column-csv-download-button-kb-cust"
+                type="text"
+                onClick={handleDownloadColumnsCsv}>
+                {t('label.csv-download-kb-cust')}
+              </Button>
             </div>
           }
           loading={columnsLoading}

@@ -24,6 +24,7 @@
 | v3 | `custom/1.13.3-v2-instance-code-report-project-add` | 16개 필드를 사용자가 요청한 정확한 순서로 재배열, 라벨을 요청 단어에 맞게 수정 |
 | v1 | `custom/1.13.3-v2-instance-code-report-project-add` | 테이블 Schema 탭에 "데이터셋 정보" 패널 + "테이블 변경이력" 조회 모달 추가 (Custom Properties 기반) |
 | v1 | `custom/1.13.3-v2-instance-code-report-project-add` | 테이블 상세 페이지에 "테이블 인덱스" 탭 신규 추가 (Schema 탭과 활동 피드 및 작업 탭 사이) |
+| v1 | `custom/1.13.3-v2-instance-code-report-project-add` | Explore 검색 결과 및 Schema 탭 컬럼 목록에 CSV 다운로드 버튼 추가 |
 
 ## v1 — Sybase 데이터베이스 서비스 커넥터 추가
 
@@ -342,3 +343,29 @@ TABLE_SCHEMA 위젯 콘텐츠 자체) 최상단에 새 패널을 렌더링하는
 | `openmetadata-ui/.../locale/languages/en-us.json` | 신규 라벨 키 8개 추가 (탭 이름 + 표 헤더 6개, 컬럼명은 기존 `column-name-header-kb-cust` 재사용) |
 | `openmetadata-ui/.../locale/languages/ko-kr.json` | 위 8개 키의 실제 한국어 텍스트 |
 | `skills/kb-seed-sample-data/scripts/seed_sample_data.py` | `TABLE_CUSTOM_PROPERTIES`에 `tableIndexesKbCust` 추가 |
+
+## 신규 기능: CSV 다운로드 버튼 라인
+
+## v1 — Explore 검색 결과 + Schema 탭 컬럼 목록 CSV 다운로드 버튼
+
+**Explore 검색 결과**: 이미 "Tools" 드롭다운 안에 "Export" 기능이 백엔드
+(`GET /search/export`, `SearchResultCsvExporter.java` — Entity Type/Service Name/
+Service Type/FQN/Name/Display Name/Description/Owners/Tags/Glossary Terms/Domains/Tier
+컬럼)까지 완전히 구현되어 있던 것을 리서치로 확인 — 새로 만들지 않고, 같은
+`handleOpenExportScopeModal` 핸들러를 재사용하는 별도의 눈에 띄는 "CSV 다운로드" 버튼을
+툴바에 추가(기존 Tools 드롭다운 안의 Export 항목은 그대로 유지, 중복 진입점 제공).
+
+**Schema 탭 컬럼 목록**: 컬럼 단위 CSV export는 백엔드에 없어서(테이블 전체 bulk-edit CSV만
+있음) 신규 백엔드 없이 순수 프런트엔드로 구현 — 이미 로드되어 있는 `tableColumns` 배열을
+그대로 사용해 16개 필드(순서/컬럼명/PK여부/속성명/타입&길이/인스턴스명/인포타입/변수명/
+컬럼정의/최종변경일시/업무규칙/암호화변환정보/암호화여부/사용자 정의 컬럼설명/태그/
+분류체계 항목) 순서 그대로 CSV 문자열을 만들고 `utils/Export/ExportUtils.ts`의 기존
+`downloadFile()`(Blob + anchor 다운로드)을 재사용. enum 타입 커스텀 속성 값이 배열로
+저장된다는 걸 이전 작업에서 이미 알고 있어 처음부터 배열/문자열 겸용 처리 로직을 넣음.
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/.../components/ExploreV1/ExploreV1.component.tsx` | 툴바에 "CSV 다운로드" 버튼 추가 (기존 export-scope 모달 재사용) |
+| `openmetadata-ui/.../components/Database/SchemaTable/SchemaTable.component.tsx` | 컬럼 목록 CSV 빌더 + 다운로드 버튼 추가 |
+| `openmetadata-ui/.../locale/languages/en-us.json` | `csv-download-kb-cust` 라벨 키 추가 |
+| `openmetadata-ui/.../locale/languages/ko-kr.json` | 위 키의 한국어 텍스트("CSV 다운로드") |

@@ -447,6 +447,7 @@
     "cron": "Cron",
     "cross-glossary": "ข้ามคำศัพท์",
     "csv": "CSV",
+    "csv-download-kb-cust": "CSV Download",
     "curated-asset-plural": "ทรัพย์สินที่คัดเลือก",
     "current-default": "ค่าเริ่มต้นปัจจุบัน",
     "current-entity": "{{entity}} ปัจจุบัน",
