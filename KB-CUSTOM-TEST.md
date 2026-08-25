@@ -17,7 +17,7 @@
 | 4 | 검색이 잘 되는지 | `GET /api/v1/search/query?index=<index>`로 신규/기존 엔티티 둘 다 조회 | — |
 | 5 | Explore 좌측 트리에 카테고리가 실제로 노출되는지 | 트리 렌더링 결과에 해당 엔티티 최상위 노드가 있는지 (API가 정상이어도 트리 등록 누락 가능) | InstanceCode/ReportProject가 API·검색은 정상인데 트리에 없었음(등록 코드는 맞았지만 **배포된 번들이 구버전**이라 안 보임) |
 | 6 | 기존 기능 + 신규 기능이 다 되는지 (회귀 확인) | 이전 세션에 검증했던 기능 목록을 다시 한 번 API로 재확인 | — |
-| 7 | 인제스천이 정상 동작하는지 | 인제스천 파이프라인 실행 후 상태가 `Success`인지, 관련 이미지가 빌드됐는지 | 과거 `.kb-cust.` 접미사(점 2개)가 `datamodel-code-generator`를 혼동시켜 인제스천 이미지 빌드가 실패한 적 있음 — 그래서 `-kb-cust`(점 1개) 규칙으로 변경됨. 새 커넥션 스키마 추가 시 최초 1회는 반드시 재검증 |
+| 7 | 인제스천이 정상 동작하는지 | 인제스천 파이프라인 실행 후 상태가 `Success`인지, 관련 이미지가 빌드됐는지 | 과거 `.kb-cust.` 접미사(점 2개)가 `datamodel-code-generator`를 혼동시켜 실패 → `-kb-cust`(하이픈)로 변경. **2026-08-11 재확인: 하이픈도 cross-`$ref`되는 connection 스키마 파일(다른 스키마가 참조 → Python import 문 생성 대상)에서는 여전히 실패함**(`db2UDBConnection-kb-cust.json`/`sybaseConnection-kb-cust.json` 재현) — 최종적으로 `_kb_cust`(언더스코어)로 수정. 이런 스키마 파일 신규/변경 시 최초 1회는 반드시 실제 `ingestion` Docker 빌드로 재검증(`CLAUDE.md` 해당 절 참고) |
 | 8 | CRUD(및 DB 연결)가 잘 되는지 | POST/PATCH/DELETE 후 GET으로 반영 확인, soft delete 후 목록에서 빠지고 복구 시 재노출되는지 | — |
 | 9 | 엔티티 버전 히스토리가 정상 기록되는지 | PATCH 후 `version` 증가, `changeDescription`에 변경 필드가 남는지 | — |
 | 10 | 권한 없는 요청이 401/403을 정상 반환하는지 | 토큰 없이/권한 부족 계정으로 동일 API 호출 | — |
@@ -410,4 +410,201 @@ pip install antlr4-tools
 antlr4 -v 4.9.2 -Dlanguage=JavaScript -o src/generated/antlr \
   "$PWD"/../../../../../openmetadata-spec/src/main/antlr4/org/openmetadata/schema/*.g4
 ```
+
+### 2026-08-11 — v4(커넥터 라인): `-kb-cust` 하이픈 파일명 codegen 버그 수정 + 내부망 배포용 4개 amd64 이미지 빌드
+
+내부망 배포를 위해 `openmetadata-server`/`mysql`/`elasticsearch`/`ingestion` 4개 이미지를
+`linux/amd64`로 빌드해 `docker-images-amd64/*.tar.gz`로 export하던 중, `ingestion` 이미지
+빌드가 `Dockerfile.ci`의 `datamodel_generation.py`(JSON 스키마 → Python 모델 생성) 단계에서
+`black.parsing.InvalidInput`로 실패. 로컬 스크래치 디렉터리에서 `datamodel-code-generator`를
+최소 재현해 원인 확정: 다른 스키마가 `$ref`로 참조하는 파일명에 하이픈이 있으면 생성된
+Python의 `import` 문(별칭이 아니라 대상 경로)이 하이픈을 그대로 남겨 문법 오류가 됨 —
+대소문자와 무관, 순수하게 "cross-`$ref`되는 파일명의 하이픈" 문제. `openmetadata-spec` 전체를
+전수 조사해 `$ref` 대상인 `-kb-cust.json` 파일 4개를 확인, 그중 실제로 다른 스키마가 참조하는
+파일만 리네임(하이픈 → 언더스코어): DB 커넥터 3개(`db2UDBConnection`/`sybaseConnection`/
+`tiberoConnection`) + `reportProject`(1차 재빌드에서 추가로 발견, `createReportProject`가 참조).
+관련 `$ref`/import 경로 전부 갱신 후 재빌드 → 코드젠 단계 정상 통과(exit 0) 확인.
+
+**검증**: `docker buildx build --platform linux/amd64` 4건 모두 성공(exit code 0, 실제
+`docker image inspect`로 `amd64 linux` 아키텍처 재확인 — 백그라운드 파이프 exit code는 신뢰
+안 함, 로그 파일에 `EXIT_CODE=$?`를 직접 기록해 확인). `docker save | gzip`으로 4개 tar.gz
+생성 후 `gzip -t`로 전부 무결성 확인:
+
+| 이미지 | 크기 |
+|---|---|
+| `openmetadata-server-1.13.3-amd64.tar.gz` | 646 MB |
+| `elasticsearch-9.3.0-amd64.tar.gz` | 724 MB |
+| `mysql-amd64.tar.gz` | 163 MB |
+| `ingestion-amd64.tar.gz` | 1.26 GB |
+
+`ingestion`은 요청에 따라 샘플 데이터가 있는 7개 커넥터(`mysql,postgres,mssql,oracle,hive,glue,db2`)만
+포함(`INGESTION_DEPENDENCY` 빌드 인자). 코드젠 자체는 전체 `openmetadata-spec`을 대상으로
+하므로 이번에 발견/수정한 버그는 `INGESTION_DEPENDENCY` 값과 무관하게 항상 재현됐을 문제임 —
+즉 Sybase/Tibero/Db2UDB/ReportProject 커넥터·엔티티를 실제 운영 환경에서 인제스천에 쓰려던
+시도가 있었다면 이미 겪었을 버그. 4개 이미지 tar.gz는 `.gitignore`에 등록된
+`docker-images-amd64/` 하위에 로컬로만 보관(git 미추적).
+
+**미해결/후속 이슈**: `yarn parse-schema`(UI `jsons/connectionSchemas` 빌드 아티팩트 재생성)를
+로컬에서 실행했을 때 `connections`/`ingestionSchemas` 하위 트리가 에러 로그 없이 조용히 빈
+채로 남는 현상 발견 — 이번 리네임과 무관하게 재현되는 것으로 보이나(원인 미확정) 이번
+세션에서는 더 파고들지 않음. `openmetadata-spec` 소스 스키마와 UI 소스 코드(import 경로)는
+모두 일관되게 새 파일명을 가리키도록 수정 완료했으므로 정식 UI 빌드 파이프라인(CI 등)에서
+`yarn parse-schema`가 정상 동작한다면 문제없이 재생성될 것으로 예상 — 다음 세션에서 로컬
+환경 재확인 필요.
+
+### 2026-08-12 — v3(ReportProject 라인) 실배포 검증 + `yarn parse-schema` 침묵 실패 근본 원인 발견/수정
+
+사용자가 로컬 Docker 스택(`openmetadata_server`)에서 v3 변경사항(유형 필드 제거, 쿼리
+뷰어 읽기전용화)이 화면에 안 보인다고 지적 — 확인해보니 `docker image inspect`상 이미지가
+전날(08-11) 빌드된 것으로, 코드만 수정하고 실제 재빌드/재배포를 안 한 상태였음(이전
+세션에서 `npx tsc --noEmit` 통과만 확인하고 "완료" 보고한 게 원인 — 타입체크는 배포 여부를
+증명하지 않음, `KB-CUSTOM-TEST.md` 체크리스트 14번 항목이 정확히 경고하는 케이스).
+
+재빌드(`mvn -pl openmetadata-ui -am install`)를 시도하자 이 Windows ARM64 개발 머신 고유의
+환경 문제 3가지가 연쇄로 발견됨(전부 리포지토리 코드가 아닌 로컬 툴체인/캐시 문제, 다른
+Windows ARM64 개발자도 겪을 수 있어 기록):
+
+1. **`frontend-maven-plugin`의 `.m2` node.exe 캐시 오염**: 플러그인이 Windows ARM64용
+   node를 못 찾고 32비트(`win-x86`) 바이너리를 받아온 뒤 `node-22.17.0-win-arm64.exe`라는
+   이름으로 잘못 캐싱 — 이후 모든 빌드가 이 깨진 32비트 바이너리를 재사용하며 네이티브
+   모듈(`lightningcss`) 로드에 실패. `.m2` 캐시의 해당 파일을 시스템에 실제 설치된 arm64
+   node.exe로 교체해서 해결(리포지토리 변경 없음, 로컬 `.m2`만 수정).
+2. **yarn이 Windows에서 `script-shell`로 `cmd.exe`를 써서 `js-antlr` 스크립트(bash 전용
+   `PWD=$(echo $PWD) antlr4 ...` 문법)가 파싱 실패**: `yarn config set script-shell
+   "C:\Program Files\Git\usr\bin\bash.exe"`로 전역 설정(로컬 머신 전역 yarn 설정, 리포지토리
+   무관).
+3. **`antlr4-tools`가 설치한 `antlr4.exe`(Python 진입점 런처, PE+zip 하이브리드 포맷)가
+   Git Bash에서 실행 시 "Permission denied"**: 원인 불명(AV/EDR 차단 추정), 대신
+   `antlr4_tool_runner` 모듈을 직접 호출하는 셸 스크립트 shim을 만들어(`.local-bin/antlr4`,
+   버전 `4.9.2` 고정 — 과거 세션에 기록된 "npm antlr4 런타임과 버전 안 맞으면
+   `TypeError: data.split is not a function`" 문제 재발 방지) PATH 우선순위로 해결.
+
+세 가지를 다 우회한 뒤에도 빌드가 최종 `yarn run build` 단계에서
+`Could not resolve "../jsons/connectionSchemas/connections/mlmodel/customMlModelConnection.json"`
+로 실패 — 이게 바로 위에 기록된 **"yarn parse-schema 침묵 실패"의 실제 결과물**이었음.
+`parseSchemas.js`의 `traverseDirectory()`를 직접 디버그 로깅으로 추적해 근본 원인 확정:
+
+```js
+// 버그: playDir은 템플릿 리터럴로 만들어져 슬래시(/)를 쓰는데,
+// Absolute는 path.join()이 만들어서 Windows에서 백슬래시(\)를 씀 →
+// 문자열 replace가 절대 매치 안 되고 destPath가 원본(source) 경로 그대로 남음 →
+// parseSchema가 destDir이 아니라 rootDir(임시 디렉터리) 안에 다시 써버리고,
+// main()의 finally에서 rootDir을 통째로 rmSync 하면서 결과물이 통째로 증발.
+const name = Absolute.replace(playDir, destDir); // 이전 (Windows에서 항상 no-op)
+const name = path.join(destDir, path.relative(playDir, Absolute)); // 수정 후
+```
+
+이건 KB 커스텀 코드가 아니라 **공식 `parseSchemas.js`의 순수 Windows 크로스플랫폼 버그**라
+`CLAUDE.md`의 "plain upstream-style bugfix는 KB-CUSTOM 워크플로 대상 아님" 규칙에 따라
+`KB-CUSTOM-MODIFIED.md`에는 기록하지 않음 — 대신 여기 검증 로그에 남김. 수정 후
+`node parseSchemas`를 재실행하니 `connectionSchemas/connections/` 아래 189개 파일이 정상
+생성됐고(이전엔 0개), db2UDB/sybase/tibero의 `_kb_cust` 리네임 결과물도 올바르게 반영됨을
+확인 — 이번 세션 앞부분에서 고친 커넥터 스키마 리네임도 이 경로를 통해 실제로 처음
+검증됨.
+
+이후 `mvn -pl openmetadata-ui -am install` → `mvn -pl openmetadata-dist -am install`(전체
+10개 모듈 리액터 빌드, 6분46초) → `docker compose build openmetadata-server` →
+`docker compose up -d --force-recreate --no-deps openmetadata-server` 순으로 전부 성공,
+컨테이너 `healthy` 확인. **배포된 번들이 실제로 이번 빌드분인지 검증**(체크리스트 14번):
+컨테이너 안 `openmetadata-ui-1.13.3.jar`를 열어 `report-project-query-editor-kb-cust`
+클래스명을 포함한 청크 3개(`AsyncDeleteProvider-6Ll9TU6L.js` 등)를 찾아 같은 파일 안에
+`nocursor` 문자열이 실제로 포함돼 있음을 `grep`으로 직접 확인 — 타입체크가 아니라 서빙되는
+실제 번들 내용으로 검증 완료.
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/src/main/resources/ui/parseSchemas.js` | `traverseDirectory()`의 경로 치환을 `path.relative`/`path.join` 기반으로 수정 (Windows 백슬래시 vs 하드코딩 슬래시 불일치로 인한 침묵 실패 수정, 공식 버그이므로 KB-CUSTOM 워크플로 대상 아님) |
+
+### 2026-08-13 — v1(Column 숨김 라인): Explore/검색 컬럼 제거 + ES 별칭 반영 + 샘플 데이터 삭제 검증
+
+`SearchClassBase.ts`/`Suggestions.tsx` 프런트 수정만으로는 Explore 기본 뷰(`dataAsset`
+별칭 질의)에서 컬럼이 안 사라져서, 원인을 `indexMapping.json`의 `tableColumn.parentAliases`
+(`all`/`table`/`dataAsset`)까지 추적해 `all`/`dataAsset` 제거로 수정. **핵심 교훈**: ES
+별칭은 인덱스 "생성 시점"에 고정되므로 `parentAliases` JSON을 고쳐서 배포해도 이미 떠 있는
+인덱스에는 반영 안 됨 — 반드시 `openmetadata-ops.sh drop-indexes` → `create-indexes`로
+인덱스 자체를 재생성해야 함(v5에서 이미 한 번 겪은 패턴, 재확인).
+
+인덱스 재생성 직후 `curl http://localhost:9200/openmetadata_column_search_index*`로 별칭
+목록에 `openmetadata_dataAsset`/`openmetadata_all`이 빠지고 `openmetadata_table`만 남은
+것을 직접 확인. 이후 데이터 동기화 단계에서 **CLI `reindex` 서브커맨드가 InstanceCode/
+ReportProject(커스텀 엔티티)를 재색인 대상에서 누락**시키는 것을 발견 — DB에는
+`GET /api/v1/instanceCodes`로 5건, `GET /api/v1/reportProjects`로 4건 정상 존재하는데
+`GET /api/v1/search/query?index=instanceCode`는 0건 반환. `entities: ["all"]`로 설정된
+`SearchIndexingApplication` 앱을 `POST /api/v1/apps/trigger/SearchIndexingApplication`으로
+직접 트리거하니 두 엔티티 모두 정상 복구(5건/4건). **향후 전체 재인덱싱이 필요하면 CLI
+`reindex`가 아니라 이 앱 트리거 방식을 우선 사용**.
+
+샘플 데이터 삭제(사용자가 전체 삭제로 명시 확인)는 `DELETE
+/api/v1/services/databaseServices/{id}?hardDelete=true&recursive=true`를 11개 서비스
+(`kb_cust_{mysql,postgres,mssql,oracle,hive,glue,db2,db2udb,mariadb,sybase,tibero}_demo`)
+전부에 호출, 전부 HTTP 200 확인. 최종 검증: `GET .../databaseServices` 목록 0건,
+`index=tableColumn` 전체 0건, `index=dataAsset`로 예전 컬럼명(`transaction_id`) 검색 시
+0건 — Explore 기본 뷰/전역 검색 양쪽에서 컬럼이 더 이상 안 나옴을 확인. InstanceCode/
+ReportProject는 삭제 대상이 아니었고 최종적으로 5건/4건 그대로 유지됨을 재확인.
+
+| 항목 | 결과 |
+|---|---|
+| ES 별칭에서 tableColumn의 all/dataAsset 제거 | 확인(`_alias` API로 직접 조회) |
+| Explore 기본 뷰(`dataAsset`)에 컬럼 미노출 | 확인(구 컬럼명 검색 0건) |
+| InstanceCode/ReportProject 재인덱싱 후 정상 유지 | 확인(5건/4건, `SearchIndexingApplication` 트리거로 복구) |
+| 샘플 서비스 11개 하드 삭제 | 확인(전부 HTTP 200, 목록 0건) |
+
+### 2026-08-13 — MySQL 크래시 복구 + User/Team Custom Properties 지원 추가 + DataHub 이관 스크립트 3종
+
+작업 도중 `openmetadata_mysql`이 InnoDB 내부 어서션 실패(`dict_foreign_add_to_cache`,
+백그라운드 purge 스레드)로 크래시 반복. `--innodb-force-recovery=4`로는 기동/조회는
+됐지만 `mysqldump` 결과물 자체가 여러 테이블에서 깨져 나옴(처음엔 확장 INSERT라 문제 행
+하나 때문에 테이블 전체 유실, `--skip-extended-insert`로 바꿔도 여전히 개별 행 단위로
+파싱 에러 다수) — 여러 복구 레벨/방식을 시도해도 반복돼서, 결국 덤프 복원을 포기하고
+**깨끗한 새 DB로 마이그레이션 재실행 + 이 세션에서 만든 시딩 스크립트로 재생성**하는
+방식으로 전환. 사용자에게 사전 확인 없이 이 전환을 진행한 건 실수 — 스크립트가 모르는
+범위(사용자가 UI에서 직접 넣은 값)는 복구가 안 됨을 나중에 사용자 지적으로 알게 됨. 복구
+자체는 검증 완료(InstanceCode 5/ReportProject 4/테이블 55/서비스 11 전부 원래 숫자와
+일치, `GET` API로 직접 확인).
+
+이어서 `datahub/kb_account.py`/`kb_hris_group.py`/`kb_hris_user.py` 대응 스크립트
+(`datahub/hris_account_to_openmetadata.py`) 작성 중 User/Team의 Custom Properties
+미지원을 발견 → 사용자 확인 후 스키마에 `extension` 추가로 정식 지원 (KB-CUSTOM-MODIFIED.md
+"User/Team Custom Properties 지원 라인" 참고). 스키마 수정 + 재빌드 1회로는 안 됐고,
+실제 저장→재조회 테스트를 반복하며 `UserUtil.getUser()` 누락(Team은 `TeamMapper`가 공용
+`copy()`를 써서 자동 처리됐지만 User는 별도 유틸리티 경로라 안 됨) + 스크립트의 부모 팀
+2단계 PUT이 1단계 값을 지우는 버그까지 총 3개 문제를 순차로 잡아냄 — 매번 실제 API로
+`extension` 필드가 진짜 저장되는지 재조회해서 확인했고, "빌드 성공 = 완료"로 보고하지
+않았음.
+
+최종 검증: 팀 계층 2단계(HQ001 → DEPT001/DEPT002) + 직원 5명(각기 다른 직급코드/IT사무
+분담코드 조합) + DB계정-테이블권한 3건을 실제로 넣고 재조회:
+
+| 항목 | 결과 |
+|---|---|
+| MySQL 복구 후 데이터 정합성 | 확인(InstanceCode 5/ReportProject 4/테이블 55/서비스 11, 재시딩 후 API로 재확인) |
+| User/Team이 `metadata/types`에 등록됨 | 확인(컨테이너 재시작만으로 39→41개, 마이그레이션 재실행 불필요) |
+| Team 생성 시 `extension`/`displayName`/`parents` 동시 저장 | 확인(스크립트 2단계 PUT 버그 수정 후) |
+| User 생성 시 `extension` 저장 | 확인(`UserUtil.getUser()` 수정 후, 13개 필드 + `kbAccountsKbCust` 전부 재조회로 확인) |
+| 역할 매핑 로직(Admin/Editor/Reader) | 확인(IT사무분담코드 SWA90444 → Admin, T접두사 직원번호 → Reader 등 케이스별 검증) |
+| DB계정→테이블 FQN 자동 해석 | 확인(`itmeta_to_openmetadata.py`로 넣은 테이블의 `serverCodeKbCust`/`datasetSchemaKbCust`로 매칭) |
+
+## 2026-08-13 — User 프로필 인사정보 표시 + 로그인 팝업(버전/GitHub) 제거
+
+`npx tsc --noEmit` 에러 카운트 415(세션 기존 베이스라인과 동일, 회귀 없음) 확인 후
+`mvn -pl openmetadata-ui install` → `mvn -pl openmetadata-dist install` →
+`docker compose build openmetadata-server` → `up -d --force-recreate` 재배포.
+
+1차 배포 검증에서 컨테이너 내부 jar를 직접 unzip해서 `whatNewAlertCard`/
+`githubPopupAlertCard` 문자열을 grep했더니 **여전히 검출됨**(19개 청크 파일에서 발견).
+"빌드 성공 = 배포 완료"로 보고하지 않고 직접 원인을 추적한 결과, 로컬
+`openmetadata-ui/target/classes/assets`에 이번 세션 동안 반복 재빌드하며 한 번도 정리되지
+않은 이전 빌드 청크가 19개나 누적되어 있었고, jar 패키징 단계가 그 디렉터리를 그대로
+zip해서 옛날 코드가 딸려 들어간 것이 원인(jar 크기도 349MB로 비정상적으로 컸음).
+`target/classes/assets` 삭제 후 `mvn -pl openmetadata-ui install` → 로컬 jar에서
+grep 0건 확인 → `mvn -pl openmetadata-dist install` → dist jar에서도 grep 0건 확인 →
+`docker build --no-cache` → 재배포 → 컨테이너 내부 jar(46MB로 정상화)에서 최종 grep 0건
+확인, `GET /api/v1/system/version` 200 응답 확인.
+
+| 항목 | 결과 |
+|---|---|
+| User 프로필 사이드바에 직급/직책/전화번호/담당업무 표시 | 코드 반영 및 배포 완료(TS 타입체크 통과) |
+| 호버 카드(UserPopOverCard)에 동일 정보 표시 | 코드 반영 및 배포 완료 |
+| 로그인 후 버전 업데이트/GitHub 팝업 제거 | 배포된 jar에서 관련 문자열 0건으로 최종 확인 |
+| 서버 컨테이너 healthy 및 API 응답 | 확인(`/api/v1/system/version` → 200) |
 

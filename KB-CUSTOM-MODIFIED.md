@@ -27,6 +27,10 @@
 | v1 | `custom/1.13.3-v2-instance-code-report-project-add` | Explore 검색 결과 및 Schema 탭 컬럼 목록에 CSV 다운로드 버튼 추가 |
 | v1 | `custom/1.13.3-v2-instance-code-report-project-add` | CSV 한글 인코딩 수정 + 커넥터 아이콘 3종 교체 + 서비스타입 대소문자 수정 + ReportProject 상세 화면 개편 |
 | v2 | `custom/1.13.3-v2-instance-code-report-project-add` | 홈 위젯 서비스타입 대소문자 수정 + ReportProject 요청정보 필드 추가 + InstanceCode 그룹 페이지 개편(라벨/정보박스/연관테이블) |
+| v4 | `custom/1.13.3-v2-instance-code-report-project-add` | Sybase/Tibero/DB2 UDB 커넥터 스키마 파일명 `-kb-cust` → `_kb_cust` 수정 (datamodel-code-generator ingestion 빌드 실패 원인) |
+| v3 | `custom/1.13.3-v2-instance-code-report-project-add` | ReportProject 상세/목록 화면에서 "유형" 필드 표시 제거, 쿼리 뷰어를 완전 읽기전용(nocursor)으로 변경 |
+| v1 | `custom/1.13.3-v2-instance-code-report-project-add` | Explore 탐색창/전역 검색에서 Column(테이블 컬럼) 항목 제거 |
+| v1 | `custom/1.13.3-v2-instance-code-report-project-add` | User/Team 엔티티에 Custom Properties(extension) 지원 추가 |
 
 ## v1 — Sybase 데이터베이스 서비스 커넥터 추가
 
@@ -54,6 +58,66 @@
 | `openmetadata-ui/src/main/resources/ui/src/generated/**` (14개 파일) | DB2 UDB 타입 반영 (재생성) |
 | `openmetadata-ui/src/main/resources/ui/src/utils/ServiceIconUtils.ts` | DB2 UDB 로고 등록 |
 | `openmetadata-ui/src/main/resources/ui/src/utils/DatabaseServicePureUtils.ts` | DB2 UDB 연결 스키마 매핑 등록 |
+
+## v4 — 커넥터 스키마 파일명 하이픈 버그 수정 (`-kb-cust` → `_kb_cust`)
+
+내부망 배포용 `ingestion` amd64 Docker 이미지를 빌드하던 중 `Dockerfile.ci`의
+`scripts/datamodel_generation.py`(JSON 스키마 → Python Pydantic 모델 생성, 서드파티
+`datamodel-code-generator==0.25.6` 래퍼) 단계에서
+`black.parsing.InvalidInput: ... from .connections.database import db2UDBConnection-kb-cust as db2UDBConnection_kb_cust ... bad input`
+로 빌드가 실패. 원인 분석: 다른 스키마 파일이 `$ref`로 참조하는(=Python import 문이
+생성되는) 스키마 파일명에 하이픈이 들어있으면, 생성기가 `as` 별칭 부분은 언더스코어로
+올바르게 치환하지만 `import` 대상(파일명) 부분은 원본 그대로 남겨 문법적으로 잘못된
+Python이 만들어짐 — 로컬 최소 재현으로 확인(스크래치 디렉터리에서
+`datamodel-code-generator` 단독 실행, `db2UDBConnection-kb-cust.json`/
+`sybaseConnection-kb-cust.json` 각각 동일 실패 재현). 대소문자 패턴과는 무관하고
+순수하게 "cross-`$ref`되는 파일명의 하이픈" 자체가 원인임을 확인. 언더스코어로 바꾸면
+(대소문자 등 나머지는 그대로 유지) 정상 생성됨을 재현 테스트로 검증 후 실제 파일 3개에
+적용.
+
+이전에 `CLAUDE.md`의 KB Custom Change Workflow에 기록되어 있던 "`.kb-cust.`(점 두 개)
+→ `-kb-cust`(하이픈)로 바꿔서 이미 해결됨" 메모는 **cross-`$ref`되는 connection 스키마
+파일에는 적용되지 않는 불완전한 결론**이었음이 이번에 드러남 — 해당 메모를 정정.
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-spec/.../connections/database/db2UDBConnection-kb-cust.json` → `db2UDBConnection_kb_cust.json` | 파일명 리네임 (`$id`도 동일하게 수정) |
+| `openmetadata-spec/.../connections/database/sybaseConnection-kb-cust.json` → `sybaseConnection_kb_cust.json` | 파일명 리네임 (`$id`도 동일하게 수정) |
+| `openmetadata-spec/.../connections/database/tiberoConnection-kb-cust.json` → `tiberoConnection_kb_cust.json` | 파일명 리네임 (`$id`도 동일하게 수정) |
+| `openmetadata-spec/.../entity/services/databaseService.json` | 3개 `$ref` 경로를 새 파일명으로 수정 |
+| `openmetadata-ui/.../generated/entity/services/connections/database/{db2UDBConnection,sybaseConnection,tiberoConnection}-kb-cust.ts` → `_kb_cust.ts` | 파일명 리네임 (내용 변경 없음) |
+| `openmetadata-ui/.../utils/DatabaseServicePureUtils.ts` | 3개 import 경로를 새 파일명으로 수정 |
+
+**추가 발견 (같은 라운드)**: 실제 `ingestion` Docker 빌드를 재시도한 결과 동일한 버그가
+`reportProject-kb-cust.json`(InstanceCode/ReportProject 라인, `createReportProject-kb-cust.json`이
+`$ref`로 참조)에도 있었음 — 위 3개 커넥터 파일만 고치고 끝난 게 아니라, **커넥터 스키마에
+국한된 문제가 아니라 "다른 스키마가 `$ref`하는 모든 `-kb-cust.json` 파일"에 공통되는 문제**임을
+재확인. `openmetadata-spec` 전체 스키마 트리를 훑어 `$ref` 대상인 `-kb-cust.json` 파일을
+전수 조사한 결과 이 4개 파일 뿐이었고(`createInstanceCode-kb-cust.json`,
+`createReportProject-kb-cust.json`, `instanceCode-kb-cust.json`, `reportProject-kb-cust.json`),
+그중 `reportProject-kb-cust.json`만 다른 스키마의 `$ref` 대상이라 실제로 문제가 됨을 확인.
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-spec/.../entity/data/reportProject-kb-cust.json` → `reportProject_kb_cust.json` | 파일명 리네임 (`$id`도 동일하게 수정) |
+| `openmetadata-spec/.../api/data/createReportProject-kb-cust.json` | 2개 `$ref` 경로를 새 파일명으로 수정 |
+| `openmetadata-ui/.../generated/entity/data/reportProject-kb-cust.ts` → `reportProject_kb_cust.ts` | 파일명 리네임 (내용 변경 없음) |
+| `openmetadata-ui/.../interface/search.interface.ts`, `rest/reportProjectAPI-kb-cust.ts`, `utils/ReportProjectUtils-kb-cust.ts`, `pages/ReportProjectPage/*-kb-cust.tsx` (4개) | import 경로를 새 파일명으로 수정 (총 7개 파일) |
+
+## v3 — ReportProject "유형" 필드 표시 제거 + 쿼리 뷰어 읽기전용화
+
+사용자 요청: (1) ReportProject 상세/연도별 목록 화면에 노출되던 "유형"(Daily/Weekly/
+Monthly/Adhoc) 필드가 필요 없음 — 스키마 필드 자체(`reportProjectType`)는 백엔드에 그대로
+두고 화면 노출만 제거(생성 UI가 없어 백엔드/시딩 스크립트에는 영향 없음). (2) 쿼리 카드가
+`SchemaEditor`(CodeMirror 기반, `readOnly: true`)로 표시되는데, `readOnly: true`는
+CodeMirror에서 클릭 시 여전히 포커스가 잡히고 커서가 깜빡임 — 완전히 클릭 불가능한
+뷰어처럼 보이게 CodeMirror의 `readOnly: 'nocursor'` 옵션으로 교체(포커스/커서 자체를
+비활성화하는 CodeMirror 전용 값, `true`와 다름).
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/.../pages/ReportProjectPage/ReportProjectDetailsPage-kb-cust.tsx` | "유형" Badge 카드 제거(미사용 `Badge` import도 제거), 쿼리 `SchemaEditor`를 `readOnly: 'nocursor'`로 변경 |
+| `openmetadata-ui/.../pages/ReportProjectPage/ReportProjectYearDetailsPage-kb-cust.tsx` | 목록 표에서 "유형" 컬럼 제거 |
 
 ## 신규 엔티티: InstanceCodes/ReportProject 라인
 
@@ -466,3 +530,138 @@ DB 실제 상태가 다르다는 걸 발견하는 데 시간이 걸림). 화이�
 | `openmetadata-ui/.../pages/ReportProjectPage/ReportProjectDetailsPage-kb-cust.tsx` | 설명과 쿼리 카드 사이에 요청정보 3열 박스 추가 |
 | `openmetadata-ui/.../pages/InstanceCodePage/InstanceCodeGroupDetailsPage-kb-cust.tsx` | 섹션 제목/컬럼 라벨 변경, 정의 안내 박스 추가, 연관테이블 패널 추가(2단 레이아웃) |
 | `openmetadata-ui/.../locale/languages/en-us.json`, `ko-kr.json` | 위 기능들에 필요한 신규 라벨/설명 키 추가 |
+
+## 신규 기능: Column 탐색/검색 숨김 라인
+
+## v1 — Explore 탐색창/전역 검색에서 Column 제거 + 오래된 샘플 데이터 정리
+
+사용자 스크린샷 근거: Explore 좌측 탐색창의 "데이터베이스들" 하위에 개별 테이블 컬럼이
+`transaction_id`, `account_no`처럼 최상위 카드로 노출되고 있었음(예: "Sample_Mysql /
+sample_database / sample_schema / 계좌거래내역 / transaction_id"). 두 단계로 나눠 수정:
+
+**1단계 (프런트엔드)**: `SearchClassBase.ts`의 Explore 트리 `childEntities`와 전역 검색
+타입 드롭다운(`getGlobalSearchOptions()`)에서 `EntityType.TABLE_COLUMN`/`SearchIndex.COLUMN`
+제거, 상단 검색창 자동완성(`Suggestions.tsx`)에서도 컬럼 결과 그룹 렌더링 제거. 이것만으로는
+Explore 기본 진입 화면(트리/드롭다운에서 아무 것도 선택 안 한 "데이터 자산들" 기본 뷰)에서
+컬럼이 계속 노출되는 문제가 안 고쳐짐 — 이 기본 뷰는 `SearchIndex.DATA_ASSET`(ES
+`dataAsset` 별칭)을 그대로 질의하는데, 이 별칭이 실제로 어떤 인덱스를 묶는지는 프런트엔드가
+아니라 백엔드 `indexMapping.json`의 `parentAliases` 설정이 결정하기 때문.
+
+**2단계 (백엔드, 진짜 원인)**: `openmetadata-spec/.../elasticsearch/indexMapping.json`에서
+`tableColumn` 엔트리의 `parentAliases`가 `["all", "table", "dataAsset"]`로 돼 있어 컬럼
+전용 ES 인덱스(`column_search_index`)가 `dataAsset`/`all` 별칭에도 묶여 있었음 — Explore
+기본 뷰와 상단 검색창 자동완성(`Suggestions.tsx`도 동일하게 `SearchIndex.DATA_ASSET`을
+기본값으로 씀) 둘 다 이 별칭을 질의하므로 컬럼이 계속 섞여 나왔음. `table` 별칭만 남기고
+`all`/`dataAsset`을 제거 → 컬럼 전용 인덱스가 더 이상 기본 뷰/전역 검색에 섞이지 않음(개별
+테이블 상세 페이지의 Schema 탭 등 `table` 별칭 기반 기능은 영향 없음).
+
+**ES 별칭 변경은 코드 배포만으로는 반영 안 됨**: 별칭은 인덱스 생성 시점에 고정되므로
+`openmetadata-ops.sh drop-indexes` → `create-indexes`로 전체 인덱스를 재생성해야 새
+`parentAliases` 설정이 실제로 적용됨(v5에서도 동일하게 겪은 문제). 재생성 직후 인덱스가
+비어 있어 `SearchIndexingApplication` 앱을 트리거(`POST /api/v1/apps/trigger/...`)해 DB
+기준으로 전체 재색인 — 이 과정에서 `reindex` CLI 서브커맨드만으로는 InstanceCode/
+ReportProject 같은 커스텀 엔티티가 재색인에서 누락되는 것을 발견(둘 다 검색 결과 0건),
+`entities: ["all"]`로 설정된 `SearchIndexingApplication`을 대신 트리거하니 정상적으로
+5건/4건 복구됨 — 향후 전체 재인덱싱이 필요하면 CLI `reindex`보다 이 앱 트리거 방식을
+우선 사용할 것.
+
+**오래된 샘플 데이터 정리**: 사용자가 스크린샷 속 결과가 예전에 시딩해둔 테스트 데이터라는
+것도 함께 지적, 완전 삭제를 명시적으로 확인받고 `skills/kb-seed-sample-data`로 생성된 11개
+샘플 데이터베이스 서비스(`kb_cust_{mysql,postgres,mssql,oracle,hive,glue,db2,db2udb,mariadb,sybase,tibero}_demo`)를
+전부 `DELETE .../databaseServices/{id}?hardDelete=true&recursive=true`로 하드 삭제(하위
+database/schema/table/column 전부 cascade 삭제). InstanceCode/ReportProject 샘플 데이터는
+삭제 대상이 아니었고 실제로 영향 없음을 확인.
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/.../utils/SearchClassBase.ts` | Explore 트리 `childEntities`와 `getGlobalSearchOptions()`에서 Column 항목 제거 |
+| `openmetadata-ui/.../components/AppBar/Suggestions.tsx` | 전역 검색 자동완성에서 Column 결과 그룹 제거 |
+| `openmetadata-spec/.../elasticsearch/indexMapping.json` | `tableColumn`의 `parentAliases`에서 `all`/`dataAsset` 제거(`table`만 유지) |
+
+## 신규 기능: User/Team Custom Properties 지원 라인
+
+## v1 — User/Team 엔티티에 extension(Custom Properties) 지원 추가
+
+`datahub/hris_account_to_openmetadata.py` 작성 중 발견: 이 OpenMetadata 버전(1.13.3)은
+Table/Column과 달리 **User/Team 엔티티가 Custom Properties를 아예 지원하지 않음** —
+`metadata/types` API에 "user"/"team"이 존재조차 하지 않았음(`GET
+/api/v1/metadata/types?category=entity`에 39개 타입만 있고 둘 다 누락). 원인 확정:
+`table.json`에는 있는 `"$comment": "@om-entity-type"` 마커가 `user.json`/`team.json`에는
+없었고, `extension` 필드 자체도 스키마에 없었음.
+
+사용자에게 (1) 스키마에 extension 추가해서 정식 지원 vs (2) description 필드에 텍스트로
+욱여넣기 중 확인받고 전자로 진행. 스키마 수정만으로는 부족했고 실제 API 테스트로 2단계
+버그를 추가로 발견:
+
+1. **컨테이너 재생성만으로 `user`/`team`이 `metadata/types`에 자동 등록됨**(마이그레이션
+   재실행 불필요, 서버 부팅 시 스키마를 스캔해서 등록하는 것으로 보임) — 39개 → 41개로 증가
+   확인.
+2. **Team은 정상 저장되는데 User만 `extension`이 계속 `null`로 저장됨**: `TeamMapper`는
+   공용 `EntityMapper.copy()` 헬퍼를 써서 `extension`을 자동으로 복사하지만, User는
+   `UserResource`가 `EntityMapper`가 아니라 별도의 정적 유틸리티
+   `UserUtil.getUser(String, CreateUser)`로 엔티티를 만드는데 이 메서드가 `extension`을
+   빼먹고 있었음(CREATE와 PUT 기반 createOrUpdate 둘 다 이 경로를 탐). `UserMapper.java`도
+   똑같이 `extension`이 빠져있어서 같이 고쳤지만, 실제 REST 엔드포인트가 쓰는 건
+   `UserUtil.getUser()` 쪽이었고 이걸 안 고쳤을 때는 재현 테스트에서 여전히 `extension:
+   null`이 나와서 발견함 — REST 리소스가 실제로 어느 매핑 코드를 타는지 직접 추적해서
+   확인한 것이지 추측 아님.
+3. **스크립트 자체 버그(Java 아님)**: `hris_account_to_openmetadata.py`의 부모 팀 연결
+   2단계 PUT이 `{name, teamType, parents}`만 보내서, PUT이 병합이 아니라 완전 교체라
+   1단계에서 넣은 `displayName`/`extension`이 지워짐 — 2단계도 전체 payload를 재전송하도록
+   수정.
+
+세 가지 다 실제 테스트 데이터(팀 계층 2단계, 직원 5명, DB계정-테이블권한 3건)로 저장→재조회
+확인 완료.
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-spec/.../entity/teams/user.json` | `$comment: @om-entity-type` 마커 추가, `extension` 필드 추가 |
+| `openmetadata-spec/.../entity/teams/team.json` | 위와 동일 |
+| `openmetadata-spec/.../api/teams/createUser.json` | `extension` 필드 추가 |
+| `openmetadata-spec/.../api/teams/createTeam.json` | `extension` 필드 추가 |
+| `openmetadata-service/.../jdbi3/UserRepository.java` | `USER_PATCH_FIELDS`/`USER_UPDATE_FIELDS`에 `extension` 추가 |
+| `openmetadata-service/.../jdbi3/TeamRepository.java` | `TEAM_PATCH_FIELDS`/`TEAM_UPDATE_FIELDS`에 `extension` 추가 |
+| `openmetadata-service/.../resources/teams/UserMapper.java` | `createToEntity()`에 `.withExtension(create.getExtension())` 추가 |
+| `openmetadata-service/.../util/UserUtil.java` | `getUser()`(실제 REST 경로가 타는 메서드)에 `.withExtension(create.getExtension())` 추가 — 진짜 원인 |
+
+## 신규 기능: User 프로필 페이지 인사정보 표시 라인
+
+## v1 — 직급/직책/전화번호/담당업무를 프로필 카드·호버 카드에 표시
+
+User `extension`(HRIS 커스텀 프로퍼티: `kbJobtlName`/`kbJobclName`/`kbExno`/
+`kbTaskAssignmentName`)을 프로필 사이드바 이름 아래, 좌측 연락처 카드, 그리고 사용자
+호버(Popover) 카드에 모두 동일하게 노출.
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/.../components/ProfileCard/ProfileSectionUserDetailsCard.component.tsx` | 이름 아래 `positionAndLevel`(직급/직책) 텍스트 추가 |
+| `openmetadata-ui/.../components/Settings/Users/UsersProfile/UserProfileContactInfo-kb-cust.tsx` | 신규: 전화번호/담당업무 표시 카드(읽기 전용) |
+| `openmetadata-ui/.../components/Settings/Users/Users.component.tsx` | 위 카드를 프로필 사이드바에 배치 |
+| `openmetadata-ui/.../components/common/PopOverCard/UserPopOverCard.tsx` | `EXTENSION` 필드 fetch 추가, `UserContactInfo` 컴포넌트로 호버 카드에도 동일 정보 표시 |
+| `openmetadata-ui/.../pages/UserPage/UserPage.component.tsx` | 메인 유저 데이터 fetch에 `EXTENSION` 필드 추가 |
+| `openmetadata-ui/.../generated/entity/teams/user.ts` / `team.ts` | `extension?: any;` 필드 수동 추가(백엔드 재생성만으로 동기화 안 됨) |
+| `openmetadata-ui/.../locale/languages/en-us.json` / `ko-kr.json` | `label.duty-kb-cust` 키 추가 |
+
+## 신규 기능: 로그인 후 버전 업데이트/GitHub 팝업 제거 라인
+
+## v1 — `PopupAlertsCardsClassBase.alertsCards()`가 빈 배열 반환하도록 변경
+
+내부망(폐쇄망) 배포 대상이라 로그인 직후 뜨는 두 팝업이 문제: (1) "새 버전 출시" 안내
+(`WhatsNewAlert`, OM 자체 `/version` API만 호출해서 안전하지만 어차피 불필요), (2) "Star us
+on GitHub" 카드(`GithubStarCard`, `https://api.github.com/repos/open-metadata/OpenMetadata`로
+실제 외부 네트워크 요청을 보내서 폐쇄망에서 실패/지연 유발). `NavBar.tsx`가
+`PopupAlertsCardsClassBase.alertsCards()`가 반환하는 목록을 렌더링하는 구조라, 두 컴포넌트
+import와 배열 항목을 제거하고 빈 배열을 반환하도록 수정.
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/.../components/NavBar/PopupAlertClassBase.ts` | `WhatsNewAlert`/`GithubStarCard` import 및 배열 항목 제거, `alertsCards()`가 `[]` 반환(타입 명시로 `never[]` 추론 TS 에러 회피) |
+
+배포 검증 중 발견한 별개 이슈(수정 완료, 코드 변경 아님): 이번 세션에서 여러 차례
+`mvn -pl openmetadata-ui install`을 반복 실행하면서 `openmetadata-ui/target/classes/assets`
+디렉터리가 한 번도 `clean`되지 않아 이전 빌드들의 JS 청크가 계속 누적됐음(같은
+`AuthenticatedRoutes-*.js` 파일이 19개나 쌓여있었고, 그중 옛날 청크에 제거 대상 코드가 여전히
+남아있어서 배포된 jar에서 문자열이 계속 검출됨 — 최신 소스 코드 문제가 아니라 누적된 stale
+빌드 산출물 문제였음). `target/classes/assets` 삭제 후 재빌드하여 해결(jar 크기도
+349MB → 46MB로 정상화). 앞으로 UI를 반복 재빌드할 때는 `mvn clean`을 끼워 넣거나
+`target/classes/assets`를 수동 삭제하는 것을 권장.
