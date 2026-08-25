@@ -15,6 +15,7 @@
 | v1 | `custom/1.13.3-v2-instance-code-report-project-add` | InstanceCode / ReportProject 신규 엔티티 추가 |
 | v2 | `custom/1.13.3-v2-instance-code-report-project-add` | InstanceCode / ReportProject Explore 탐색창(트리) 노출 |
 | v3 | `custom/1.13.3-v2-instance-code-report-project-add` | Explore 트리 구조를 Databases와 동일 레벨로 변경 + ReportProject 아이콘 교체 |
+| v4 | `custom/1.13.3-v2-instance-code-report-project-add` | 트리 노드 `isLeaf` 누락으로 인한 클릭 시 빈 화면 문제 수정 + 아이콘 재교체(작게 보이는 문제) |
 
 ## v1 — Sybase 데이터베이스 서비스 커넥터 추가
 
@@ -89,3 +90,21 @@ v2의 "KB Custom Entities" 상위 래퍼 노드를 제거하고, `Database`/`Das
 | 파일 | 기능 |
 |---|---|
 | `openmetadata-ui/.../utils/SearchClassBase.ts` | 래퍼 노드 제거, InstanceCode/ReportProject를 독립 루트 노드로 변경, ReportProject 아이콘을 QueryIcon으로 교체 |
+
+## v4 — 트리 노드 클릭 시 빈 화면 수정 + 아이콘 재교체
+
+v3까지의 두 노드는 `isLeaf`를 지정하지 않아 `Pipeline`/`Topic`처럼 "서비스 기준으로 하위
+분류 가능한" 카테고리로 취급됐음 — `ExploreTree.tsx`의 `onLoadData`가 이런 노드에 대해
+`service` 필드 기준 집계로 하위 트리를 동적 생성하려 시도하는데, InstanceCode/ReportProject는
+`service` 개념이 없는 완전히 평평한(flat) 엔티티라 이 경로가 의미 없이 실행되며 클릭 동작이
+꼬여 결과가 안 보이는 문제로 이어졌을 가능성이 높음. `Glossary`/`Tag`/`Metric`/`DataProduct`
+처럼 진짜 평평한 엔티티들은 전부 `isLeaf: true`를 명시하는 패턴을 따르고 있었는데 최초
+구현 시 이 패턴 대신 `Pipeline` 패턴을 잘못 참고함 — `isLeaf: true`와 `data.entityType`을
+추가해 올바른 패턴으로 수정. ReportProject 아이콘도 `query-colored-new.svg`(89x89 뷰박스에
+글리프가 30x30만 차지하는 배지형 아이콘이라 작은 트리 아이콘 크기에서 내용이 작게 보임)에서
+`customproperties/sql-query.svg`(20x20 뷰박스, 트리 아이콘 크기에 맞는 SQL 문서 아이콘)로
+재교체.
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/.../utils/SearchClassBase.ts` | 두 노드에 `isLeaf: true`, `data.entityType`, `data.isStatic`, `data.dataId` 추가; ReportProject 아이콘을 `sql-query.svg`로 재교체 |

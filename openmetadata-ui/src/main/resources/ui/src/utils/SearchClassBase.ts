@@ -29,7 +29,7 @@ import { ReactComponent as DriveIcon } from '../assets/svg/ic-drive-service.svg'
 import { ReactComponent as FileIcon } from '../assets/svg/ic-file.svg';
 import { ReactComponent as MlModelIcon } from '../assets/svg/ic-ml-model.svg';
 import { ReactComponent as PipelineIcon } from '../assets/svg/ic-pipeline.svg';
-import { ReactComponent as QueryIcon } from '../assets/svg/query-colored-new.svg';
+import { ReactComponent as QueryIcon } from '../assets/svg/customproperties/sql-query.svg';
 import { ReactComponent as SchemaIcon } from '../assets/svg/ic-schema.svg';
 import { ReactComponent as SearchIcon } from '../assets/svg/ic-search.svg';
 import { ReactComponent as SpreadsheetIcon } from '../assets/svg/ic-spreadsheet.svg';
@@ -394,13 +394,27 @@ class SearchClassBase {
       {
         title: t('label.instance-code-plural-kb-cust'),
         key: SearchIndex.INSTANCE_CODE,
-        data: { isRoot: true, childEntities: [EntityType.INSTANCE_CODE] },
+        isLeaf: true,
+        data: {
+          isRoot: true,
+          childEntities: [EntityType.INSTANCE_CODE],
+          entityType: EntityType.INSTANCE_CODE,
+          isStatic: true,
+          dataId: 'InstanceCodes',
+        },
         icon: TableIcon,
       },
       {
         title: t('label.report-project-plural-kb-cust'),
         key: SearchIndex.REPORT_PROJECT,
-        data: { isRoot: true, childEntities: [EntityType.REPORT_PROJECT] },
+        isLeaf: true,
+        data: {
+          isRoot: true,
+          childEntities: [EntityType.REPORT_PROJECT],
+          entityType: EntityType.REPORT_PROJECT,
+          isStatic: true,
+          dataId: 'ReportProjects',
+        },
         icon: QueryIcon,
       },
     ];
