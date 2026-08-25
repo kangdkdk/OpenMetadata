@@ -181,6 +181,19 @@ seed_sample_data.py column-custom-properties` 서브커맨드를 이미 속성�
 켜고 인스턴스명 팝오버에 마우스를 올려보는 것까지는 이번 세션에서 직접 확인하지 못함 —
 API 레벨 검증만 완료, 화면상 최종 확인은 사용자 필요.
 
+### 2026-08-10 — v2: 신규 컬럼 기본 노출 수정
+
+v1 배포 후 사용자가 실제 화면에서 신규 컬럼이 전혀 안 보인다고 확인 — 원인은 신규 12개
+컬럼을 `columns` 배열에는 추가했지만 `DEFAULT_SCHEMA_TABLE_VISIBLE_COLUMNS`에는 넣지
+않아, 기존에 있던 "컬럼 관리(Customize)" 드롭다운으로 사용자가 직접 켜야만 보이는
+구조였던 것(드롭다운 존재 자체는 이번 작업으로 생긴 게 아니라 기존 프레임워크 기능).
+`DEFAULT_SCHEMA_TABLE_VISIBLE_COLUMNS`에 신규 12개 키를 추가해 최초 진입부터 기본
+노출되도록 수정. `npx eslint` 0건. `vite build` → `mvn install`(ui) → `mvn package`
+(dist) → Docker 이미지 재빌드 → 재기동, 배포된 jar 내 `assets/assets/index-*.js`
+md5가 로컬 `dist/`와 완전히 일치함을 재확인(`9a53888338c5a08dc0b575056ae182f4`).
+서버 `healthy` 재확인. 여전히 브라우저 자동화 도구가 없어 실제 화면 렌더링(신규 12개
+컬럼이 스크롤 없이/있이 실제로 표에 그려지는지)은 사용자가 직접 확인 필요.
+
 ## Windows 로컬 환경에서 재현할 때 필요한 사전 준비
 
 이 저장소를 Windows에서 처음 셋업하면 아래 환경 이슈를 만날 수 있습니다.

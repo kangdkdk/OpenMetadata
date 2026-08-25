@@ -20,6 +20,7 @@
 | v6 | `custom/1.13.3-v2-instance-code-report-project-add` | 상세 페이지 디자인 시스템 적용 + ReportProject 쿼리 CRUD·복사 기능 추가 |
 | v7 | `custom/1.13.3-v2-instance-code-report-project-add` | InstanceCode 코드그룹 표 뷰 + ReportProject 연도별 그룹 뷰 추가 (참고 구현 이식) |
 | v1 | `custom/1.13.3-v2-instance-code-report-project-add` | 테이블 Schema 탭 컬럼 목록에 16개 메타데이터 필드 추가 (Custom Properties 기반) |
+| v2 | `custom/1.13.3-v2-instance-code-report-project-add` | 신규 12개 컬럼을 "컬럼 관리" 드롭다운 뒤에 숨기지 않고 기본 노출로 변경 |
 
 ## v1 — Sybase 데이터베이스 서비스 커넥터 추가
 
@@ -235,3 +236,16 @@ DB 초기화 시 사라짐 — `skills/kb-seed-sample-data/scripts/seed_sample_d
 | `openmetadata-ui/.../rest/instanceCodeAPI-kb-cust.ts` | `getInstanceCodeById` 함수 추가 |
 | `openmetadata-ui/.../locale/languages/*.json` (17개 파일) | 11개 신규 라벨 키 추가, `yarn i18n` 동기화 |
 | `skills/kb-seed-sample-data/scripts/seed_sample_data.py` | `column-custom-properties` 서브커맨드(멱등) 추가 |
+
+## v2 — 신규 컬럼 기본 노출로 변경
+
+v1에서 신규 12개 컬럼(순서/PK여부 + 커스텀 속성 10개)을 기존 "컬럼 관리(Customize)" 드롭다운
+토글 뒤에만 추가했더니, 사용자가 Schema 탭을 열어도 기존 4개 컬럼(설명/타입/태그/분류체계
+용어)만 그대로 보이고 신규 컬럼은 전혀 안 보인다고 확인 — 드롭다운으로 켜야만 보이는 구조라
+"화면에서 보고 싶다"는 요청과 안 맞음. `DEFAULT_SCHEMA_TABLE_VISIBLE_COLUMNS`에 신규 12개
+키를 전부 추가해 페이지 최초 진입 시 기본으로 렌더링되도록 변경(사용자가 원하면 여전히
+드롭다운으로 개별 숨김 가능).
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/.../constants/TableKeys.constants.ts` | `DEFAULT_SCHEMA_TABLE_VISIBLE_COLUMNS`에 신규 12개 컬럼 키 추가 |
