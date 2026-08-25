@@ -303,6 +303,36 @@ const AddMetricPage = withSuspenseFallback(
   )
 );
 
+const InstanceCodeListPage = withSuspenseFallback(
+  React.lazy(
+    () => import('../../pages/InstanceCodePage/InstanceCodeListPage-kb-cust')
+  )
+);
+
+const InstanceCodeGroupDetailsPage = withSuspenseFallback(
+  React.lazy(
+    () =>
+      import(
+        '../../pages/InstanceCodePage/InstanceCodeGroupDetailsPage-kb-cust'
+      )
+  )
+);
+
+const ReportProjectListPage = withSuspenseFallback(
+  React.lazy(
+    () => import('../../pages/ReportProjectPage/ReportProjectListPage-kb-cust')
+  )
+);
+
+const ReportProjectYearDetailsPage = withSuspenseFallback(
+  React.lazy(
+    () =>
+      import(
+        '../../pages/ReportProjectPage/ReportProjectYearDetailsPage-kb-cust'
+      )
+  )
+);
+
 const ColumnBulkOperationsPage = withSuspenseFallback(
   React.lazy(
     () =>
@@ -775,6 +805,22 @@ const AuthenticatedAppRouter: FunctionComponent = () => {
         path={ROUTES.DATA_PRODUCT}
       />
       <Route element={<MetricListPage />} path={ROUTES.METRICS} />
+      <Route
+        element={<InstanceCodeListPage />}
+        path={ROUTES.INSTANCE_CODES}
+      />
+      <Route
+        element={<InstanceCodeGroupDetailsPage />}
+        path={ROUTES.INSTANCE_CODE_GROUP}
+      />
+      <Route
+        element={<ReportProjectListPage />}
+        path={ROUTES.REPORT_PROJECTS}
+      />
+      <Route
+        element={<ReportProjectYearDetailsPage />}
+        path={ROUTES.REPORT_PROJECT_YEAR}
+      />
       <Route
         element={
           <AddMetricPage

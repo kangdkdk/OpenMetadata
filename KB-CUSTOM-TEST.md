@@ -124,6 +124,21 @@ package`(dist) → Docker 이미지 재빌드 → 재기동 완료. 배포된 �
 샘플 데이터 5+5건 유지 재확인. 이번에도 브라우저 자동화 도구가 없어 실제 화면 디자인이
 의도대로 보이는지는 사용자 확인 필요.
 
+### 2026-08-10 — v7: InstanceCode 코드그룹 표 뷰 + ReportProject 연도별 그룹 뷰
+
+사용자가 별도 WSL 저장소(`\\wsl$\Ubuntu\home\kysmh\OpenMetadata`)에 이미 만들어진 참고 화면을
+제시하며 동일하게 이식 요청. 참고 저장소를 직접 읽어 `InstanceCodeListPage`/
+`InstanceCodeGroupDetailsPage`/`QueryReportListPage`/`QueryReportYearDetailsPage`와
+`ExploreTree.tsx`의 특수 네비게이션 로직을 확인 후 우리 엔티티(InstanceCode/ReportProject)
+기준으로 이식. `npx tsc --noEmit` 415건(변동 없음, 신규 파일 에러 0건). `vite build` →
+`mvn install`(ui) → `mvn package`(dist) → Docker 이미지 재빌드 → 재기동 완료. 배포된 번들
+해시 일치 확인. 신규 라우트 4개(`/instanceCodes`, `/instanceCodes/group/:fqn`,
+`/reportProjects`, `/reportProjects/year/:fqn`) 전부 curl로 200 응답 확인(SPA라 실제 렌더링
+성공 여부까지는 이 방법으로 검증 안 됨 — HTML 셸이 정상 서빙되는 것만 확인).
+InstanceCode/ReportProject 샘플 데이터 5+5건 유지 재확인. 브라우저 자동화 도구가 없어
+카드 클릭 → 그룹/연도 페이지 이동 → 표/목록 렌더링까지 이어지는 실제 흐름은 사용자 확인
+필요.
+
 ## Windows 로컬 환경에서 재현할 때 필요한 사전 준비
 
 이 저장소를 Windows에서 처음 셋업하면 아래 환경 이슈를 만날 수 있습니다.

@@ -10,33 +10,34 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-import { Badge, Box, Card, Typography } from '@openmetadata/ui-core-components';
 import { AxiosError } from 'axios';
 import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Navigate } from 'react-router-dom';
 import ErrorPlaceHolder from '../../components/common/ErrorWithPlaceholder/ErrorPlaceHolder';
 import Loader from '../../components/common/Loader/Loader';
-import PageHeader from '../../components/PageHeader/PageHeader.component';
 import { ERROR_PLACEHOLDER_TYPE } from '../../enums/common.enum';
-import { InstanceCode } from '../../generated/entity/data/instanceCode-kb-cust';
 import { useFqn } from '../../hooks/useFqn';
 import { getInstanceCodeByFqn } from '../../rest/instanceCodeAPI-kb-cust';
-import { getEntityName } from '../../utils/EntityNameUtils';
+import { getInstanceCodeGroupPath } from '../../utils/RouterUtils';
 import { showErrorToast } from '../../utils/ToastUtils';
 
+/**
+ * Individual InstanceCode entities are rows within a code group. There is no
+ * standalone single-code view — visiting a code's own URL (e.g. from Explore
+ * search results) redirects to its group's table page.
+ */
 const InstanceCodeDetailsPage = () => {
-  const { t } = useTranslation();
   const { fqn: instanceCodeFqn } = useFqn();
-  const [instanceCode, setInstanceCode] = useState<InstanceCode>();
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isError, setIsError] = useState<boolean>(false);
+  const [codeGroup, setCodeGroup] = useState<string>();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
 
   useEffect(() => {
     const fetchInstanceCode = async () => {
       setIsLoading(true);
       try {
         const data = await getInstanceCodeByFqn(instanceCodeFqn);
-        setInstanceCode(data);
+        setCodeGroup(data.codeGroup);
       } catch (error) {
         setIsError(true);
         showErrorToast(error as AxiosError);
@@ -54,62 +55,11 @@ const InstanceCodeDetailsPage = () => {
     return <Loader />;
   }
 
-  if (isError || !instanceCode) {
+  if (isError || !codeGroup) {
     return <ErrorPlaceHolder type={ERROR_PLACEHOLDER_TYPE.CUSTOM} />;
   }
 
-  const fields: { label: string; value: React.ReactNode }[] = [
-    { label: t('label.code-group-kb-cust'), value: instanceCode.codeGroup },
-    {
-      label: t('label.code-group-name-kb-cust'),
-      value: instanceCode.codeGroupName,
-    },
-    { label: t('label.code-value-kb-cust'), value: instanceCode.codeValue },
-    { label: t('label.code-name-kb-cust'), value: instanceCode.codeName },
-    { label: t('label.sort-order-kb-cust'), value: instanceCode.sortOrder },
-    {
-      label: t('label.registered-date-kb-cust'),
-      value: instanceCode.registeredDate,
-    },
-    {
-      label: t('label.active'),
-      value: (
-        <Badge
-          color={instanceCode.active ? 'success' : 'gray'}
-          size="sm"
-          type="pill-color">
-          {instanceCode.active ? t('label.yes') : t('label.no')}
-        </Badge>
-      ),
-    },
-  ];
-
-  return (
-    <Box className="tw:gap-4 tw:p-6 tw:max-w-2xl" direction="col">
-      <PageHeader
-        data={{
-          header: getEntityName(instanceCode),
-          subHeader: instanceCode.description ?? '',
-        }}
-      />
-
-      <Card className="tw:p-5">
-        <div className="tw:grid tw:grid-cols-2 tw:gap-4">
-          {fields.map((field) => (
-            <div key={field.label}>
-              <Typography
-                className="tw:text-tertiary tw:mb-1"
-                size="text-xs"
-                weight="medium">
-                {field.label}
-              </Typography>
-              <Typography size="text-sm">{field.value}</Typography>
-            </div>
-          ))}
-        </div>
-      </Card>
-    </Box>
-  );
+  return <Navigate replace to={getInstanceCodeGroupPath(codeGroup)} />;
 };
 
 export default InstanceCodeDetailsPage;

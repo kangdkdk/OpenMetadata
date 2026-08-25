@@ -920,6 +920,17 @@ export const getKpiPath = (kpiName: string) => {
   return path;
 };
 
+export const getInstanceCodeGroupPath = (codeGroup: string) => {
+  return ROUTES.INSTANCE_CODE_GROUP.replace(
+    PLACEHOLDER_ROUTE_FQN,
+    getEncodedFqn(codeGroup)
+  );
+};
+
+export const getReportProjectYearPath = (year: string) => {
+  return ROUTES.REPORT_PROJECT_YEAR.replace(PLACEHOLDER_ROUTE_FQN, year);
+};
+
 /**
  * It returns a path
  * @param {string} path - The path of the current page.

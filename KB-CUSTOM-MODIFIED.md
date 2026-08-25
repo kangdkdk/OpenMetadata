@@ -18,6 +18,7 @@
 | v4 | `custom/1.13.3-v2-instance-code-report-project-add` | 트리 노드 `isLeaf` 누락으로 인한 클릭 시 빈 화면 문제 수정 + 아이콘 재교체(작게 보이는 문제) |
 | v5 | `custom/1.13.3-v2-instance-code-report-project-add` | ES 매핑에 `entityType.keyword` 서브필드 누락으로 인한 검색 결과 0건 문제 수정 (진짜 원인) |
 | v6 | `custom/1.13.3-v2-instance-code-report-project-add` | 상세 페이지 디자인 시스템 적용 + ReportProject 쿼리 CRUD·복사 기능 추가 |
+| v7 | `custom/1.13.3-v2-instance-code-report-project-add` | InstanceCode 코드그룹 표 뷰 + ReportProject 연도별 그룹 뷰 추가 (참고 구현 이식) |
 
 ## v1 — Sybase 데이터베이스 서비스 커넥터 추가
 
@@ -151,3 +152,34 @@ Badge, PageHeader 등) 기반으로 재작성 — `IntakeFormsPage`의 테이블
 | `openmetadata-ui/.../pages/ReportProjectPage/ReportProjectQueryModal-kb-cust.tsx` | 쿼리 추가/수정용 모달(신규) |
 | `openmetadata-ui/.../rest/reportProjectAPI-kb-cust.ts` | `patchReportProject` 함수 추가 |
 | `openmetadata-ui/.../locale/languages/*.json` (19개 파일) | 코드/정렬순서/등록일 등 라벨 키 추가, `yarn i18n`으로 동기화 |
+
+## v7 — InstanceCode 코드그룹 표 뷰 + ReportProject 연도별 그룹 뷰 (참고 구현 이식)
+
+사용자가 별도 WSL 환경(`\\wsl$\Ubuntu\home\kysmh\OpenMetadata`)에 이미 구현된 참고 화면을
+제시 — InstanceCode는 코드그룹별 카드 목록 → 그룹 클릭 시 표(Table), ReportProject는
+연도별 카드 목록 → 연도 클릭 시 목록. 참고 저장소의 `InstanceCodeListPage`/
+`InstanceCodeGroupDetailsPage`/`QueryReportListPage`/`QueryReportYearDetailsPage`와
+`ExploreTree.tsx`의 특수 케이스 네비게이션(트리 노드 클릭 시 필터 대신 전용 목록 페이지로
+이동)을 그대로 참고해 이식.
+
+**참고 구현과의 차이점**: 참고 저장소의 `QueryReport`는 이름에 연도가 박혀있는 네이밍
+컨벤션(`P{year}...`)에서 정규식으로 연도를 추출하지만, 우리 `ReportProject`는 그런 네이밍
+규칙이 없어 대신 `updatedAt` 타임스탬프에서 연도를 뽑아냄(`ReportProjectUtils-kb-cust.ts`).
+또한 참고 저장소는 쿼리를 별도의 공식 `Query` 엔티티로 분리해 usage 연결로 관리하지만,
+우리는 이미 v1에서 `queries`를 ReportProject의 임베디드 배열 필드로 설계했으므로 그
+구조는 유지(백엔드 재설계 범위가 커서 이번엔 화면 구조만 이식).
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/.../pages/InstanceCodePage/InstanceCodeListPage-kb-cust.tsx` | 코드그룹별 카드 목록(신규) |
+| `openmetadata-ui/.../pages/InstanceCodePage/InstanceCodeGroupDetailsPage-kb-cust.tsx` | 그룹 내 코드 표 뷰 + 표 복사(신규) |
+| `openmetadata-ui/.../pages/InstanceCodePage/InstanceCodeDetailsPage-kb-cust.tsx` | 개별 코드 상세 대신 그룹 페이지로 리다이렉트하도록 변경 |
+| `openmetadata-ui/.../pages/ReportProjectPage/ReportProjectListPage-kb-cust.tsx` | 연도별 카드 목록(신규) |
+| `openmetadata-ui/.../pages/ReportProjectPage/ReportProjectYearDetailsPage-kb-cust.tsx` | 연도 내 ReportProject 목록(신규) |
+| `openmetadata-ui/.../utils/ReportProjectUtils-kb-cust.ts` | `updatedAt` 기반 연도 추출 유틸(신규) |
+| `openmetadata-ui/.../utils/RouterUtils.ts` | `getInstanceCodeGroupPath`, `getReportProjectYearPath` 추가 |
+| `openmetadata-ui/.../constants/constants.ts` | `INSTANCE_CODES`/`INSTANCE_CODE_GROUP`/`REPORT_PROJECTS`/`REPORT_PROJECT_YEAR` 라우트 추가 |
+| `openmetadata-ui/.../components/AppRouter/AuthenticatedAppRouter.tsx` | 위 4개 라우트 등록 |
+| `openmetadata-ui/.../components/Explore/ExploreTree/ExploreTree.tsx` | 두 엔티티 트리 노드 클릭 시 퀵필터 대신 전용 목록 페이지로 이동하는 특수 케이스 추가 |
+| `openmetadata-ui/.../utils/SearchClassBase.ts` | 트리 노드에서 지난 라운드에 추가했던 `isLeaf`/`entityType` 등 불필요해진 필드 제거(참고 구현과 동일하게 단순화) |
+| `openmetadata-ui/.../locale/languages/*.json` (19개 파일) | `copy-table`/`unknown`/그룹·연도 설명 라벨 추가, `yarn i18n` 동기화 |

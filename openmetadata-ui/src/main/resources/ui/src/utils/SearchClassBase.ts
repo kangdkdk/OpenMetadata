@@ -394,26 +394,18 @@ class SearchClassBase {
       {
         title: t('label.instance-code-plural-kb-cust'),
         key: SearchIndex.INSTANCE_CODE,
-        isLeaf: true,
         data: {
           isRoot: true,
           childEntities: [EntityType.INSTANCE_CODE],
-          entityType: EntityType.INSTANCE_CODE,
-          isStatic: true,
-          dataId: 'InstanceCodes',
         },
         icon: TableIcon,
       },
       {
         title: t('label.report-project-plural-kb-cust'),
         key: SearchIndex.REPORT_PROJECT,
-        isLeaf: true,
         data: {
           isRoot: true,
           childEntities: [EntityType.REPORT_PROJECT],
-          entityType: EntityType.REPORT_PROJECT,
-          isStatic: true,
-          dataId: 'ReportProjects',
         },
         icon: QueryIcon,
       },
