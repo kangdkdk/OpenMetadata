@@ -14,6 +14,7 @@
 import i18next, { InitOptions } from 'i18next';
 import { map, upperCase } from 'lodash';
 import enUS from '../../locale/languages/en-us.json';
+import koKR from '../../locale/languages/ko-kr.json';
 import { SupportedLocales } from './LocalUtil.interface';
 
 export const languageSelectOptions = map(SupportedLocales, (value, key) => ({
@@ -27,10 +28,11 @@ export const getInitOptions = (): InitOptions => {
     supportedLngs: Object.values(SupportedLocales),
     resources: {
       'en-US': { translation: enUS },
+      'ko-KR': { translation: koKR },
     },
-    fallbackLng: ['en-US'],
+    fallbackLng: ['ko-KR'],
     detection: {
-      order: ['querystring', 'cookie', 'navigator'],
+      order: ['querystring', 'cookie'],
       caches: ['cookie'], // cache user language on
     },
     interpolation: {

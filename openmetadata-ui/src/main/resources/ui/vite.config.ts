@@ -227,7 +227,7 @@ export default defineConfig(({ mode }) => {
     define: {
       'process.env.NODE_ENV': JSON.stringify(mode),
       'process.env.BRAND_NAME': JSON.stringify(
-        env.BRAND_NAME || 'OpenMetadata'
+        env.BRAND_NAME || 'KB 데이터카탈로그'
       ),
       global: 'globalThis',
     },

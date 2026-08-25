@@ -1,6 +1,6 @@
 {
-  "short_name": "catalog",
-  "name": "OpenMetadata Application",
+  "short_name": "KB 데이터카탈로그",
+  "name": "KB 데이터카탈로그 Application",
   "icons": [
     {
       "src": "./favicon.png",
