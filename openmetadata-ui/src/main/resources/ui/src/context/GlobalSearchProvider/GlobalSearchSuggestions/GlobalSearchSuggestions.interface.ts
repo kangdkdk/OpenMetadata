@@ -132,6 +132,11 @@ export interface WorksheetSource extends CommonSource {
   worksheet_name: string;
 }
 
+export interface InstanceCodeSource extends CommonSource {
+  instance_code_id: string;
+  instance_code_name: string;
+}
+
 export interface Option {
   _index: string;
   _id: string;
@@ -155,7 +160,8 @@ export interface Option {
     | DirectorySource
     | FileSource
     | SpreadsheetSource
-    | WorksheetSource;
+    | WorksheetSource
+    | InstanceCodeSource;
 }
 
 export type SearchSuggestions =
@@ -181,7 +187,8 @@ export type SearchSuggestions =
   | DirectorySource[]
   | FileSource[]
   | SpreadsheetSource[]
-  | WorksheetSource[];
+  | WorksheetSource[]
+  | InstanceCodeSource[];
 
 export interface SuggestionsObject {
   tableSuggestions: TableSource[];
@@ -207,4 +214,5 @@ export interface SuggestionsObject {
   fileSuggestions: FileSource[];
   spreadsheetSuggestions: SpreadsheetSource[];
   worksheetSuggestions: WorksheetSource[];
+  instanceCodeSuggestions: InstanceCodeSource[];
 }

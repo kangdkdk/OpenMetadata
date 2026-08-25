@@ -749,6 +749,11 @@ class SearchClassBase {
 
   public getIndexGroupLabel(index: string) {
     switch (index) {
+      case SearchIndex.INSTANCE_CODE:
+        return {
+          label: t('label.instance-code-plural-kb-cust'),
+          GroupIcon: TableIcon,
+        };
       case SearchIndex.TABLE:
       default:
         return {

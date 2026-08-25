@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { ReactComponent as IconSuggestionsBlue } from '../../assets/svg/ic-suggestions-blue.svg';
 import { PAGE_SIZE_BASE } from '../../constants/constants';
 import {
+  InstanceCodeSource,
   Option,
   SearchSuggestions,
   SuggestionsObject,
@@ -83,6 +84,7 @@ const Suggestions = ({
     fileSuggestions: [],
     spreadsheetSuggestions: [],
     worksheetSuggestions: [],
+    instanceCodeSuggestions: [],
   });
 
   const {
@@ -172,6 +174,10 @@ const Suggestions = ({
         options,
         SearchIndex.WORKSHEET
       ),
+      instanceCodeSuggestions: filterOptionsByIndex(
+        options,
+        SearchIndex.INSTANCE_CODE
+      ) as InstanceCodeSource[],
     }));
   };
 
@@ -287,6 +293,10 @@ const Suggestions = ({
           {
             suggestions: suggestions.worksheetSuggestions,
             searchIndex: SearchIndex.WORKSHEET,
+          },
+          {
+            suggestions: suggestions.instanceCodeSuggestions,
+            searchIndex: SearchIndex.INSTANCE_CODE,
           },
           ...searchClassBase.getEntitiesSuggestions(options ?? []),
         ].map(({ suggestions, searchIndex }) =>
