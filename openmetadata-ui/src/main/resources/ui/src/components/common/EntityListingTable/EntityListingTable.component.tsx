@@ -28,6 +28,7 @@ const EntityListingTable = <T extends { id: string; name: string }>({
   onEntityClick,
   ariaLabel,
   emptyMessage,
+  disableSelection = false,
 }: EntityListingTableProps<T>) => {
   const selectedKeys: Selection = useMemo(
     () => new Set(selectedEntities),
@@ -66,10 +67,10 @@ const EntityListingTable = <T extends { id: string; name: string }>({
     <Table
       aria-label={ariaLabel}
       data-testid="table-view-container"
-      selectedKeys={selectedKeys}
+      selectedKeys={disableSelection ? undefined : selectedKeys}
       selectionBehavior="toggle"
-      selectionMode="multiple"
-      onSelectionChange={handleSelectionChange}>
+      selectionMode={disableSelection ? 'none' : 'multiple'}
+      onSelectionChange={disableSelection ? undefined : handleSelectionChange}>
       <Table.Header
         className="tw:border-t tw:border-x tw:border-secondary"
         columns={columns}>
