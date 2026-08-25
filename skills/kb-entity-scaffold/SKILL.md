@@ -60,6 +60,21 @@ implementation for the next one.
   re-run `execute-migrate-all` in the same session (see `CLAUDE.md` point 6) — don't defer it.
 - **Step 10 (search index)**: also add the mapping to
   `openmetadata-spec/src/main/resources/elasticsearch/indexMapping.json` (alias/parentAliases).
+  Also add `dataAsset` to `parentAliases` if you want the entity's Explore-tree node to show a
+  non-zero count — the tree's count aggregation queries the `dataAsset` alias specifically, and
+  a node whose aggregated count is 0 gets silently filtered out of the rendered tree.
+  **In the entity's own `{entity}_index_mapping.json`, the `entityType` field must be mapped
+  with a `.keyword` sub-field carrying `lowercase_normalizer`** (copy the pattern from an
+  official mapping file, e.g. `metric_index_mapping.json`) — not a bare `"type": "keyword"`.
+  The Explore tree's quick-filter click handler always queries `entityType.keyword` with a
+  lowercased value; without the sub-field + normalizer, that query matches nothing and the
+  entity is invisible in Explore even though the plain REST API and a naive `entityType` term
+  query both return correct results — this is a genuinely silent failure mode (HTTP 200, empty
+  hits, no error) that easily survives API-level testing and only surfaces in the browser. If
+  you don't have browser access to verify, check `docker logs <server-container>` for the
+  actual `GET /api/v1/search/query` request the browser sent and diff its `query_filter` shape
+  against a manual curl reproduction — don't assume a passing curl test against a plausible
+  filter shape means the real frontend query also passes.
 - **Step 12 (frontend) — this is the part the generic checklist under-specifies.** All of these
   are required, not optional, for the entity to actually be usable from the UI:
   1. `enums/search.enum.ts` — add `SearchIndex.{ENTITY}`

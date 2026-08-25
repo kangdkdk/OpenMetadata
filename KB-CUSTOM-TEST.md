@@ -96,6 +96,21 @@ Database/Dashboard/Pipeline과 동일하게 각자 독립된 최상위 `isRoot` 
 사용자 몫** — 다음에도 같은 문제가 재현되면 브라우저 개발자 도구의 Console/Network 탭
 캡처를 요청해서 실제 에러를 봐야 확실히 좁혀질 것.
 
+### 2026-08-10 — v5: 검색 결과 0건 문제의 진짜 원인 발견 및 수정
+
+사용자가 v4 배포 후에도 "탐색창 클릭 시 결과 패널이 빈 목록"이라고 재확인. 이번엔 브라우저
+콘솔 대신 `docker logs openmetadata_server`로 실제 요청 로그를 확인하는 방법으로 우회 —
+브라우저가 보낸 실제 쿼리가 `{"term":{"entityType.keyword":"reportproject"}}`(서브필드 +
+소문자)였던 반면, 우리 매핑은 `entityType`을 서브필드 없는 단순 keyword로만 정의하고 원본
+케이스 그대로(`"reportProject"`) 저장하고 있어 전혀 매치되지 않았음을 확인. 이전 라운드들의
+curl 테스트는 전부 `entityType`(서브필드 없이) 필드로 직접 term 쿼리를 날렸기 때문에 문제를
+못 잡았음 — **API 레벨 테스트가 "그럴듯한" 쿼리로 통과해도 프런트가 실제로 보내는 쿼리와
+다르면 소용없다는 교훈**. `metric_index_mapping.json` 등 공식 매핑과 대조해 `entityType`에
+`lowercase_normalizer` 적용 `.keyword` 서브필드를 추가, ES 인덱스 재생성 후 샘플 데이터
+재시딩, 그리고 **실제 브라우저가 보냈던 것과 동일한 쿼리를 그대로 재실행**해서 0건 → 5건
+전환을 직접 확인. `kb-entity-scaffold` 스킬에도 이 패턴을 명시적으로 추가해 다음 커스텀
+엔티티가 같은 함정에 빠지지 않도록 함.
+
 ## Windows 로컬 환경에서 재현할 때 필요한 사전 준비
 
 이 저장소를 Windows에서 처음 셋업하면 아래 환경 이슈를 만날 수 있습니다.

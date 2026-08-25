@@ -16,6 +16,7 @@
 | v2 | `custom/1.13.3-v2-instance-code-report-project-add` | InstanceCode / ReportProject Explore 탐색창(트리) 노출 |
 | v3 | `custom/1.13.3-v2-instance-code-report-project-add` | Explore 트리 구조를 Databases와 동일 레벨로 변경 + ReportProject 아이콘 교체 |
 | v4 | `custom/1.13.3-v2-instance-code-report-project-add` | 트리 노드 `isLeaf` 누락으로 인한 클릭 시 빈 화면 문제 수정 + 아이콘 재교체(작게 보이는 문제) |
+| v5 | `custom/1.13.3-v2-instance-code-report-project-add` | ES 매핑에 `entityType.keyword` 서브필드 누락으로 인한 검색 결과 0건 문제 수정 (진짜 원인) |
 
 ## v1 — Sybase 데이터베이스 서비스 커넥터 추가
 
@@ -108,3 +109,26 @@ v3까지의 두 노드는 `isLeaf`를 지정하지 않아 `Pipeline`/`Topic`처�
 | 파일 | 기능 |
 |---|---|
 | `openmetadata-ui/.../utils/SearchClassBase.ts` | 두 노드에 `isLeaf: true`, `data.entityType`, `data.isStatic`, `data.dataId` 추가; ReportProject 아이콘을 `sql-query.svg`로 재교체 |
+
+## v5 — 검색 결과 0건 문제의 진짜 원인 수정 (ES 매핑 `entityType.keyword` 누락)
+
+v4까지 고쳐도 사용자가 트리 클릭 시 결과 패널이 계속 빈 목록으로 나온다고 재현 — 서버
+액세스 로그(`docker logs openmetadata_server`)에서 브라우저가 실제로 보낸 쿼리를 그대로
+확인한 결과, `{"term":{"entityType.keyword":"reportproject"}}`처럼 **`entityType.keyword`
+서브필드 + 소문자 값**으로 필터링하고 있었음. 반면 우리 ES 매핑은 `entityType`을 서브필드
+없는 단순 `keyword` 타입으로만 정의했고 저장된 값도 원본 그대로(`"reportProject"`,
+`"instanceCode"`)라 이 쿼리와 전혀 매치되지 않아 결과가 항상 0건이었음 — 이게 v2~v4에서
+계속 놓쳤던 진짜 원인. `metric_index_mapping.json` 등 공식 엔티티들의 매핑을 대조해서
+`entityType`이 전부 `lowercase_normalizer`가 적용된 `.keyword` 서브필드를 갖는 패턴임을
+확인하고 동일하게 수정. ES 인덱스를 삭제 후 재생성하고 샘플 데이터를 재시딩, 실제 브라우저가
+보냈던 쿼리를 그대로 재실행해서 5건씩 정상 반환되는 것까지 확인.
+
+**교훈**: 이번 엔티티 스캐폴딩에서 `entityType` 필드는 단순 `keyword` 타입으로 매핑하면 안
+되고, 반드시 `.keyword` 서브필드(`lowercase_normalizer` 포함)를 갖춰야 함 — Explore
+트리/퀵필터가 전부 이 서브필드 기준으로 쿼리를 만들기 때문. `kb-entity-scaffold` 스킬에도
+반영 필요.
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-spec/.../elasticsearch/{en,jp,ru,zh}/instance_code_index_mapping.json` | `entityType`에 `lowercase_normalizer` 적용된 `.keyword` 서브필드 추가 |
+| `openmetadata-spec/.../elasticsearch/{en,jp,ru,zh}/report_project_index_mapping.json` | 위와 동일 |
