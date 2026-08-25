@@ -10,49 +10,47 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-import {
-  Badge,
-  Box,
-  Card,
-  FeaturedIcon,
-  Typography,
-} from '@openmetadata/ui-core-components';
-import { Code01 } from '@untitledui/icons';
+import { Box, Card, Typography } from '@openmetadata/ui-core-components';
 import { AxiosError } from 'axios';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useBreadcrumbs } from '../../components/common/atoms/navigation/useBreadcrumbs';
 import { usePageHeader } from '../../components/common/atoms/navigation/usePageHeader';
 import { useTitleAndCount } from '../../components/common/atoms/navigation/useTitleAndCount';
+import EntityListingTable from '../../components/common/EntityListingTable/EntityListingTable.component';
+import { ColumnDef } from '../../components/common/EntityListingTable/EntityListingTable.interface';
 import ErrorPlaceHolder from '../../components/common/ErrorWithPlaceholder/ErrorPlaceHolder';
-import Loader from '../../components/common/Loader/Loader';
+import OwnerAvatarGroup from '../../components/common/OwnerAvatarGroup/OwnerAvatarGroup-kb-cust';
 import { ERROR_PLACEHOLDER_TYPE } from '../../enums/common.enum';
 import { InstanceCode } from '../../generated/entity/data/instanceCode-kb-cust';
 import { getInstanceCodes } from '../../rest/instanceCodeAPI-kb-cust';
+import {
+  InstanceCodeOwner,
+  parseInstanceCodeOwners,
+} from '../../utils/InstanceCodeOwnerUtils-kb-cust';
 import { getInstanceCodeGroupPath } from '../../utils/RouterUtils';
 import { showErrorToast } from '../../utils/ToastUtils';
 
 interface InstanceCodeGroup {
+  id: string;
+  name: string;
   codeGroup: string;
   codeGroupName?: string;
-  count: number;
+  owners: InstanceCodeOwner[];
 }
 
 const groupInstanceCodes = (instanceCodes: InstanceCode[]) => {
   const groupMap = new Map<string, InstanceCodeGroup>();
 
   instanceCodes.forEach((instanceCode) => {
-    const existing = groupMap.get(instanceCode.codeGroup);
-    if (existing) {
-      existing.count += 1;
-      existing.codeGroupName =
-        existing.codeGroupName ?? instanceCode.codeGroupName;
-    } else {
+    if (!groupMap.has(instanceCode.codeGroup)) {
       groupMap.set(instanceCode.codeGroup, {
+        id: instanceCode.codeGroup,
+        name: instanceCode.codeGroup,
         codeGroup: instanceCode.codeGroup,
         codeGroupName: instanceCode.codeGroupName,
-        count: 1,
+        owners: parseInstanceCodeOwners(instanceCode.description),
       });
     }
   });
@@ -111,18 +109,46 @@ const InstanceCodeListPage = () => {
   });
 
   const handleGroupClick = useCallback(
-    (codeGroup: string) => {
-      navigate(getInstanceCodeGroupPath(codeGroup));
+    (group: InstanceCodeGroup) => {
+      navigate(getInstanceCodeGroupPath(group.codeGroup));
     },
     [navigate]
   );
 
-  const content = useMemo(() => {
-    if (loading) {
-      return <Loader />;
-    }
+  const columns: ColumnDef[] = useMemo(
+    () => [
+      { id: 'codeGroupName', label: t('label.instance-code-name-kb-cust') },
+      { id: 'owners', label: t('label.owner-kb-cust') },
+    ],
+    [t]
+  );
 
-    if (groups.length === 0) {
+  const renderCell = useCallback(
+    (group: InstanceCodeGroup, columnId: string): ReactNode => {
+      switch (columnId) {
+        case 'codeGroupName':
+          return (
+            <Typography size="text-sm" weight="medium">
+              {group.codeGroupName || group.codeGroup}
+              {group.codeGroupName && (
+                <span className="tw:text-tertiary tw:font-mono tw:font-normal">
+                  {' '}
+                  ({group.codeGroup})
+                </span>
+              )}
+            </Typography>
+          );
+        case 'owners':
+          return <OwnerAvatarGroup owners={group.owners} />;
+        default:
+          return null;
+      }
+    },
+    []
+  );
+
+  const content = useMemo(() => {
+    if (!loading && groups.length === 0) {
       return (
         <ErrorPlaceHolder
           className="tw:border-none"
@@ -135,42 +161,20 @@ const InstanceCodeListPage = () => {
     }
 
     return (
-      <Box className="tw:grid tw:grid-cols-1 tw:gap-4 tw:px-6 tw:py-5 tw:md:grid-cols-2 tw:lg:grid-cols-3">
-        {groups.map((group) => (
-          <Card
-            isClickable
-            key={group.codeGroup}
-            style={{ padding: 20 }}
-            variant="elevated"
-            onClick={() => handleGroupClick(group.codeGroup)}>
-            <Box direction="col" gap={4}>
-              <Box align="center" direction="row" justify="between">
-                <FeaturedIcon
-                  color="brand"
-                  icon={Code01}
-                  size="md"
-                  theme="light"
-                />
-                <Badge color="gray" size="sm">
-                  {group.count}
-                </Badge>
-              </Box>
-              <Box direction="col" gap={1}>
-                <Typography size="text-md" weight="semibold">
-                  {group.codeGroupName || group.codeGroup}
-                </Typography>
-                <Typography
-                  className="tw:text-tertiary tw:font-mono"
-                  size="text-xs">
-                  {group.codeGroup}
-                </Typography>
-              </Box>
-            </Box>
-          </Card>
-        ))}
-      </Box>
+      <EntityListingTable
+        ariaLabel={t('label.instance-code-plural-kb-cust')}
+        columns={columns}
+        disableSelection={true}
+        entities={groups}
+        loading={loading}
+        renderCell={renderCell}
+        selectedEntities={[]}
+        onEntityClick={handleGroupClick}
+        onSelect={() => {}}
+        onSelectAll={() => {}}
+      />
     );
-  }, [loading, groups, handleGroupClick, t]);
+  }, [loading, groups, columns, renderCell, handleGroupClick, t]);
 
   return (
     <Box className="tw:p-6" direction="col" gap={4}>

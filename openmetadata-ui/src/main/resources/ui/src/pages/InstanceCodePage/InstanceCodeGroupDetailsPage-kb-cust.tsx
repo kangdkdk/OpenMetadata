@@ -26,6 +26,7 @@ import { Link } from 'react-router-dom';
 import { useBreadcrumbs } from '../../components/common/atoms/navigation/useBreadcrumbs';
 import ErrorPlaceHolder from '../../components/common/ErrorWithPlaceholder/ErrorPlaceHolder';
 import Loader from '../../components/common/Loader/Loader';
+import OwnerAvatarGroup from '../../components/common/OwnerAvatarGroup/OwnerAvatarGroup-kb-cust';
 import { NO_DATA } from '../../constants/constants';
 import { ERROR_PLACEHOLDER_TYPE } from '../../enums/common.enum';
 import { EntityType } from '../../enums/entity.enum';
@@ -40,6 +41,11 @@ import { useFqn } from '../../hooks/useFqn';
 import { getInstanceCodes } from '../../rest/instanceCodeAPI-kb-cust';
 import { getTableList } from '../../rest/tableAPI';
 import entityUtilClassBase from '../../utils/EntityUtilClassBase';
+import {
+  parseInstanceCodeDefinition,
+  parseInstanceCodeOwners,
+  parseInstanceCodeStandardClassification,
+} from '../../utils/InstanceCodeOwnerUtils-kb-cust';
 import { showErrorToast, showSuccessToast } from '../../utils/ToastUtils';
 
 interface RelatedTableMatch {
@@ -124,6 +130,17 @@ const InstanceCodeGroupDetailsPage = () => {
     () => instanceCodes[0]?.codeGroupName,
     [instanceCodes]
   );
+
+  const ownersByType = useMemo(() => {
+    const owners = parseInstanceCodeOwners(instanceCodes[0]?.description);
+    const grouped = new Map<string, typeof owners>();
+    owners.forEach((owner) => {
+      const key = owner.type || t('label.owner-kb-cust');
+      grouped.set(key, [...(grouped.get(key) ?? []), owner]);
+    });
+
+    return Array.from(grouped.entries());
+  }, [instanceCodes, t]);
 
   const { breadcrumbs } = useBreadcrumbs({
     items: [
@@ -247,26 +264,31 @@ const InstanceCodeGroupDetailsPage = () => {
     );
   }, [loading, instanceCodes, handleCopyTable, t]);
 
-  const infoBox = useMemo(
-    () => (
+  const infoBox = useMemo(() => {
+    const description = instanceCodes[0]?.description;
+    const definition = parseInstanceCodeDefinition(description);
+    const standardClassification =
+      parseInstanceCodeStandardClassification(description);
+
+    const items = [
+      {
+        term: t('label.instance-identifier-kb-cust'),
+        value: codeGroup,
+      },
+      {
+        term: t('label.instance-definition-kb-cust'),
+        value: definition || NO_DATA,
+      },
+      {
+        term: t('label.standard-classification-kb-cust'),
+        value: standardClassification || NO_DATA,
+      },
+    ];
+
+    return (
       <Card style={{ padding: 20 }} variant="elevated">
         <Box direction="col" gap={3}>
-          {[
-            {
-              term: t('label.instance-definition-kb-cust'),
-              description: t('message.instance-definition-description-kb-cust'),
-            },
-            {
-              term: t('label.instance-identifier-kb-cust'),
-              description: t('message.instance-identifier-description-kb-cust'),
-            },
-            {
-              term: t('label.standard-classification-kb-cust'),
-              description: t(
-                'message.standard-classification-description-kb-cust'
-              ),
-            },
-          ].map((item) => (
+          {items.map((item) => (
             <Box direction="row" gap={3} key={item.term}>
               <Typography
                 className="tw:w-36 tw:shrink-0"
@@ -275,15 +297,14 @@ const InstanceCodeGroupDetailsPage = () => {
                 {item.term}
               </Typography>
               <Typography className="tw:text-tertiary" size="text-sm">
-                {item.description}
+                {item.value}
               </Typography>
             </Box>
           ))}
         </Box>
       </Card>
-    ),
-    [t]
-  );
+    );
+  }, [instanceCodes, codeGroup, t]);
 
   const relatedTablesPanel = useMemo(
     () => (
@@ -327,6 +348,38 @@ const InstanceCodeGroupDetailsPage = () => {
     [relatedTables, relatedTablesLoading, t]
   );
 
+  const ownersPanel = useMemo(
+    () => (
+      <Card style={{ padding: 20 }} variant="elevated">
+        <Typography className="tw:mb-3" size="text-md" weight="semibold">
+          {t('label.owner-kb-cust')}
+        </Typography>
+        {ownersByType.length === 0 ? (
+          <Typography className="tw:text-tertiary" size="text-sm">
+            {t('message.no-data-message', {
+              entity: t('label.owner-kb-cust'),
+            })}
+          </Typography>
+        ) : (
+          <Box direction="col" gap={4}>
+            {ownersByType.map(([type, owners]) => (
+              <Box direction="col" gap={2} key={type}>
+                <Typography
+                  className="tw:text-tertiary"
+                  size="text-xs"
+                  weight="semibold">
+                  {type}
+                </Typography>
+                <OwnerAvatarGroup owners={owners} />
+              </Box>
+            ))}
+          </Box>
+        )}
+      </Card>
+    ),
+    [ownersByType, t]
+  );
+
   return (
     <Box className="tw:p-6" direction="col" gap={5}>
       {breadcrumbs}
@@ -334,13 +387,11 @@ const InstanceCodeGroupDetailsPage = () => {
         <Box direction="col" gap={2}>
           <Box align="center" direction="row" gap={3}>
             <Typography size="text-xl" weight="semibold">
-              {codeGroup}
+              {codeGroupName || codeGroup}
             </Typography>
-            {codeGroupName && (
-              <Badge color="brand" size="md">
-                {codeGroupName}
-              </Badge>
-            )}
+            <Badge color="brand" size="md">
+              {codeGroup}
+            </Badge>
           </Box>
         </Box>
       </Card>
@@ -349,7 +400,10 @@ const InstanceCodeGroupDetailsPage = () => {
         <div className="tw:lg:col-span-2">
           <Card variant="elevated">{content}</Card>
         </div>
-        <div>{relatedTablesPanel}</div>
+        <Box direction="col" gap={5}>
+          {relatedTablesPanel}
+          {ownersPanel}
+        </Box>
       </div>
     </Box>
   );
