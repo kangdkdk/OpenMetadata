@@ -1150,7 +1150,10 @@ const SchemaTable = () => {
   );
 
   const handleDownloadColumnsCsv = useCallback(() => {
-    const csv = buildColumnsCsv(tableColumns);
+    // Prefix a UTF-8 BOM so Excel (notably on Korean Windows) detects the
+    // encoding correctly instead of falling back to the system codepage and
+    // garbling Hangul text.
+    const csv = `﻿${buildColumnsCsv(tableColumns)}`;
     const fileName = `${tableFqn || 'table'}_columns_${new Date()
       .toISOString()
       .slice(0, 10)}.csv`;

@@ -306,6 +306,44 @@ CSV 필드 이스케이프(쉼표/따옴표/개행 포함 시 큰따옴표로 �
 (`321d66ea4be88cd3c0f3a9b22bcb364e`) 확인, 서버 `healthy` 및 API 응답 재확인. 브라우저
 자동화 도구가 없어 실제 CSV 다운로드 클릭 동작과 파일 내용은 사용자 확인 필요.
 
+### 2026-08-11 — CSV 인코딩 + 커넥터 아이콘 3종 + 서비스타입 대소문자 + ReportProject 화면 개편
+
+**CSV BOM**: `xxd`로 실제 export 응답의 첫 바이트를 직접 확인해 `ef bb bf`(UTF-8 BOM)가
+헤더 앞에 붙었음을 검증(`curl .../search/export?q=*&index=table_search_index&size=5`).
+프런트 Schema 탭 CSV는 템플릿 리터럴에 BOM 문자를 직접 삽입 후 `cat -A`로
+`M-oM-;M-?`(EF BB BF의 cat -A 표기) 바이트 시퀀스가 실제로 파일에 들어갔는지 확인.
+
+**커넥터 아이콘**: 재작업 전 PIL로 각 PNG의 alpha 채널 bbox를 측정해 문제를 정량적으로
+확인(Tibero 498x498 캔버스에 콘텐츠 356x47, Sybase 283x283에 136x219) — "작아 보인다"는
+제보를 크롭/패딩 문제로 구체화. 단순 크롭만으로는 원본이 여전히 와이드/톨 워드마크라
+정사각 아이콘화가 안 돼, 실제 브랜드 색상만 유지하고 텍스트 배지로 재제작하는 방향으로
+전환. Db2UDB는 기존 공식 IBM Db2 아이콘(`service-icon-ibmdb2.webp`)을 참고 이미지로 직접
+읽어(Read 도구로 이미지 렌더링 확인) 동일한 흑+녹 2톤 스타일을 재현.
+
+**서비스타입 대소문자**: 정적 코드 리딩만으로는 원인을 못 찾아 실제 살아있는 서버에
+`GET /search/query?...&include_source_fields=serviceType`로 집계 결과를 직접 조회해
+`{"key": "sybase"}`처럼 전부 소문자인 것을 확인 → `table_index_mapping.json`의
+`serviceType.normalizer: lowercase_normalizer` 발견. 대조군으로
+`GET /services/databaseServices`(DB 직접 조회, ES 안 거침)는 `"Sybase"`로 정상 반환됨을
+같이 확인해 "ES 집계만의 문제"임을 특정. 매핑 자체(전체 커넥터 공용, 재인덱싱 필요)는
+건드리지 않고 프런트 표시 레이어에서만 수정하는 더 안전한 경로를 선택.
+
+**ReportProject 개편**: 사용자에게 "쿼리가 여러 개일 때 레이아웃을 어떻게 반복할지"
+먼저 확인 질문을 던졌더니 "쿼리는 원래 하나뿐"이라는 답을 받아 다중 쿼리 대응 코드
+자체를 걷어내는 방향으로 단순화(리스트/추가/삭제 UI 제거, `queries` 배열의 첫 번째
+요소만 사용).
+
+`npx eslint --fix`, `npx tsc --noEmit`, `mvn -pl openmetadata-service compile` 모두
+대상 파일 기준 0건, `mvn spotless:apply`로 Java 포맷 확인. 이번엔 백엔드(SearchRepository.java)
+와 프런트를 모두 건드려서 `openmetadata-service` → `openmetadata-ui` → `openmetadata-dist`
+순서로 개별 `mvn install`을 명시적으로 실행(CLAUDE.md의 `.m2` 스테일 경고에 따라 스코프
+빌드 전 서비스 모듈을 먼저 `install`). Docker 이미지 재빌드 → 재기동, 서버가 한 번에
+`healthy`로 안 올라와 재폴링했더니 정상적으로 기동 완료(단순 기동 시간 문제, 에러 아님).
+배포된 jar 내 `assets/assets/index-*.js`가 로컬 `dist/`와 md5 완전 일치
+(`dc69c7b537208a4b78c11ad39fe39d9b`) 확인, 신규 Db2UDB 아이콘 PNG도 jar 안에서 직접
+추출해 md5 일치 확인. 브라우저 자동화 도구가 없어 아이콘 실제 렌더링/ReportProject
+화면 레이아웃/퀵필터 표시 텍스트는 사용자 확인 필요.
+
 ## Windows 로컬 환경에서 재현할 때 필요한 사전 준비
 
 이 저장소를 Windows에서 처음 셋업하면 아래 환경 이슈를 만날 수 있습니다.

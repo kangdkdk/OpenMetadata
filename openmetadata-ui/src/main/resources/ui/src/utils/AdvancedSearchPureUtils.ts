@@ -30,6 +30,14 @@ import {
   EntityReferenceFields,
 } from '../enums/AdvancedSearch.enum';
 import { EntityType } from '../enums/entity.enum';
+import { DatabaseServiceType } from '../generated/entity/services/databaseService';
+import { DashboardServiceType } from '../generated/entity/services/dashboardService';
+import { MessagingServiceType } from '../generated/entity/services/messagingService';
+import { PipelineServiceType } from '../generated/entity/services/pipelineService';
+import { MlModelServiceType } from '../generated/entity/services/mlmodelService';
+import { MetadataServiceType } from '../generated/entity/services/metadataService';
+import { StorageServiceType } from '../generated/entity/services/storageService';
+import { SearchServiceType } from '../generated/entity/services/searchService';
 import { SearchIndex } from '../enums/search.enum';
 import type {
   ContainerSearchSource,
@@ -207,7 +215,33 @@ export const getServiceOptions = (
     : option.text;
 };
 
-export const getOptionsFromAggregationBucket = (buckets: Bucket[]) => {
+// The `serviceType` ES field uses a lowercase_normalizer, so aggregation
+// bucket keys come back lowercased (e.g. "sybase" instead of "Sybase").
+// Build a lowercase -> properly-cased lookup from all known service type
+// enums so quick-filter labels can be restored to their correct casing
+// without touching the shared index mapping or filter-value semantics.
+const SERVICE_TYPE_PROPER_CASE_BY_LOWERCASE = new Map<string, string>(
+  [
+    ...Object.values(DatabaseServiceType),
+    ...Object.values(DashboardServiceType),
+    ...Object.values(MessagingServiceType),
+    ...Object.values(PipelineServiceType),
+    ...Object.values(MlModelServiceType),
+    ...Object.values(MetadataServiceType),
+    ...Object.values(StorageServiceType),
+    ...Object.values(SearchServiceType),
+  ].map((serviceType) => [serviceType.toLowerCase(), serviceType])
+);
+
+const getAggregationBucketLabel = (key: string, fieldKey?: string): string =>
+  fieldKey === EntityFields.SERVICE_TYPE
+    ? SERVICE_TYPE_PROPER_CASE_BY_LOWERCASE.get(key.toLowerCase()) ?? key
+    : key;
+
+export const getOptionsFromAggregationBucket = (
+  buckets: Bucket[],
+  fieldKey?: string
+) => {
   if (!buckets) {
     return [];
   }
@@ -219,7 +253,7 @@ export const getOptionsFromAggregationBucket = (buckets: Bucket[]) => {
     )
     .map((option) => ({
       key: option.key,
-      label: option.key,
+      label: getAggregationBucketLabel(option.key, fieldKey),
       count: option.doc_count ?? 0,
     }));
 };

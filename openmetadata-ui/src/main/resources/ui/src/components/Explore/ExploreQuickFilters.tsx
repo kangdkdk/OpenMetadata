@@ -125,7 +125,7 @@ const ExploreQuickFilters: FC<ExploreQuickFiltersProps> = ({
       buckets = res.data.aggregations[`sterms#${searchKeyToUse}`].buckets;
     }
 
-    setOptions(uniqWith(getOptionsFromAggregationBucket(buckets), isEqual));
+    setOptions(uniqWith(getOptionsFromAggregationBucket(buckets, key), isEqual));
   };
 
   const getInitialOptions = async (
@@ -194,7 +194,7 @@ const ExploreQuickFilters: FC<ExploreQuickFiltersProps> = ({
       );
 
       const buckets = res.data.aggregations[`sterms#${searchKeyToUse}`].buckets;
-      setOptions(uniqWith(getOptionsFromAggregationBucket(buckets), isEqual));
+      setOptions(uniqWith(getOptionsFromAggregationBucket(buckets, key), isEqual));
     } catch (error) {
       showErrorToast(error as AxiosError);
     } finally {

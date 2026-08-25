@@ -15,19 +15,20 @@ import {
   Box,
   Button,
   Card,
-  Table,
   Typography,
 } from '@openmetadata/ui-core-components';
-import { Edit01, Plus, Trash01 } from '@untitledui/icons';
+import { Edit01 } from '@untitledui/icons';
 import { AxiosError } from 'axios';
 import { compare } from 'fast-json-patch';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import CopyToClipboardButton from '../../components/common/CopyToClipboardButton/CopyToClipboardButton';
-import { DeleteModal } from '../../components/common/DeleteModal/DeleteModal';
 import ErrorPlaceHolder from '../../components/common/ErrorWithPlaceholder/ErrorPlaceHolder';
 import Loader from '../../components/common/Loader/Loader';
+import RichTextEditorPreviewerV1 from '../../components/common/RichTextEditor/RichTextEditorPreviewerV1';
+import SchemaEditor from '../../components/Database/SchemaEditor/SchemaEditor';
 import PageHeader from '../../components/PageHeader/PageHeader.component';
+import { CSMode } from '../../enums/codemirror.enum';
 import { ERROR_PLACEHOLDER_TYPE } from '../../enums/common.enum';
 import {
   ReportProject,
@@ -42,12 +43,6 @@ import { getEntityName } from '../../utils/EntityNameUtils';
 import { showErrorToast, showSuccessToast } from '../../utils/ToastUtils';
 import ReportProjectQueryModal from './ReportProjectQueryModal-kb-cust';
 
-const QUERY_TABLE_COLUMNS = [
-  { id: 'service', name: 'label.service' },
-  { id: 'query', name: 'label.query' },
-  { id: 'actions', name: 'label.action-plural' },
-];
-
 const ReportProjectDetailsPage = () => {
   const { t } = useTranslation();
   const { fqn: reportProjectFqn } = useFqn();
@@ -55,11 +50,7 @@ const ReportProjectDetailsPage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isError, setIsError] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
-  const [queryModal, setQueryModal] = useState<{
-    open: boolean;
-    editIndex: number | null;
-  }>({ open: false, editIndex: null });
-  const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
+  const [isQueryModalOpen, setIsQueryModalOpen] = useState<boolean>(false);
 
   const fetchReportProject = useCallback(async () => {
     setIsLoading(true);
@@ -80,7 +71,7 @@ const ReportProjectDetailsPage = () => {
     }
   }, [reportProjectFqn]);
 
-  const saveQueries = async (updatedQueries: ReportQuery[]) => {
+  const handleQuerySubmit = async (value: ReportQuery) => {
     if (!reportProject) {
       return;
     }
@@ -88,7 +79,7 @@ const ReportProjectDetailsPage = () => {
     try {
       const jsonPatch = compare(reportProject, {
         ...reportProject,
-        queries: updatedQueries,
+        queries: [value],
       });
       const updated = await patchReportProject(
         reportProject.id ?? '',
@@ -97,38 +88,15 @@ const ReportProjectDetailsPage = () => {
       setReportProject(updated);
       showSuccessToast(
         t('message.entity-saved-successfully', {
-          entity: t('label.query-plural'),
+          entity: t('label.query'),
         })
       );
-      setQueryModal({ open: false, editIndex: null });
-      setDeleteIndex(null);
+      setIsQueryModalOpen(false);
     } catch (error) {
       showErrorToast(error as AxiosError);
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const handleQuerySubmit = (value: ReportQuery) => {
-    const existingQueries = reportProject?.queries ?? [];
-    const updatedQueries =
-      queryModal.editIndex === null
-        ? [...existingQueries, value]
-        : existingQueries.map((q, i) =>
-            i === queryModal.editIndex ? value : q
-          );
-
-    saveQueries(updatedQueries);
-  };
-
-  const handleDeleteConfirm = () => {
-    if (deleteIndex === null) {
-      return;
-    }
-    const updatedQueries = (reportProject?.queries ?? []).filter(
-      (_, i) => i !== deleteIndex
-    );
-    saveQueries(updatedQueries);
   };
 
   if (isLoading) {
@@ -139,14 +107,14 @@ const ReportProjectDetailsPage = () => {
     return <ErrorPlaceHolder type={ERROR_PLACEHOLDER_TYPE.CUSTOM} />;
   }
 
-  const queries = reportProject.queries ?? [];
+  const query = reportProject.queries?.[0];
 
   return (
     <Box className="tw:gap-4 tw:p-6" direction="col">
       <PageHeader
         data={{
           header: getEntityName(reportProject),
-          subHeader: reportProject.description ?? '',
+          subHeader: '',
         }}
       />
 
@@ -166,94 +134,65 @@ const ReportProjectDetailsPage = () => {
         </div>
       </Card>
 
-      <Box align="center" justify="between">
-        <Typography size="text-md" weight="semibold">
-          {t('label.query-plural')}
-        </Typography>
-        <Button
-          color="primary"
-          data-testid="add-query-button"
-          iconLeading={Plus}
-          size="sm"
-          onClick={() => setQueryModal({ open: true, editIndex: null })}>
-          {t('label.add-entity', { entity: t('label.query') })}
-        </Button>
-      </Box>
+      {reportProject.description && (
+        <Card className="tw:p-5">
+          <Typography className="tw:mb-2" size="text-md" weight="semibold">
+            {t('label.description')}
+          </Typography>
+          <RichTextEditorPreviewerV1 markdown={reportProject.description} />
+        </Card>
+      )}
 
-      <Table aria-label={t('label.query-plural')} data-testid="query-table">
-        <Table.Header columns={QUERY_TABLE_COLUMNS}>
-          {(col) => (
-            <Table.Head id={col.id} key={col.id} label={t(col.name)} />
+      <Card className="tw:p-5">
+        <Box align="center" className="tw:mb-3" justify="between">
+          <Typography size="text-md" weight="semibold">
+            {t('label.query')}
+          </Typography>
+          {query && (
+            <Box className="tw:gap-1">
+              <CopyToClipboardButton copyText={query.query} />
+              <Button
+                color="tertiary"
+                data-testid="edit-query-button"
+                iconLeading={Edit01}
+                size="sm"
+                onClick={() => setIsQueryModalOpen(true)}>
+                {t('label.edit')}
+              </Button>
+            </Box>
           )}
-        </Table.Header>
-        <Table.Body
-          items={queries}
-          renderEmptyState={() => (
+        </Box>
+        {query ? (
+          <SchemaEditor
+            className="report-project-query-editor-kb-cust"
+            data-testid="query-display"
+            mode={{ name: CSMode.SQL }}
+            options={{ readOnly: true }}
+            showCopyButton={false}
+            value={query.query}
+          />
+        ) : (
+          <Box align="center" className="tw:gap-3" direction="col">
             <Typography className="tw:text-tertiary" size="text-sm">
-              {t('label.none')}
+              {t('label.no-entity', { entity: t('label.query') })}
             </Typography>
-          )}>
-          {(record: ReportQuery) => {
-            const index = queries.indexOf(record);
-
-            return (
-              <Table.Row data-testid={`query-row-${index}`} id={String(index)}>
-                <Table.Cell>
-                  <Typography size="text-sm" weight="semibold">
-                    {record.service}
-                  </Typography>
-                </Table.Cell>
-                <Table.Cell>
-                  <Typography className="tw:font-mono" size="text-sm">
-                    {record.query}
-                  </Typography>
-                </Table.Cell>
-                <Table.Cell>
-                  <Box className="tw:gap-1">
-                    <CopyToClipboardButton copyText={record.query} />
-                    <Button
-                      color="tertiary"
-                      data-testid={`edit-query-${index}`}
-                      iconLeading={Edit01}
-                      size="sm"
-                      onClick={() =>
-                        setQueryModal({ open: true, editIndex: index })
-                      }
-                    />
-                    <Button
-                      color="tertiary-destructive"
-                      data-testid={`delete-query-${index}`}
-                      iconLeading={Trash01}
-                      size="sm"
-                      onClick={() => setDeleteIndex(index)}
-                    />
-                  </Box>
-                </Table.Cell>
-              </Table.Row>
-            );
-          }}
-        </Table.Body>
-      </Table>
+            <Button
+              color="primary"
+              data-testid="add-query-button"
+              size="sm"
+              onClick={() => setIsQueryModalOpen(true)}>
+              {t('label.add-entity', { entity: t('label.query') })}
+            </Button>
+          </Box>
+        )}
+      </Card>
 
       <ReportProjectQueryModal
-        initialValue={
-          queryModal.editIndex !== null ? queries[queryModal.editIndex] : null
-        }
+        initialValue={query ?? null}
         isSaving={isSaving}
-        open={queryModal.open}
-        onCancel={() => setQueryModal({ open: false, editIndex: null })}
+        open={isQueryModalOpen}
+        onCancel={() => setIsQueryModalOpen(false)}
         onSubmit={handleQuerySubmit}
-      />
-
-      <DeleteModal
-        entityTitle={t('label.query')}
-        isDeleting={isSaving}
-        message={t('message.delete-entity-permanently', {
-          entityType: t('label.query'),
-        })}
-        open={deleteIndex !== null}
-        onCancel={() => setDeleteIndex(null)}
-        onDelete={handleDeleteConfirm}
       />
     </Box>
   );

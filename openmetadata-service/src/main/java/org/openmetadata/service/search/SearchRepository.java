@@ -2827,6 +2827,11 @@ public class SearchRepository {
       int from,
       java.io.OutputStream output)
       throws IOException {
+    // Write a UTF-8 BOM so Excel (notably on Korean Windows) detects the
+    // encoding correctly instead of falling back to the system codepage and
+    // garbling non-ASCII text such as Hangul.
+    output.write(new byte[] {(byte) 0xEF, (byte) 0xBB, (byte) 0xBF});
+
     java.io.BufferedWriter writer =
         new java.io.BufferedWriter(
             new java.io.OutputStreamWriter(output, java.nio.charset.StandardCharsets.UTF_8));

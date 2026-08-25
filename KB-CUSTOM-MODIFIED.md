@@ -25,6 +25,7 @@
 | v1 | `custom/1.13.3-v2-instance-code-report-project-add` | 테이블 Schema 탭에 "데이터셋 정보" 패널 + "테이블 변경이력" 조회 모달 추가 (Custom Properties 기반) |
 | v1 | `custom/1.13.3-v2-instance-code-report-project-add` | 테이블 상세 페이지에 "테이블 인덱스" 탭 신규 추가 (Schema 탭과 활동 피드 및 작업 탭 사이) |
 | v1 | `custom/1.13.3-v2-instance-code-report-project-add` | Explore 검색 결과 및 Schema 탭 컬럼 목록에 CSV 다운로드 버튼 추가 |
+| v1 | `custom/1.13.3-v2-instance-code-report-project-add` | CSV 한글 인코딩 수정 + 커넥터 아이콘 3종 교체 + 서비스타입 대소문자 수정 + ReportProject 상세 화면 개편 |
 
 ## v1 — Sybase 데이터베이스 서비스 커넥터 추가
 
@@ -369,3 +370,49 @@ Service Type/FQN/Name/Display Name/Description/Owners/Tags/Glossary Terms/Domain
 | `openmetadata-ui/.../components/Database/SchemaTable/SchemaTable.component.tsx` | 컬럼 목록 CSV 빌더 + 다운로드 버튼 추가 |
 | `openmetadata-ui/.../locale/languages/en-us.json` | `csv-download-kb-cust` 라벨 키 추가 |
 | `openmetadata-ui/.../locale/languages/ko-kr.json` | 위 키의 한국어 텍스트("CSV 다운로드") |
+
+## 신규 기능: CSV 인코딩/커넥터 아이콘/ReportProject 개편 라인
+
+## v1 — CSV 한글 인코딩 + 커넥터 아이콘 3종 + 서비스타입 대소문자 + ReportProject 화면 개편
+
+**CSV 한글 깨짐 수정**: Excel(특히 한글 Windows)이 BOM 없는 UTF-8 CSV를 시스템 코드페이지로
+잘못 해석해 한글이 깨지는 문제. Explore 검색 결과 CSV(백엔드 스트리밍)와 Schema 탭 컬럼
+CSV(프런트 Blob 다운로드) 양쪽 모두 파일 맨 앞에 UTF-8 BOM(`EF BB BF`)을 추가.
+
+**커넥터 아이콘 3종 교체**: 기존 Sybase/Tibero 아이콘은 실제 콘텐츠가 캔버스의 10~15%만
+차지하는 여백투성이 워드마크 PNG라 작은 아이콘 크기로 축소하면 사실상 안 보이는 문제를
+발견(PIL로 alpha bbox 확인: Tibero는 498x498 캔버스에 356x47 텍스트만). 두 로고를 실제
+브랜드 색상(Sybase 네이비, Tibero 브랜드 블루 + 레드 액센트)을 유지한 채 텍스트가 꽉 차는
+정사각 배지 스타일로 새로 제작. Db2UDB 아이콘은 기존에 "DB2"라고만 나오던 걸, 공식 Db2
+아이콘(흑색+녹색 2톤, 둥근 사각형)과 같은 스타일로 "DB2"(상단 흑색)/"UDB"(하단 녹색) 두
+줄로 재구성해 "Db2UDB"가 온전히 드러나도록 함.
+
+**서비스타입 대소문자 버그**: "커넥터 타입 목록에 표시되는 이름이 소문자로 나온다"는 제보를
+받고 실제 Explore 퀵필터 API 응답을 직접 조회해 원인 확정 — `table_index_mapping.json`의
+`serviceType` 필드가 `lowercase_normalizer`를 쓰기 때문에(공식 매핑, Tibero/Sybase/Db2UDB
+전용이 아니라 mysql/postgres 등 전체 커넥터에 영향) Elasticsearch 집계(aggregation) 버킷의
+`key`가 전부 소문자로 반환됨. 반면 REST API(`GET /services/databaseServices`)로 직접 조회한
+`serviceType` 값은 정상적으로 대소문자가 살아있음을 확인 — 즉 문제는 MySQL 원본 데이터가
+아니라 ES 집계 결과를 그대로 필터 라벨로 쓰는 프런트 로직(`getOptionsFromAggregationBucket`)
+에 있었음. 매핑의 normalizer를 건드리면 기존 대소문자 무관 필터링 동작이 깨질 위험이 있어
+매핑은 그대로 두고, 프런트에서 `serviceType` 퀵필터일 때만 소문자 버킷 키를 8개
+서비스타입 enum(Database/Dashboard/Messaging/Pipeline/MlModel/Metadata/Storage/Search)
+전체에서 대소문자 무관 역매핑해 올바른 표기로 복원하는 방식으로 수정 — 재인덱싱 불필요.
+
+**ReportProject 상세 화면 개편**: 쿼리가 항상 정확히 1개뿐이라는 걸 사용자에게 확인받은 후,
+기존 "쿼리 추가/테이블 목록/행별 수정삭제" 구조를 걷어내고 설명 카드 → 쿼리 카드(SQL
+문법강조 에디터로 크게 표시) 순서의 단순한 레이아웃으로 교체. 복사/수정 버튼은 카드 헤더에
+그대로 유지, 추가/삭제 버튼과 다중 쿼리 표는 제거(쿼리가 아직 없을 때만 "추가" 버튼이 빈
+상태 CTA로 남음).
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-service/.../search/SearchRepository.java` | `exportSearchResultsCsvStream`에 UTF-8 BOM 프리픽스 추가 |
+| `openmetadata-ui/.../components/Database/SchemaTable/SchemaTable.component.tsx` | 클라이언트 CSV 빌드 결과에 UTF-8 BOM 프리픽스 추가 |
+| `openmetadata-ui/.../utils/AdvancedSearchPureUtils.ts` | `getOptionsFromAggregationBucket`에 `fieldKey` 파라미터 추가, `serviceType` 필드일 때 대소문자 복원 |
+| `openmetadata-ui/.../components/Explore/ExploreQuickFilters.tsx` | 위 함수 호출 시 `key`(필드명) 전달 |
+| `openmetadata-ui/.../assets/img/service-icon-sybase-kb-cust.png` | 정사각 배지 스타일로 재제작 |
+| `openmetadata-ui/.../assets/img/service-icon-tibero-kb-cust.png` | 정사각 배지 스타일로 재제작 |
+| `openmetadata-ui/.../assets/img/service-icon-db2udb-kb-cust.png` | 공식 Db2 아이콘 스타일(흑+녹 2톤)로 재제작, "DB2"/"UDB" 표기 |
+| `openmetadata-ui/.../pages/ReportProjectPage/ReportProjectDetailsPage-kb-cust.tsx` | 리스트/표 구조 제거, 설명+단일 쿼리 카드 레이아웃으로 개편 |
+| `openmetadata-ui/.../styles/components/code-mirror.less` | `.report-project-query-editor-kb-cust` 클래스 추가 (큰 SQL 에디터용) |
