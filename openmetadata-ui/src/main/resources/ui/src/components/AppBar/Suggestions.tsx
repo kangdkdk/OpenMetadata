@@ -104,7 +104,6 @@ const Suggestions = ({
     apiEndpointSuggestions,
     apiCollectionSuggestions,
     metricSuggestions,
-    columnSuggestions,
   } = suggestions;
 
   const isMounting = useRef(true);
@@ -214,7 +213,6 @@ const Suggestions = ({
         role="none">
         {[
           { suggestions: tableSuggestions, searchIndex: SearchIndex.TABLE },
-          { suggestions: columnSuggestions, searchIndex: SearchIndex.COLUMN },
           { suggestions: topicSuggestions, searchIndex: SearchIndex.TOPIC },
           {
             suggestions: dashboardSuggestions,
