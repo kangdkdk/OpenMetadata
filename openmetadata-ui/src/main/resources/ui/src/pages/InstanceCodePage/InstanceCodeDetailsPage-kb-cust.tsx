@@ -10,11 +10,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+import { Badge, Box, Card, Typography } from '@openmetadata/ui-core-components';
 import { AxiosError } from 'axios';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import ErrorPlaceHolder from '../../components/common/ErrorWithPlaceholder/ErrorPlaceHolder';
 import Loader from '../../components/common/Loader/Loader';
+import PageHeader from '../../components/PageHeader/PageHeader.component';
 import { ERROR_PLACEHOLDER_TYPE } from '../../enums/common.enum';
 import { InstanceCode } from '../../generated/entity/data/instanceCode-kb-cust';
 import { useFqn } from '../../hooks/useFqn';
@@ -56,35 +58,57 @@ const InstanceCodeDetailsPage = () => {
     return <ErrorPlaceHolder type={ERROR_PLACEHOLDER_TYPE.CUSTOM} />;
   }
 
-  const fields: [string, string][] = [
-    [t('label.name'), getEntityName(instanceCode)],
-    ['Code Group', instanceCode.codeGroup ?? '-'],
-    ['Code Group Name', instanceCode.codeGroupName ?? '-'],
-    ['Code Value', instanceCode.codeValue ?? '-'],
-    ['Code Name', instanceCode.codeName ?? '-'],
-    ['Sort Order', String(instanceCode.sortOrder ?? '-')],
-    ['Registered Date', instanceCode.registeredDate ?? '-'],
-    ['Active', instanceCode.active ? 'Y' : 'N'],
+  const fields: { label: string; value: React.ReactNode }[] = [
+    { label: t('label.code-group-kb-cust'), value: instanceCode.codeGroup },
+    {
+      label: t('label.code-group-name-kb-cust'),
+      value: instanceCode.codeGroupName,
+    },
+    { label: t('label.code-value-kb-cust'), value: instanceCode.codeValue },
+    { label: t('label.code-name-kb-cust'), value: instanceCode.codeName },
+    { label: t('label.sort-order-kb-cust'), value: instanceCode.sortOrder },
+    {
+      label: t('label.registered-date-kb-cust'),
+      value: instanceCode.registeredDate,
+    },
+    {
+      label: t('label.active'),
+      value: (
+        <Badge
+          color={instanceCode.active ? 'success' : 'gray'}
+          size="sm"
+          type="pill-color">
+          {instanceCode.active ? t('label.yes') : t('label.no')}
+        </Badge>
+      ),
+    },
   ];
 
   return (
-    <div className="tw:p-6 tw:max-w-2xl">
-      <h1 className="tw:text-lg tw:font-semibold tw:mb-4">
-        {getEntityName(instanceCode)}
-      </h1>
-      <table className="tw:w-full tw:border tw:border-gray-200 tw:text-sm">
-        <tbody>
-          {fields.map(([label, value]) => (
-            <tr className="tw:border-b tw:border-gray-100" key={label}>
-              <td className="tw:p-2 tw:font-medium tw:w-48 tw:bg-gray-50">
-                {label}
-              </td>
-              <td className="tw:p-2">{value}</td>
-            </tr>
+    <Box className="tw:gap-4 tw:p-6 tw:max-w-2xl" direction="col">
+      <PageHeader
+        data={{
+          header: getEntityName(instanceCode),
+          subHeader: instanceCode.description ?? '',
+        }}
+      />
+
+      <Card className="tw:p-5">
+        <div className="tw:grid tw:grid-cols-2 tw:gap-4">
+          {fields.map((field) => (
+            <div key={field.label}>
+              <Typography
+                className="tw:text-tertiary tw:mb-1"
+                size="text-xs"
+                weight="medium">
+                {field.label}
+              </Typography>
+              <Typography size="text-sm">{field.value}</Typography>
+            </div>
           ))}
-        </tbody>
-      </table>
-    </div>
+        </div>
+      </Card>
+    </Box>
   );
 };
 

@@ -51,3 +51,4 @@
 | v2 | `openmetadata-ui/.../generated/api/data/createReportProject-kb-cust.ts` | ReportProject 생성 요청 TypeScript 타입 |
 | v2 | `openmetadata-ui/.../rest/reportProjectAPI-kb-cust.ts` | ReportProject REST 클라이언트 |
 | v2 | `openmetadata-ui/.../pages/ReportProjectPage/ReportProjectDetailsPage-kb-cust.tsx` | ReportProject 상세 페이지 |
+| v6 | `openmetadata-ui/.../pages/ReportProjectPage/ReportProjectQueryModal-kb-cust.tsx` | 쿼리 추가/수정 모달 |

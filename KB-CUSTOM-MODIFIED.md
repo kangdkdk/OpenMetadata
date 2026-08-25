@@ -17,6 +17,7 @@
 | v3 | `custom/1.13.3-v2-instance-code-report-project-add` | Explore 트리 구조를 Databases와 동일 레벨로 변경 + ReportProject 아이콘 교체 |
 | v4 | `custom/1.13.3-v2-instance-code-report-project-add` | 트리 노드 `isLeaf` 누락으로 인한 클릭 시 빈 화면 문제 수정 + 아이콘 재교체(작게 보이는 문제) |
 | v5 | `custom/1.13.3-v2-instance-code-report-project-add` | ES 매핑에 `entityType.keyword` 서브필드 누락으로 인한 검색 결과 0건 문제 수정 (진짜 원인) |
+| v6 | `custom/1.13.3-v2-instance-code-report-project-add` | 상세 페이지 디자인 시스템 적용 + ReportProject 쿼리 CRUD·복사 기능 추가 |
 
 ## v1 — Sybase 데이터베이스 서비스 커넥터 추가
 
@@ -132,3 +133,21 @@ v4까지 고쳐도 사용자가 트리 클릭 시 결과 패널이 계속 빈 �
 |---|---|
 | `openmetadata-spec/.../elasticsearch/{en,jp,ru,zh}/instance_code_index_mapping.json` | `entityType`에 `lowercase_normalizer` 적용된 `.keyword` 서브필드 추가 |
 | `openmetadata-spec/.../elasticsearch/{en,jp,ru,zh}/report_project_index_mapping.json` | 위와 동일 |
+
+## v6 — 상세 페이지 디자인 시스템 적용 + ReportProject 쿼리 CRUD·복사 기능
+
+두 상세 페이지를 순수 HTML 테이블에서 `@openmetadata/ui-core-components`(Card, Table,
+Badge, PageHeader 등) 기반으로 재작성 — `IntakeFormsPage`의 테이블+모달 CRUD 패턴을 그대로
+참고. ReportProject 쪽에 쿼리 추가/수정/삭제(PATCH 기반, `fast-json-patch`의 `compare`로
+`queries` 배열 통째 교체) + 클립보드 복사(기존 `CopyToClipboardButton` 재사용) 기능 추가.
+백엔드 PATCH 자체는 이미 있던 `/v1/reportProjects/{id}` 엔드포인트를 그대로 사용, 프런트에
+`patchReportProject` 함수만 추가. curl로 add/replace/remove 세 가지 JSON Patch 오퍼레이션을
+전부 재현해 정상 동작 확인.
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/.../pages/InstanceCodePage/InstanceCodeDetailsPage-kb-cust.tsx` | Card 기반 디자인으로 재작성 |
+| `openmetadata-ui/.../pages/ReportProjectPage/ReportProjectDetailsPage-kb-cust.tsx` | Card/Table 기반 재작성, 쿼리 추가/수정/삭제/복사 버튼 추가 |
+| `openmetadata-ui/.../pages/ReportProjectPage/ReportProjectQueryModal-kb-cust.tsx` | 쿼리 추가/수정용 모달(신규) |
+| `openmetadata-ui/.../rest/reportProjectAPI-kb-cust.ts` | `patchReportProject` 함수 추가 |
+| `openmetadata-ui/.../locale/languages/*.json` (19개 파일) | 코드/정렬순서/등록일 등 라벨 키 추가, `yarn i18n`으로 동기화 |

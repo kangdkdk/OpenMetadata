@@ -10,6 +10,8 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+import { AxiosResponse } from 'axios';
+import { Operation } from 'fast-json-patch';
 import { PagingResponse } from 'Models';
 import { ReportProject } from '../generated/entity/data/reportProject-kb-cust';
 import { Include } from '../generated/type/include';
@@ -26,6 +28,15 @@ export const getReportProjects = async (params: ListParams) => {
       },
     }
   );
+
+  return response.data;
+};
+
+export const patchReportProject = async (id: string, data: Operation[]) => {
+  const response = await APIClient.patch<
+    Operation[],
+    AxiosResponse<ReportProject>
+  >(`/reportProjects/${id}`, data);
 
   return response.data;
 };

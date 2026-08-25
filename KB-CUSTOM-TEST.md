@@ -111,6 +111,19 @@ curl 테스트는 전부 `entityType`(서브필드 없이) 필드로 직접 term
 전환을 직접 확인. `kb-entity-scaffold` 스킬에도 이 패턴을 명시적으로 추가해 다음 커스텀
 엔티티가 같은 함정에 빠지지 않도록 함.
 
+### 2026-08-10 — v6: 상세 페이지 디자인 개선 + ReportProject 쿼리 CRUD·복사
+
+사용자가 데이터는 이제 보인다고 확인, 이어서 디자인 개선과 ReportProject 쿼리 추가/수정/복사
+기능을 요청. `@openmetadata/ui-core-components`로 두 상세 페이지 재작성, ReportProject에
+쿼리 테이블 + 추가/수정 모달 + 삭제 확인 모달 + 클립보드 복사 버튼 추가. `npx tsc --noEmit`
+415건(변동 없음, 신규 파일에서 에러 0건). `vite build` → `mvn install`(ui) → `mvn
+package`(dist) → Docker 이미지 재빌드 → 재기동 완료. 배포된 번들 해시가 로컬 빌드와 일치함을
+재확인, 신규 모달의 `data-testid`가 코드-스플릿된 청크에 포함돼 있음을 grep으로 확인.
+**PATCH 기반 CRUD를 curl로 add/replace/remove 세 오퍼레이션 전부 직접 재현**해서 정상 동작
+확인(추가 → 수정 → 삭제 후 원래 상태로 복귀까지 확인, 부작용 없음). InstanceCode/ReportProject
+샘플 데이터 5+5건 유지 재확인. 이번에도 브라우저 자동화 도구가 없어 실제 화면 디자인이
+의도대로 보이는지는 사용자 확인 필요.
+
 ## Windows 로컬 환경에서 재현할 때 필요한 사전 준비
 
 이 저장소를 Windows에서 처음 셋업하면 아래 환경 이슈를 만날 수 있습니다.
