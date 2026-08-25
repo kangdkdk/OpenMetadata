@@ -10,22 +10,18 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+import { ComponentType } from 'react';
 
-import WhatsNewAlert from '../Modals/WhatsNewModal/WhatsNewAlert/WhatsNewAlert.component';
-import GithubStarCard from '../MyData/GithubStarCard/GithubStarCard.component';
+interface AlertCard {
+  key: string;
+  component: ComponentType;
+}
 
 class PopupAlertsCardsClassBase {
-  public alertsCards() {
-    return [
-      {
-        key: 'whatNewAlertCard',
-        component: WhatsNewAlert,
-      },
-      {
-        key: 'githubPopupAlertCard',
-        component: GithubStarCard,
-      },
-    ];
+  // 내부망 배포: "새 버전 출시" 안내(원격 릴리스 정보 링크)와 "Star us on GitHub" 카드(실제로
+  // api.github.com에 네트워크 요청을 보냄, 폐쇄망에서 실패/지연 유발)를 둘 다 비활성화.
+  public alertsCards(): AlertCard[] {
+    return [];
   }
 }
 
