@@ -26,6 +26,7 @@
 | v1 | `custom/1.13.3-v2-instance-code-report-project-add` | 테이블 상세 페이지에 "테이블 인덱스" 탭 신규 추가 (Schema 탭과 활동 피드 및 작업 탭 사이) |
 | v1 | `custom/1.13.3-v2-instance-code-report-project-add` | Explore 검색 결과 및 Schema 탭 컬럼 목록에 CSV 다운로드 버튼 추가 |
 | v1 | `custom/1.13.3-v2-instance-code-report-project-add` | CSV 한글 인코딩 수정 + 커넥터 아이콘 3종 교체 + 서비스타입 대소문자 수정 + ReportProject 상세 화면 개편 |
+| v2 | `custom/1.13.3-v2-instance-code-report-project-add` | 홈 위젯 서비스타입 대소문자 수정 + ReportProject 요청정보 필드 추가 + InstanceCode 그룹 페이지 개편(라벨/정보박스/연관테이블) |
 
 ## v1 — Sybase 데이터베이스 서비스 커넥터 추가
 
@@ -416,3 +417,52 @@ CSV(프런트 Blob 다운로드) 양쪽 모두 파일 맨 앞에 UTF-8 BOM(`EF B
 | `openmetadata-ui/.../assets/img/service-icon-db2udb-kb-cust.png` | 공식 Db2 아이콘 스타일(흑+녹 2톤)로 재제작, "DB2"/"UDB" 표기 |
 | `openmetadata-ui/.../pages/ReportProjectPage/ReportProjectDetailsPage-kb-cust.tsx` | 리스트/표 구조 제거, 설명+단일 쿼리 카드 레이아웃으로 개편 |
 | `openmetadata-ui/.../styles/components/code-mirror.less` | `.report-project-query-editor-kb-cust` 클래스 추가 (큰 SQL 에디터용) |
+
+## v2 — 홈 위젯 대소문자 + ReportProject 요청정보 필드 + InstanceCode 그룹 페이지 개편
+
+**홈 위젯 서비스타입 대소문자**: v1에서 Explore 퀵필터의 서비스타입 대소문자는 고쳤지만,
+사용자가 홈 화면 "데이터 자산들" 위젯 스크린샷을 보내와 sybase/tibero만 소문자로 보이는
+걸 재확인 — 조사해보니 이 위젯은 v1에서 고친 `AdvancedSearchPureUtils.
+getOptionsFromAggregationBucket`을 안 거치고 `entityUtilClassBase.getFormattedServiceType()`
+→ `FormattedDatabaseServiceType` enum(모든 공식 커넥터의 "예쁜" 표시명을 담은 enum,
+예: `Mysql = "MySQL"`, `MariaDB = "Maria DB"`)을 직접 쓰는 별도 경로였음. 이 enum에
+Sybase/Tibero/Db2UDB 항목이 애초에 빠져있어서 매핑 실패 시 원본(소문자 ES 버킷 키) 그대로
+노출된 게 진짜 원인 — v1의 수정은 그대로 유효하되 이 enum이 더 근본적인 지점이라 여기에도
+3개 항목을 추가. 아이콘 자체는 이미 정상 렌더링되고 있었음(별도 대소문자 무관 매핑을 쓰는
+`getServiceIcon`).
+
+**ReportProject 요청정보 필드**: 설명과 쿼리 사이에 의뢰부서\|의뢰직원, IT담당부서\|담당직원,
+의뢰년월일을 보여주는 칸 추가 요청 — InstanceCode/ReportProject는 Table과 달리 `extension`
+필드(Custom Properties 저장소)가 애초에 없는 자체 커스텀 엔티티라, Custom Properties 대신
+5개 필드(`requestDeptKbCust`/`requestEmployeeKbCust`/`itOwnerDeptKbCust`/
+`itOwnerEmployeeKbCust`/`requestDateKbCust`)를 네이티브 필드로 스키마에 직접 추가(우리가
+전적으로 소유한 엔티티라 핵심 스키마 오염 우려 없음). 추가 후 PATCH로 값을 넣었더니 API는
+200을 반환하는데 실제로는 저장이 안 되는 버그 발견 — 원인은
+`ReportProjectRepositoryKbCust`의 `PATCH_FIELDS`/`UPDATE_FIELDS` 상수가
+`"displayName,description,type,queries"`로 하드코딩된 필드 화이트리스트였고, 새 필드가
+여기 없어서 OpenMetadata의 `EntityRepository` 프레임워크가 PATCH를 허용된 필드만 조용히
+반영하고 나머지는 버렸던 것 — MySQL의 실제 저장된 JSON을 직접 조회해서 확정(API 200 응답과
+DB 실제 상태가 다르다는 걸 발견하는 데 시간이 걸림). 화이트리스트에 5개 필드 추가 +
+`entitySpecificUpdate()`에 변경이력 추적 로직도 함께 추가하고 나서야 정상 저장 확인.
+
+**InstanceCode 그룹 페이지 개편**: "세부사항" 섹션 제목을 "인스턴스코드"로 변경, 표 컬럼을
+코드값/코드명에서 "업무 인스턴스 코드"/"업무 인스턴스 내용"으로(등록일시 유지), 제목과 표
+사이에 인스턴스 정의/인스턴스 식별자/표준구분이 무엇을 뜻하는지 설명하는 고정 안내 박스
+추가, 오른쪽에 "연관테이블" 패널 추가 — 이 그룹의 인스턴스 코드를 `인스턴스명` 컬럼 커스텀
+속성으로 참조하고 있는 테이블/컬럼을 보여줌. 연관테이블 조회를 위한 전용 백엔드 엔드포인트가
+없어 `GET /tables?fields=columns,extension`으로 전체 테이블을 가져와 클라이언트에서
+`column.extension.instanceCodeName.id`가 현재 그룹의 인스턴스 코드 id 집합에 속하는지
+필터링하는 방식으로 구현(데모 규모 데이터셋 전제, 프로덕션 규모라면 전용 검색 인덱싱 필요).
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/.../utils/EntityUtils.interface.ts` | `FormattedDatabaseServiceType`에 `Sybase`/`Tibero`/`Db2UDB` 항목 추가 |
+| `openmetadata-spec/.../entity/data/reportProject-kb-cust.json` | 요청정보 필드 5개 추가 |
+| `openmetadata-spec/.../api/data/createReportProject-kb-cust.json` | 위 5개 필드를 생성 요청 스키마에도 추가 |
+| `openmetadata-service/.../resources/data/ReportProjectMapperKbCust.java` | 생성 요청 → 엔티티 매핑에 5개 필드 추가 |
+| `openmetadata-service/.../jdbi3/ReportProjectRepositoryKbCust.java` | `PATCH_FIELDS`/`UPDATE_FIELDS` 화이트리스트에 5개 필드 추가(누락 시 PATCH가 200을 반환하면서도 조용히 무시됨), 변경이력 추적 로직 추가 |
+| `openmetadata-ui/.../generated/entity/data/reportProject-kb-cust.ts` | TS 타입에 5개 필드 추가 |
+| `openmetadata-ui/.../generated/api/data/createReportProject-kb-cust.ts` | TS 생성 요청 타입에 5개 필드 추가 |
+| `openmetadata-ui/.../pages/ReportProjectPage/ReportProjectDetailsPage-kb-cust.tsx` | 설명과 쿼리 카드 사이에 요청정보 3열 박스 추가 |
+| `openmetadata-ui/.../pages/InstanceCodePage/InstanceCodeGroupDetailsPage-kb-cust.tsx` | 섹션 제목/컬럼 라벨 변경, 정의 안내 박스 추가, 연관테이블 패널 추가(2단 레이아웃) |
+| `openmetadata-ui/.../locale/languages/en-us.json`, `ko-kr.json` | 위 기능들에 필요한 신규 라벨/설명 키 추가 |

@@ -344,6 +344,40 @@ CSV 필드 이스케이프(쉼표/따옴표/개행 포함 시 큰따옴표로 �
 추출해 md5 일치 확인. 브라우저 자동화 도구가 없어 아이콘 실제 렌더링/ReportProject
 화면 레이아웃/퀵필터 표시 텍스트는 사용자 확인 필요.
 
+### 2026-08-11 — 홈 위젯 대소문자 + ReportProject 요청정보 필드 + InstanceCode 그룹 페이지 개편
+
+사용자가 홈 화면 "데이터 자산들" 위젯 스크린샷을 첨부해 sybase/tibero가 여전히 소문자로
+보인다고 재현 — v1에서 고친 Explore 퀵필터와는 별개의 코드 경로임을 소스 추적으로 확인
+(`DataAssetCard.component.tsx` → `entityUtilClassBase.getFormattedServiceType()` →
+`FormattedDatabaseServiceType` enum, Sybase/Tibero/Db2UDB가 이 enum에 아예 없었음).
+`FormattedDatabaseServiceType`에 3개 항목 추가로 수정 — `npx tsc --noEmit` 0건 확인.
+
+ReportProject 요청정보 필드는 스키마/백엔드/프런트를 모두 추가한 뒤 `mvn -pl
+openmetadata-spec install`(jsonschema2pojo 재생성) → `mvn -pl openmetadata-service compile`
+로 Java 클래스에 필드가 실제로 생겼는지 `strings`/`grep -a`로 컴파일된 .class 바이트를
+직접 확인. 그런데 PATCH로 값을 넣고 API로 재조회하면 필드가 아예 안 보이는 문제 발생 —
+API가 200을 반환해서 처음엔 배포가 덜 됐나 의심하고 jar 재확인까지 했으나 정상 배포 확인.
+`docker exec openmetadata_mysql mysql ... SELECT JSON_EXTRACT(json, '$.requestDeptKbCust')
+FROM report_project_entity`로 실제 저장된 JSON을 직접 조회해서야 DB에도 NULL로 저장되고
+있다는 걸 확정 — API 200 응답과 실제 저장 상태가 다를 수 있다는 걸 이번에 학습. 원인은
+`ReportProjectRepositoryKbCust`의 `PATCH_FIELDS` 화이트리스트 상수에 새 필드가 없어서
+프레임워크가 조용히 무시하고 있었던 것. 화이트리스트 수정 후 재빌드/재배포하고 나서
+동일한 MySQL 직접 조회로 실제 저장 확인, `GET /reportProjects/{id}` 응답에도 5개 필드
+모두 정상 노출 확인.
+
+InstanceCode 그룹 페이지는 라벨 변경(세부사항→인스턴스코드, 코드값/코드명→업무 인스턴스
+코드/내용), 정의 안내 박스, 연관테이블 패널을 한 번에 추가 — `npx eslint --fix`,
+`npx tsc --noEmit` 모두 대상 파일 기준 0건.
+
+`vite build` → `mvn install`(ui) → 이번엔 백엔드도 건드려서 `mvn -pl openmetadata-spec
+install` → `mvn -pl openmetadata-service install` → `mvn -pl openmetadata-dist install`
+순서로 명시적 개별 install(스코프 빌드 전 의존 모듈 먼저 install해야 한다는 CLAUDE.md
+경고를 스펙 모듈까지 확장 적용) → Docker 이미지 재빌드 → 재기동. 배포된 jar 내
+`assets/assets/index-*.js`가 로컬 `dist/`와 md5 완전 일치(`a8086f0a22163d98d3ac6f992d968bee`)
+확인, 서버 `healthy` 재확인. ReportProject 4건에 요청정보 샘플 데이터 재입력(이번엔 PATCH
+응답뿐 아니라 MySQL 직접 조회로 실제 저장까지 재확인). 브라우저 자동화 도구가 없어 홈 위젯
+표시명/InstanceCode 그룹 페이지 레이아웃/연관테이블 패널 실제 렌더링은 사용자 확인 필요.
+
 ## Windows 로컬 환경에서 재현할 때 필요한 사전 준비
 
 이 저장소를 Windows에서 처음 셋업하면 아래 환경 이슈를 만날 수 있습니다.

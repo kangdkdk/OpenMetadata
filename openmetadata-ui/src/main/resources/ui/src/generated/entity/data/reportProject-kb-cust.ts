@@ -36,6 +36,14 @@ export interface ReportProject {
      */
     incrementalChangeDescription?: ChangeDescription;
     /**
+     * IT department responsible for this report project.
+     */
+    itOwnerDeptKbCust?: string;
+    /**
+     * IT employee responsible for this report project.
+     */
+    itOwnerEmployeeKbCust?: string;
+    /**
      * A unique name that identifies this ReportProject.
      */
     name: string;
@@ -43,7 +51,19 @@ export interface ReportProject {
      * Saved queries belonging to this report project.
      */
     queries?: ReportQuery[];
-    type:     ReportProjectType;
+    /**
+     * Department that requested this report project.
+     */
+    requestDeptKbCust?: string;
+    /**
+     * Date the report project was requested (yyyy-MM-dd).
+     */
+    requestDateKbCust?: string;
+    /**
+     * Employee who requested this report project.
+     */
+    requestEmployeeKbCust?: string;
+    type: ReportProjectType;
     /**
      * Last update time corresponding to the new version of the entity in Unix epoch time
      * milliseconds.

@@ -9,6 +9,11 @@ public class ReportProjectMapperKbCust implements EntityMapper<ReportProject, Cr
   public ReportProject createToEntity(CreateReportProject create, String user) {
     return copy(new ReportProject(), create, user)
         .withType(create.getType())
-        .withQueries(create.getQueries());
+        .withQueries(create.getQueries())
+        .withRequestDeptKbCust(create.getRequestDeptKbCust())
+        .withRequestEmployeeKbCust(create.getRequestEmployeeKbCust())
+        .withItOwnerDeptKbCust(create.getItOwnerDeptKbCust())
+        .withItOwnerEmployeeKbCust(create.getItOwnerEmployeeKbCust())
+        .withRequestDateKbCust(create.getRequestDateKbCust());
   }
 }

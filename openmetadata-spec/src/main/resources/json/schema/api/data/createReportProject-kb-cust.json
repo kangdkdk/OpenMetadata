@@ -29,6 +29,26 @@
         "$ref": "../../entity/data/reportProject-kb-cust.json#/definitions/reportQuery"
       },
       "default": null
+    },
+    "requestDeptKbCust": {
+      "description": "Department that requested this report project.",
+      "type": "string"
+    },
+    "requestEmployeeKbCust": {
+      "description": "Employee who requested this report project.",
+      "type": "string"
+    },
+    "itOwnerDeptKbCust": {
+      "description": "IT department responsible for this report project.",
+      "type": "string"
+    },
+    "itOwnerEmployeeKbCust": {
+      "description": "IT employee responsible for this report project.",
+      "type": "string"
+    },
+    "requestDateKbCust": {
+      "description": "Date the report project was requested (yyyy-MM-dd).",
+      "$ref": "../../type/basic.json#/definitions/date"
     }
   },
   "required": ["name", "type"],

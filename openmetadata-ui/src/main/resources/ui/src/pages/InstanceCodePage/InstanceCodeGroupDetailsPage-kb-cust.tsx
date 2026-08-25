@@ -22,16 +22,30 @@ import { Copy01 } from '@untitledui/icons';
 import { AxiosError } from 'axios';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { useBreadcrumbs } from '../../components/common/atoms/navigation/useBreadcrumbs';
 import ErrorPlaceHolder from '../../components/common/ErrorWithPlaceholder/ErrorPlaceHolder';
 import Loader from '../../components/common/Loader/Loader';
 import { NO_DATA } from '../../constants/constants';
 import { ERROR_PLACEHOLDER_TYPE } from '../../enums/common.enum';
+import { EntityType } from '../../enums/entity.enum';
 import { InstanceCode } from '../../generated/entity/data/instanceCode-kb-cust';
+import {
+  Column,
+  Table as TableEntity,
+} from '../../generated/entity/data/table';
+import { EntityReference } from '../../generated/entity/type';
 import { useClipboard } from '../../hooks/useClipBoard';
 import { useFqn } from '../../hooks/useFqn';
 import { getInstanceCodes } from '../../rest/instanceCodeAPI-kb-cust';
+import { getTableList } from '../../rest/tableAPI';
+import entityUtilClassBase from '../../utils/EntityUtilClassBase';
 import { showErrorToast, showSuccessToast } from '../../utils/ToastUtils';
+
+interface RelatedTableMatch {
+  table: TableEntity;
+  columnName: string;
+}
 
 const InstanceCodeGroupDetailsPage = () => {
   const { t } = useTranslation();
@@ -39,6 +53,8 @@ const InstanceCodeGroupDetailsPage = () => {
 
   const [instanceCodes, setInstanceCodes] = useState<InstanceCode[]>([]);
   const [loading, setLoading] = useState(true);
+  const [relatedTables, setRelatedTables] = useState<RelatedTableMatch[]>([]);
+  const [relatedTablesLoading, setRelatedTablesLoading] = useState(true);
 
   const { onCopyToClipBoard } = useClipboard('');
 
@@ -62,6 +78,48 @@ const InstanceCodeGroupDetailsPage = () => {
     fetchInstanceCodes();
   }, [fetchInstanceCodes]);
 
+  useEffect(() => {
+    const fetchRelatedTables = async () => {
+      if (instanceCodes.length === 0) {
+        setRelatedTables([]);
+        setRelatedTablesLoading(false);
+
+        return;
+      }
+      setRelatedTablesLoading(true);
+      try {
+        const instanceCodeIds = new Set(
+          instanceCodes.map((instanceCode) => instanceCode.id)
+        );
+        const response = await getTableList({
+          fields: 'columns,extension',
+          limit: 200,
+        });
+        const matches: RelatedTableMatch[] = [];
+        response.data.forEach((table) => {
+          (table.columns ?? []).forEach((column: Column) => {
+            const linkedInstanceCode = column.extension?.instanceCodeName as
+              | EntityReference
+              | undefined;
+            if (
+              linkedInstanceCode?.id &&
+              instanceCodeIds.has(linkedInstanceCode.id)
+            ) {
+              matches.push({ table, columnName: column.name });
+            }
+          });
+        });
+        setRelatedTables(matches);
+      } catch (error) {
+        showErrorToast(error as AxiosError);
+      } finally {
+        setRelatedTablesLoading(false);
+      }
+    };
+
+    fetchRelatedTables();
+  }, [instanceCodes]);
+
   const codeGroupName = useMemo(
     () => instanceCodes[0]?.codeGroupName,
     [instanceCodes]
@@ -83,8 +141,8 @@ const InstanceCodeGroupDetailsPage = () => {
 
   const handleCopyTable = useCallback(() => {
     const header = [
-      t('label.code-value-kb-cust'),
-      t('label.code-name-kb-cust'),
+      t('label.business-instance-code-kb-cust'),
+      t('label.business-instance-content-kb-cust'),
       t('label.registered-date-kb-cust'),
     ].join('\t');
     const rows = instanceCodes.map((instanceCode) =>
@@ -122,7 +180,7 @@ const InstanceCodeGroupDetailsPage = () => {
           className="tw:px-6 tw:py-4 tw:border-b tw:border-secondary"
           justify="between">
           <Typography size="text-md" weight="semibold">
-            {t('label.detail-plural')}
+            {t('label.instance-code-plural-kb-cust')}
           </Typography>
           <Button
             color="secondary"
@@ -135,8 +193,14 @@ const InstanceCodeGroupDetailsPage = () => {
         <Table aria-label={t('label.instance-code-plural-kb-cust')} size="md">
           <Table.Header
             columns={[
-              { id: 'codeValue', label: t('label.code-value-kb-cust') },
-              { id: 'codeName', label: t('label.code-name-kb-cust') },
+              {
+                id: 'codeValue',
+                label: t('label.business-instance-code-kb-cust'),
+              },
+              {
+                id: 'codeName',
+                label: t('label.business-instance-content-kb-cust'),
+              },
               {
                 id: 'registeredDate',
                 label: t('label.registered-date-kb-cust'),
@@ -183,6 +247,86 @@ const InstanceCodeGroupDetailsPage = () => {
     );
   }, [loading, instanceCodes, handleCopyTable, t]);
 
+  const infoBox = useMemo(
+    () => (
+      <Card style={{ padding: 20 }} variant="elevated">
+        <Box direction="col" gap={3}>
+          {[
+            {
+              term: t('label.instance-definition-kb-cust'),
+              description: t('message.instance-definition-description-kb-cust'),
+            },
+            {
+              term: t('label.instance-identifier-kb-cust'),
+              description: t('message.instance-identifier-description-kb-cust'),
+            },
+            {
+              term: t('label.standard-classification-kb-cust'),
+              description: t(
+                'message.standard-classification-description-kb-cust'
+              ),
+            },
+          ].map((item) => (
+            <Box direction="row" gap={3} key={item.term}>
+              <Typography
+                className="tw:w-36 tw:shrink-0"
+                size="text-sm"
+                weight="semibold">
+                {item.term}
+              </Typography>
+              <Typography className="tw:text-tertiary" size="text-sm">
+                {item.description}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      </Card>
+    ),
+    [t]
+  );
+
+  const relatedTablesPanel = useMemo(
+    () => (
+      <Card style={{ padding: 20 }} variant="elevated">
+        <Typography className="tw:mb-3" size="text-md" weight="semibold">
+          {t('label.related-table-plural-kb-cust')}
+        </Typography>
+        {relatedTablesLoading ? (
+          <Loader size="small" />
+        ) : relatedTables.length === 0 ? (
+          <Typography className="tw:text-tertiary" size="text-sm">
+            {t('message.no-data-message', {
+              entity: t('label.related-table-plural-kb-cust'),
+            })}
+          </Typography>
+        ) : (
+          <Box direction="col" gap={4}>
+            {relatedTables.map((match) => (
+              <Link
+                className="no-underline"
+                key={`${match.table.id}-${match.columnName}`}
+                to={entityUtilClassBase.getEntityLink(
+                  EntityType.TABLE,
+                  match.table.fullyQualifiedName ?? ''
+                )}>
+                <Typography
+                  className="tw:text-brand"
+                  size="text-sm"
+                  weight="medium">
+                  {match.table.displayName || match.table.name}
+                </Typography>
+                <Typography className="tw:text-tertiary" size="text-xs">
+                  {match.columnName}
+                </Typography>
+              </Link>
+            ))}
+          </Box>
+        )}
+      </Card>
+    ),
+    [relatedTables, relatedTablesLoading, t]
+  );
+
   return (
     <Box className="tw:p-6" direction="col" gap={5}>
       {breadcrumbs}
@@ -200,7 +344,13 @@ const InstanceCodeGroupDetailsPage = () => {
           </Box>
         </Box>
       </Card>
-      <Card variant="elevated">{content}</Card>
+      {infoBox}
+      <div className="tw:grid tw:grid-cols-1 tw:gap-5 tw:lg:grid-cols-3">
+        <div className="tw:lg:col-span-2">
+          <Card variant="elevated">{content}</Card>
+        </div>
+        <div>{relatedTablesPanel}</div>
+      </div>
     </Box>
   );
 };

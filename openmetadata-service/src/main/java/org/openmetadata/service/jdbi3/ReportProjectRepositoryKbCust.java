@@ -12,7 +12,9 @@ import org.openmetadata.service.util.EntityUtil.Fields;
 import org.openmetadata.service.util.EntityUtil.RelationIncludes;
 
 public class ReportProjectRepositoryKbCust extends EntityRepository<ReportProject> {
-  static final String UPDATE_FIELDS = "displayName,description,type,queries";
+  static final String UPDATE_FIELDS =
+      "displayName,description,type,queries,requestDeptKbCust,requestEmployeeKbCust,"
+          + "itOwnerDeptKbCust,itOwnerEmployeeKbCust,requestDateKbCust";
   static final String PATCH_FIELDS = UPDATE_FIELDS;
 
   public ReportProjectRepositoryKbCust() {
@@ -74,6 +76,41 @@ public class ReportProjectRepositoryKbCust extends EntityRepository<ReportProjec
       compareAndUpdate(
           "queries",
           () -> recordChange("queries", original.getQueries(), updated.getQueries(), true));
+      compareAndUpdate(
+          "requestDeptKbCust",
+          () ->
+              recordChangeIfDifferent(
+                  "requestDeptKbCust",
+                  original.getRequestDeptKbCust(),
+                  updated.getRequestDeptKbCust()));
+      compareAndUpdate(
+          "requestEmployeeKbCust",
+          () ->
+              recordChangeIfDifferent(
+                  "requestEmployeeKbCust",
+                  original.getRequestEmployeeKbCust(),
+                  updated.getRequestEmployeeKbCust()));
+      compareAndUpdate(
+          "itOwnerDeptKbCust",
+          () ->
+              recordChangeIfDifferent(
+                  "itOwnerDeptKbCust",
+                  original.getItOwnerDeptKbCust(),
+                  updated.getItOwnerDeptKbCust()));
+      compareAndUpdate(
+          "itOwnerEmployeeKbCust",
+          () ->
+              recordChangeIfDifferent(
+                  "itOwnerEmployeeKbCust",
+                  original.getItOwnerEmployeeKbCust(),
+                  updated.getItOwnerEmployeeKbCust()));
+      compareAndUpdate(
+          "requestDateKbCust",
+          () ->
+              recordChangeIfDifferent(
+                  "requestDateKbCust",
+                  original.getRequestDateKbCust(),
+                  updated.getRequestDateKbCust()));
     }
 
     private void recordChangeIfDifferent(String field, Object origValue, Object updatedValue) {

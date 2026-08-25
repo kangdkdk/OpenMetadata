@@ -28,6 +28,7 @@ import Loader from '../../components/common/Loader/Loader';
 import RichTextEditorPreviewerV1 from '../../components/common/RichTextEditor/RichTextEditorPreviewerV1';
 import SchemaEditor from '../../components/Database/SchemaEditor/SchemaEditor';
 import PageHeader from '../../components/PageHeader/PageHeader.component';
+import { NO_DATA_PLACEHOLDER } from '../../constants/constants';
 import { CSMode } from '../../enums/codemirror.enum';
 import { ERROR_PLACEHOLDER_TYPE } from '../../enums/common.enum';
 import {
@@ -142,6 +143,52 @@ const ReportProjectDetailsPage = () => {
           <RichTextEditorPreviewerV1 markdown={reportProject.description} />
         </Card>
       )}
+
+      <Card className="tw:p-5">
+        <div className="tw:grid tw:grid-cols-1 tw:gap-4 tw:md:grid-cols-3">
+          <div>
+            <Typography
+              className="tw:text-tertiary tw:mb-1"
+              size="text-xs"
+              weight="medium">
+              {t('label.request-dept-employee-kb-cust')}
+            </Typography>
+            <Typography size="text-sm">
+              {reportProject.requestDeptKbCust || reportProject.requestEmployeeKbCust
+                ? `${reportProject.requestDeptKbCust ?? ''} | ${
+                    reportProject.requestEmployeeKbCust ?? ''
+                  }`
+                : NO_DATA_PLACEHOLDER}
+            </Typography>
+          </div>
+          <div>
+            <Typography
+              className="tw:text-tertiary tw:mb-1"
+              size="text-xs"
+              weight="medium">
+              {t('label.it-owner-dept-employee-kb-cust')}
+            </Typography>
+            <Typography size="text-sm">
+              {reportProject.itOwnerDeptKbCust || reportProject.itOwnerEmployeeKbCust
+                ? `${reportProject.itOwnerDeptKbCust ?? ''} | ${
+                    reportProject.itOwnerEmployeeKbCust ?? ''
+                  }`
+                : NO_DATA_PLACEHOLDER}
+            </Typography>
+          </div>
+          <div>
+            <Typography
+              className="tw:text-tertiary tw:mb-1"
+              size="text-xs"
+              weight="medium">
+              {t('label.request-date-kb-cust')}
+            </Typography>
+            <Typography size="text-sm">
+              {reportProject.requestDateKbCust ?? NO_DATA_PLACEHOLDER}
+            </Typography>
+          </div>
+        </div>
+      </Card>
 
       <Card className="tw:p-5">
         <Box align="center" className="tw:mb-3" justify="between">
