@@ -1,0 +1,91 @@
+{
+  "$id": "https://open-metadata.org/schema/entity/data/instanceCode-kb-cust.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "InstanceCode",
+  "description": "This schema defines the InstanceCode entity. An `InstanceCode` is a single code value belonging to a named code group (e.g. group `PAYMENT_METHOD`, value `01` = 'Credit Card').",
+  "type": "object",
+  "javaType": "org.openmetadata.schema.entity.data.InstanceCode",
+  "javaInterfaces": ["org.openmetadata.schema.EntityInterface"],
+  "properties": {
+    "id": {
+      "description": "Unique identifier of this InstanceCode instance.",
+      "$ref": "../../type/basic.json#/definitions/uuid"
+    },
+    "name": {
+      "description": "A unique name that identifies this InstanceCode. Example: 'PAYMENT_METHOD_01'.",
+      "$ref": "../../type/basic.json#/definitions/entityName"
+    },
+    "fullyQualifiedName": {
+      "description": "FullyQualifiedName same as `name`.",
+      "$ref": "../../type/basic.json#/definitions/fullyQualifiedEntityName"
+    },
+    "displayName": {
+      "description": "Name used for display purposes.",
+      "type": "string"
+    },
+    "description": {
+      "description": "Description of this InstanceCode.",
+      "$ref": "../../type/basic.json#/definitions/markdown"
+    },
+    "codeGroup": {
+      "description": "Code group identifier this code belongs to. Example: 'PAYMENT_METHOD'.",
+      "type": "string"
+    },
+    "codeGroupName": {
+      "description": "Display name of the code group. Example: '결제수단코드'.",
+      "type": "string"
+    },
+    "codeValue": {
+      "description": "The code value within the group. Example: '01'.",
+      "type": "string"
+    },
+    "codeName": {
+      "description": "Display name for the code value. Example: '결제수단코드 1'.",
+      "type": "string"
+    },
+    "sortOrder": {
+      "description": "Sort order of this code within its group.",
+      "type": "integer"
+    },
+    "registeredDate": {
+      "description": "Date this code was registered, in 'yyyyMMdd' format.",
+      "type": "string"
+    },
+    "active": {
+      "description": "Whether this code is currently active.",
+      "type": "boolean",
+      "default": true
+    },
+    "version": {
+      "description": "Metadata version of the entity.",
+      "$ref": "../../type/entityHistory.json#/definitions/entityVersion"
+    },
+    "updatedAt": {
+      "description": "Last update time corresponding to the new version of the entity in Unix epoch time milliseconds.",
+      "$ref": "../../type/basic.json#/definitions/timestamp"
+    },
+    "updatedBy": {
+      "description": "User who made the update.",
+      "type": "string"
+    },
+    "href": {
+      "description": "Link to the resource corresponding to this entity.",
+      "$ref": "../../type/basic.json#/definitions/href"
+    },
+    "changeDescription": {
+      "description": "Change that lead to this version of the entity.",
+      "$ref": "../../type/entityHistory.json#/definitions/changeDescription"
+    },
+    "incrementalChangeDescription": {
+      "description": "Change that lead to this version of the entity.",
+      "$ref": "../../type/entityHistory.json#/definitions/changeDescription"
+    },
+    "deleted": {
+      "description": "When `true` indicates the entity has been soft deleted.",
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": ["id", "name", "codeGroup", "codeGroupName", "codeValue", "codeName"],
+  "additionalProperties": false
+}

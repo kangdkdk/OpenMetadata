@@ -24,3 +24,22 @@
 | v3 | `openmetadata-spec/src/main/resources/json/schema/entity/services/connections/database/db2UDBConnection-kb-cust.json` | DB2 UDB 커넥터 - 연결 스키마 |
 | v3 | `openmetadata-ui/src/main/resources/ui/src/generated/entity/services/connections/database/db2UDBConnection-kb-cust.ts` | 위 스키마의 TypeScript 타입 |
 | v3 | `openmetadata-ui/src/main/resources/ui/src/assets/img/service-icon-db2udb-kb-cust.png` | DB2 UDB 정사각형 공식 로고 |
+
+## 신규 엔티티: InstanceCodes/ReportProject 라인
+
+| 버전 | 파일 | 기능 |
+|---|---|---|
+| v1 | `openmetadata-spec/src/main/resources/json/schema/entity/data/instanceCode-kb-cust.json` | InstanceCode 엔티티 스키마 |
+| v1 | `openmetadata-spec/src/main/resources/json/schema/api/data/createInstanceCode-kb-cust.json` | InstanceCode 생성 API 스키마 |
+| v1 | `openmetadata-service/.../jdbi3/InstanceCodeRepositoryKbCust.java` | InstanceCode 리포지토리 |
+| v1 | `openmetadata-service/.../resources/data/InstanceCodeMapperKbCust.java` | InstanceCode 생성 요청 매퍼 |
+| v1 | `openmetadata-service/.../resources/data/InstanceCodeResourceKbCust.java` | InstanceCode REST 리소스 (`/v1/instanceCodes`) |
+| v1 | `openmetadata-service/.../search/indexes/InstanceCodeIndexKbCust.java` | InstanceCode 검색 인덱스 |
+| v1 | `openmetadata-spec/.../elasticsearch/{en,jp,ru,zh}/instance_code_index_mapping.json` | InstanceCode ES 매핑 |
+| v1 | `openmetadata-spec/src/main/resources/json/schema/entity/data/reportProject-kb-cust.json` | ReportProject 엔티티 스키마 |
+| v1 | `openmetadata-spec/src/main/resources/json/schema/api/data/createReportProject-kb-cust.json` | ReportProject 생성 API 스키마 |
+| v1 | `openmetadata-service/.../jdbi3/ReportProjectRepositoryKbCust.java` | ReportProject 리포지토리 |
+| v1 | `openmetadata-service/.../resources/data/ReportProjectMapperKbCust.java` | ReportProject 생성 요청 매퍼 |
+| v1 | `openmetadata-service/.../resources/data/ReportProjectResourceKbCust.java` | ReportProject REST 리소스 (`/v1/reportProjects`) |
+| v1 | `openmetadata-service/.../search/indexes/ReportProjectIndexKbCust.java` | ReportProject 검색 인덱스 |
+| v1 | `openmetadata-spec/.../elasticsearch/{en,jp,ru,zh}/report_project_index_mapping.json` | ReportProject ES 매핑 |

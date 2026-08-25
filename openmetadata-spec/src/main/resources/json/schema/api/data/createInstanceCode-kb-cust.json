@@ -1,0 +1,54 @@
+{
+  "$id": "https://open-metadata.org/schema/api/data/createInstanceCode-kb-cust.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CreateInstanceCodeRequest",
+  "description": "Create InstanceCode entity request",
+  "type": "object",
+  "javaType": "org.openmetadata.schema.api.data.CreateInstanceCode",
+  "javaInterfaces": ["org.openmetadata.schema.CreateEntity"],
+  "properties": {
+    "name": {
+      "description": "Name that identifies this InstanceCode.",
+      "$ref": "../../type/basic.json#/definitions/entityName"
+    },
+    "displayName": {
+      "description": "Display Name that identifies this InstanceCode.",
+      "type": "string"
+    },
+    "description": {
+      "description": "Description of the InstanceCode instance.",
+      "$ref": "../../type/basic.json#/definitions/markdown"
+    },
+    "codeGroup": {
+      "description": "Code group identifier this code belongs to.",
+      "type": "string"
+    },
+    "codeGroupName": {
+      "description": "Display name of the code group.",
+      "type": "string"
+    },
+    "codeValue": {
+      "description": "The code value within the group.",
+      "type": "string"
+    },
+    "codeName": {
+      "description": "Display name for the code value.",
+      "type": "string"
+    },
+    "sortOrder": {
+      "description": "Sort order of this code within its group.",
+      "type": "integer"
+    },
+    "registeredDate": {
+      "description": "Date this code was registered, in 'yyyyMMdd' format.",
+      "type": "string"
+    },
+    "active": {
+      "description": "Whether this code is currently active.",
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": ["name", "codeGroup", "codeGroupName", "codeValue", "codeName"],
+  "additionalProperties": false
+}

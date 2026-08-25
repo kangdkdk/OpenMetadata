@@ -36,6 +36,18 @@
 빌드 및 기동, 3개 커넥터 각각 서비스 생성 API 호출 및 검색 인덱싱까지 정상 확인. 인제스천
 Docker 이미지는 기존에 알려진 `apt-get` 실패로 이번 검증 범위에서 제외(무관 이슈).
 
+### 2026-08-10 — v1: InstanceCode / ReportProject 신규 엔티티
+
+백엔드 스캐폴딩(스키마 → Repository/Mapper/Resource → 마이그레이션 → 검색 인덱스)만 이번
+범위. `mvn package` 성공, Docker 재빌드 후 마이그레이션 정상 적용, `POST/GET
+/v1/instanceCodes`·`/v1/reportProjects` CRUD 및 검색 인덱싱(`index=instanceCode`,
+`index=reportProject`) 정상 확인, 샘플 데이터 각 5건 시딩 완료. **프런트엔드 Explore
+트리/사이드바 등록은 이번에 하지 않음** — `kb-entity-scaffold` 스킬의 프런트엔드 12개
+연동 지점(2번 항목 참고: 과거 이 두 엔티티가 API·검색은 됐는데 트리에 안 보였던 이력이
+있음)이 아직 미완료 상태이므로, UI에서 실제로 노출하려면 별도 라운드로 진행 필요.
+서버 로그 스캔 결과 신규 엔티티 관련 ERROR 없음(기존에 알려진 RdfIndexApp/mcpExecution
+스키마 누락 경고는 무관 이슈).
+
 ## Windows 로컬 환경에서 재현할 때 필요한 사전 준비
 
 이 저장소를 Windows에서 처음 셋업하면 아래 환경 이슈를 만날 수 있습니다.

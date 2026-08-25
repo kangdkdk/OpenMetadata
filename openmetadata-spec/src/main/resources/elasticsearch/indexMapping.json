@@ -338,6 +338,20 @@
     "parentAliases": ["all"],
     "childAliases": ["tag"]
   },
+  "instanceCode": {
+    "indexName": "instance_code_search_index",
+    "indexMappingFile": "/elasticsearch/%s/instance_code_index_mapping.json",
+    "alias": "instanceCode",
+    "parentAliases": ["all"],
+    "childAliases": []
+  },
+  "reportProject": {
+    "indexName": "report_project_search_index",
+    "indexMappingFile": "/elasticsearch/%s/report_project_index_mapping.json",
+    "alias": "reportProject",
+    "parentAliases": ["all"],
+    "childAliases": []
+  },
   "user": {
     "indexName": "user_search_index",
     "indexMappingFile": "/elasticsearch/%s/user_index_mapping.json",

@@ -211,6 +211,12 @@ public final class Entity {
   public static final String TYPE = "type";
 
   //
+  // KB custom entities
+  //
+  public static final String INSTANCE_CODE = "instanceCode";
+  public static final String REPORT_PROJECT = "reportProject";
+
+  //
   // AI entities
   //
   public static final String AI_APPLICATION = "aiApplication";

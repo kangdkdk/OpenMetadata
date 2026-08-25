@@ -48,6 +48,22 @@ DEFAULT_TABLE_DEFS = [
         {"name": "name", "dataType": "VARCHAR", "dataLength": 100},
         {"name": "email", "dataType": "VARCHAR", "dataLength": 200},
     ]),
+    ("products", [
+        {"name": "id", "dataType": "BIGINT"},
+        {"name": "product_name", "dataType": "VARCHAR", "dataLength": 100},
+        {"name": "price", "dataType": "DECIMAL"},
+    ]),
+    ("invoices", [
+        {"name": "id", "dataType": "BIGINT"},
+        {"name": "order_id", "dataType": "BIGINT"},
+        {"name": "amount", "dataType": "DECIMAL"},
+        {"name": "issued_date", "dataType": "DATE"},
+    ]),
+    ("employees", [
+        {"name": "id", "dataType": "BIGINT"},
+        {"name": "full_name", "dataType": "VARCHAR", "dataLength": 100},
+        {"name": "department", "dataType": "VARCHAR", "dataLength": 100},
+    ]),
 ]
 
 

@@ -108,11 +108,13 @@ import org.openmetadata.schema.entity.data.Directory;
 import org.openmetadata.schema.entity.data.File;
 import org.openmetadata.schema.entity.data.Glossary;
 import org.openmetadata.schema.entity.data.GlossaryTerm;
+import org.openmetadata.schema.entity.data.InstanceCode;
 import org.openmetadata.schema.entity.data.Metric;
 import org.openmetadata.schema.entity.data.MlModel;
 import org.openmetadata.schema.entity.data.Pipeline;
 import org.openmetadata.schema.entity.data.Query;
 import org.openmetadata.schema.entity.data.Report;
+import org.openmetadata.schema.entity.data.ReportProject;
 import org.openmetadata.schema.entity.data.SearchIndex;
 import org.openmetadata.schema.entity.data.Spreadsheet;
 import org.openmetadata.schema.entity.data.StoredProcedure;
@@ -249,6 +251,12 @@ public interface CollectionDAO {
 
   @CreateSqlObject
   PersonaDAO personaDAO();
+
+  @CreateSqlObject
+  InstanceCodeDAO instanceCodeDAO();
+
+  @CreateSqlObject
+  ReportProjectDAO reportProjectDAO();
 
   @CreateSqlObject
   TagUsageDAO tagUsageDAO();
@@ -658,6 +666,30 @@ public interface CollectionDAO {
     @Override
     default Class<TestConnectionDefinition> getEntityClass() {
       return TestConnectionDefinition.class;
+    }
+  }
+
+  interface InstanceCodeDAO extends EntityDAO<InstanceCode> {
+    @Override
+    default String getTableName() {
+      return "instance_code_entity";
+    }
+
+    @Override
+    default Class<InstanceCode> getEntityClass() {
+      return InstanceCode.class;
+    }
+  }
+
+  interface ReportProjectDAO extends EntityDAO<ReportProject> {
+    @Override
+    default String getTableName() {
+      return "report_project_entity";
+    }
+
+    @Override
+    default Class<ReportProject> getEntityClass() {
+      return ReportProject.class;
     }
   }
 
