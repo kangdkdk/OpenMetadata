@@ -3298,4 +3298,8 @@ export const MOCK_EXPLORE_PAGE_COUNT = {
   [SearchIndex.FILE]: 0,
   [SearchIndex.SPREADSHEET]: 0,
   [SearchIndex.WORKSHEET]: 0,
+  [SearchIndex.CHART]: 0,
+  [SearchIndex.COLUMN]: 0,
+  [SearchIndex.INSTANCE_CODE]: 0,
+  [SearchIndex.REPORT_PROJECT]: 0,
 };

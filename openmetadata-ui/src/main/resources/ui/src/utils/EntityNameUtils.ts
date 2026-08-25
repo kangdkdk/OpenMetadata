@@ -235,4 +235,6 @@ export const EntityTypeName: Record<EntityType, string> = {
   [EntityType.NOTIFICATION_TEMPLATE]: t('label.notification-template'),
   [EntityType.TABLE_COLUMN]: t('label.column'),
   [EntityType.KNOWLEDGE_CENTER]: t('label.knowledge-center'),
+  [EntityType.INSTANCE_CODE]: t('label.instance-code-kb-cust'),
+  [EntityType.REPORT_PROJECT]: t('label.report-project-kb-cust'),
 };

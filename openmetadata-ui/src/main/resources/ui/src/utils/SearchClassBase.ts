@@ -130,6 +130,8 @@ class SearchClassBase {
       [EntityType.SPREADSHEET]: SearchIndex.SPREADSHEET,
       [EntityType.WORKSHEET]: SearchIndex.WORKSHEET,
       [EntityType.TABLE_COLUMN]: SearchIndex.COLUMN,
+      [EntityType.INSTANCE_CODE]: SearchIndex.INSTANCE_CODE,
+      [EntityType.REPORT_PROJECT]: SearchIndex.REPORT_PROJECT,
     };
   }
 
@@ -176,6 +178,8 @@ class SearchClassBase {
       [SearchIndex.SPREADSHEET]: EntityType.SPREADSHEET,
       [SearchIndex.WORKSHEET]: EntityType.WORKSHEET,
       [SearchIndex.COLUMN]: EntityType.TABLE_COLUMN,
+      [SearchIndex.INSTANCE_CODE]: EntityType.INSTANCE_CODE,
+      [SearchIndex.REPORT_PROJECT]: EntityType.REPORT_PROJECT,
     };
   }
 
@@ -386,6 +390,39 @@ class SearchClassBase {
           },
         ],
       },
+      {
+        title: t('label.kb-custom-entities'),
+        key: 'KbCustomEntities',
+        data: {
+          isRoot: true,
+          childEntities: [EntityType.INSTANCE_CODE, EntityType.REPORT_PROJECT],
+        },
+        icon: GovernIcon,
+        children: [
+          {
+            title: t('label.instance-code-plural-kb-cust'),
+            key: EntityType.INSTANCE_CODE,
+            isLeaf: true,
+            icon: TableIcon,
+            data: {
+              entityType: EntityType.INSTANCE_CODE,
+              isStatic: true,
+              dataId: 'InstanceCodes',
+            },
+          },
+          {
+            title: t('label.report-project-plural-kb-cust'),
+            key: EntityType.REPORT_PROJECT,
+            isLeaf: true,
+            icon: ChartIcon,
+            data: {
+              entityType: EntityType.REPORT_PROJECT,
+              isStatic: true,
+              dataId: 'ReportProjects',
+            },
+          },
+        ],
+      },
     ];
   }
 
@@ -405,6 +442,8 @@ class SearchClassBase {
       [ExplorePageTabs.FILES]: [SearchIndex.FILE],
       [ExplorePageTabs.SPREADSHEETS]: [SearchIndex.SPREADSHEET],
       [ExplorePageTabs.WORKSHEETS]: [SearchIndex.WORKSHEET],
+      [ExplorePageTabs.INSTANCE_CODE]: [SearchIndex.INSTANCE_CODE],
+      [ExplorePageTabs.REPORT_PROJECT]: [SearchIndex.REPORT_PROJECT],
     };
 
     return tabMapping[tab] || [SearchIndex.DATABASE];
@@ -573,6 +612,20 @@ class SearchClassBase {
         sortField: TAGS_INITIAL_SORT_FIELD,
         path: ExplorePageTabs.WORKSHEETS,
         icon: WorksheetIcon,
+      },
+      [SearchIndex.INSTANCE_CODE]: {
+        label: t('label.instance-code-plural-kb-cust'),
+        sortingFields: tagSortingFields,
+        sortField: TAGS_INITIAL_SORT_FIELD,
+        path: ExplorePageTabs.INSTANCE_CODE,
+        icon: TableIcon,
+      },
+      [SearchIndex.REPORT_PROJECT]: {
+        label: t('label.report-project-plural-kb-cust'),
+        sortingFields: tagSortingFields,
+        sortField: TAGS_INITIAL_SORT_FIELD,
+        path: ExplorePageTabs.REPORT_PROJECT,
+        icon: ChartIcon,
       },
     };
   }

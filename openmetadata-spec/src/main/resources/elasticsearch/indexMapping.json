@@ -342,14 +342,14 @@
     "indexName": "instance_code_search_index",
     "indexMappingFile": "/elasticsearch/%s/instance_code_index_mapping.json",
     "alias": "instanceCode",
-    "parentAliases": ["all"],
+    "parentAliases": ["all", "dataAsset"],
     "childAliases": []
   },
   "reportProject": {
     "indexName": "report_project_search_index",
     "indexMappingFile": "/elasticsearch/%s/report_project_index_mapping.json",
     "alias": "reportProject",
-    "parentAliases": ["all"],
+    "parentAliases": ["all", "dataAsset"],
     "childAliases": []
   },
   "user": {

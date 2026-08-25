@@ -93,6 +93,8 @@ export enum ResourceEntity {
   AUDIT_LOG = 'auditLog',
   TABLE_COLUMN = 'tableColumn',
   DATA_CONTRACT = 'dataContract',
+  INSTANCE_CODE = 'instanceCode',
+  REPORT_PROJECT = 'reportProject',
 }
 
 export interface PermissionContextType {

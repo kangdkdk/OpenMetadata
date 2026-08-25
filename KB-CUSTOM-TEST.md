@@ -48,6 +48,27 @@ Docker 이미지는 기존에 알려진 `apt-get` 실패로 이번 검증 범위
 서버 로그 스캔 결과 신규 엔티티 관련 ERROR 없음(기존에 알려진 RdfIndexApp/mcpExecution
 스키마 누락 경고는 무관 이슈).
 
+### 2026-08-10 — v2: InstanceCode / ReportProject Explore 탐색창 노출
+
+`kb-entity-scaffold` 스킬의 프런트엔드 연동 지점을 전부 반영. `npx tsc --noEmit`이 베이스라인
+대비 오히려 1건 감소(415 vs 416) — 작업 중 발견한 기존 버그(`mockTourData.constants.ts`의
+`MOCK_EXPLORE_PAGE_COUNT`에 `chart`/`tableColumn` 키가 원래 누락돼 있던 것)를 같이 고침.
+`mvn install`(spec/service/ui), `vite build`, `mvn package`(dist), Docker 이미지 재빌드까지
+전부 성공. 이번 세션에서 브라우저 자동화 도구를 쓸 수 없어 화면을 직접 스크린샷하지는
+못했고, 대신 프런트가 실제로 호출하는 것과 동일한 API로 검증:
+`GET /api/v1/search/query?index=dataAsset`의 `entityType` 집계에서 `instanceCode`,
+`reportProject`가 각각 `doc_count: 5`로 정상 집계됨을 확인(Explore 트리는 이 집계값이
+0보다 클 때만 노드를 렌더링하므로, 이게 트리 노출의 실질적 조건). 배포된 번들
+해시가 로컬 `dist/` 빌드와 일치함을 `md5sum` 비교로 확인, 번들 내에 `instanceCode`/
+`reportProject`/`kb-custom-entities` 문자열이 실제로 포함됨도 grep으로 확인. **사용자가
+브라우저에서 직접 새로고침 후 좌측 탐색창의 "KB Custom Entities" 카테고리를 눈으로
+확인하는 것을 권장** — 이 세션에서 최종 시각 확인은 못 했음.
+
+핵심 교훈: `indexMapping.json`의 `parentAliases`에 `dataAsset`이 없으면 API/검색 자체는
+멀쩡히 동작해도 Explore 트리 카운트가 0으로 잡혀 트리 노드가 조용히 숨겨진다 — 이번
+세션 이전(InstanceCode/ReportProject 최초 도입) 히스토리에 남아있던 "API·검색은 되는데
+트리에 안 보였다"는 문제의 실제 원인이 이것일 가능성이 높음.
+
 ## Windows 로컬 환경에서 재현할 때 필요한 사전 준비
 
 이 저장소를 Windows에서 처음 셋업하면 아래 환경 이슈를 만날 수 있습니다.

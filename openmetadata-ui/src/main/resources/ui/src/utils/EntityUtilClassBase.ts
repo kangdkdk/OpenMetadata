@@ -39,9 +39,11 @@ import DataModelsPage from '../pages/DataModelPage/DataModelPage.component';
 import DirectoryDetailsPage from '../pages/DirectoryDetailsPage/DirectoryDetailsPage';
 import { VersionData } from '../pages/EntityVersionPage/EntityVersionPage.component';
 import FileDetailsPage from '../pages/FileDetailsPage/FileDetailsPage';
+import InstanceCodeDetailsPage from '../pages/InstanceCodePage/InstanceCodeDetailsPage-kb-cust';
 import MetricDetailsPage from '../pages/MetricsPage/MetricDetailsPage/MetricDetailsPage';
 import MlModelPage from '../pages/MlModelPage/MlModelPage.component';
 import PipelineDetailsPage from '../pages/PipelineDetails/PipelineDetailsPage.component';
+import ReportProjectDetailsPage from '../pages/ReportProjectPage/ReportProjectDetailsPage-kb-cust';
 import SearchIndexDetailsPage from '../pages/SearchIndexDetailsPage/SearchIndexDetailsPage';
 import SpreadsheetDetailsPage from '../pages/SpreadsheetDetailsPage/SpreadsheetDetailsPage';
 import StoredProcedurePage from '../pages/StoredProcedure/StoredProcedurePage';
@@ -518,6 +520,10 @@ class EntityUtilClassBase {
         return SpreadsheetDetailsPage;
       case EntityType.WORKSHEET:
         return WorksheetDetailsPage;
+      case EntityType.INSTANCE_CODE:
+        return InstanceCodeDetailsPage;
+      case EntityType.REPORT_PROJECT:
+        return ReportProjectDetailsPage;
 
       default:
         return null;
@@ -588,6 +594,12 @@ class EntityUtilClassBase {
       }
       case EntityType.WORKSHEET: {
         return ResourceEntity.WORKSHEET;
+      }
+      case EntityType.INSTANCE_CODE: {
+        return ResourceEntity.INSTANCE_CODE;
+      }
+      case EntityType.REPORT_PROJECT: {
+        return ResourceEntity.REPORT_PROJECT;
       }
 
       default: {

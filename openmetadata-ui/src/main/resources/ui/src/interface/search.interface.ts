@@ -31,10 +31,12 @@ import { Directory } from '../generated/entity/data/directory';
 import { File } from '../generated/entity/data/file';
 import { Glossary } from '../generated/entity/data/glossary';
 import { GlossaryTerm } from '../generated/entity/data/glossaryTerm';
+import { InstanceCode } from '../generated/entity/data/instanceCode-kb-cust';
 import { Metric } from '../generated/entity/data/metric';
 import { Mlmodel } from '../generated/entity/data/mlmodel';
 import { Pipeline } from '../generated/entity/data/pipeline';
 import { Query } from '../generated/entity/data/query';
+import { ReportProject } from '../generated/entity/data/reportProject-kb-cust';
 import { SearchIndex as SearchIndexEntity } from '../generated/entity/data/searchIndex';
 import { Spreadsheet } from '../generated/entity/data/spreadsheet';
 import { StoredProcedure } from '../generated/entity/data/storedProcedure';
@@ -233,6 +235,14 @@ export interface SpreadsheetSearchSource
 
 export interface WorksheetSearchSource extends SearchSourceBase, Worksheet {}
 
+export interface InstanceCodeSearchSource
+  extends SearchSourceBase,
+    InstanceCode {}
+
+export interface ReportProjectSearchSource
+  extends SearchSourceBase,
+    Omit<ReportProject, 'type'> {}
+
 export type ExploreSearchSource =
   | TableSearchSource
   | DashboardSearchSource
@@ -264,6 +274,8 @@ export type ExploreSearchSource =
   | APICollectionSearchSource
   | APIEndpointSearchSource
   | MetricSearchSource
+  | InstanceCodeSearchSource
+  | ReportProjectSearchSource
   | TableColumnSearchSource;
 
 export type SearchIndexSearchSourceMapping = {
@@ -310,6 +322,8 @@ export type SearchIndexSearchSourceMapping = {
   [SearchIndex.SPREADSHEET]: SpreadsheetSearchSource;
   [SearchIndex.WORKSHEET]: WorksheetSearchSource;
   [SearchIndex.COLUMN]: TableColumnSearchSource;
+  [SearchIndex.INSTANCE_CODE]: InstanceCodeSearchSource;
+  [SearchIndex.REPORT_PROJECT]: ReportProjectSearchSource;
 };
 
 export type SearchRequest<

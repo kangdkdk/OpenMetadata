@@ -66,6 +66,8 @@ export const getEntityLinkFromType = (
     case EntityType.WORKSHEET:
       return getEntityDetailsPath(entityType, fullyQualifiedName);
     case EntityType.METRIC:
+    case EntityType.INSTANCE_CODE:
+    case EntityType.REPORT_PROJECT:
       return getEntityDetailsPath(entityType, fullyQualifiedName);
     case EntityType.DATA_PRODUCT:
       return getDataProductDetailsPath(fullyQualifiedName);

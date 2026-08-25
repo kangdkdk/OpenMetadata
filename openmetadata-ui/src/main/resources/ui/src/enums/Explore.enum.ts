@@ -50,4 +50,6 @@ export enum ExplorePageTabs {
   FILES = 'files',
   SPREADSHEETS = 'spreadsheets',
   WORKSHEETS = 'worksheets',
+  INSTANCE_CODE = 'instanceCodes',
+  REPORT_PROJECT = 'reportProjects',
 }

@@ -43,3 +43,11 @@
 | v1 | `openmetadata-service/.../resources/data/ReportProjectResourceKbCust.java` | ReportProject REST 리소스 (`/v1/reportProjects`) |
 | v1 | `openmetadata-service/.../search/indexes/ReportProjectIndexKbCust.java` | ReportProject 검색 인덱스 |
 | v1 | `openmetadata-spec/.../elasticsearch/{en,jp,ru,zh}/report_project_index_mapping.json` | ReportProject ES 매핑 |
+| v2 | `openmetadata-ui/.../generated/entity/data/instanceCode-kb-cust.ts` | InstanceCode TypeScript 타입 |
+| v2 | `openmetadata-ui/.../generated/api/data/createInstanceCode-kb-cust.ts` | InstanceCode 생성 요청 TypeScript 타입 |
+| v2 | `openmetadata-ui/.../rest/instanceCodeAPI-kb-cust.ts` | InstanceCode REST 클라이언트 |
+| v2 | `openmetadata-ui/.../pages/InstanceCodePage/InstanceCodeDetailsPage-kb-cust.tsx` | InstanceCode 상세 페이지 |
+| v2 | `openmetadata-ui/.../generated/entity/data/reportProject-kb-cust.ts` | ReportProject TypeScript 타입 |
+| v2 | `openmetadata-ui/.../generated/api/data/createReportProject-kb-cust.ts` | ReportProject 생성 요청 TypeScript 타입 |
+| v2 | `openmetadata-ui/.../rest/reportProjectAPI-kb-cust.ts` | ReportProject REST 클라이언트 |
+| v2 | `openmetadata-ui/.../pages/ReportProjectPage/ReportProjectDetailsPage-kb-cust.tsx` | ReportProject 상세 페이지 |
