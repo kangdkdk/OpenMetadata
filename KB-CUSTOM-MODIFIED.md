@@ -23,6 +23,7 @@
 | v2 | `custom/1.13.3-v2-instance-code-report-project-add` | 신규 12개 컬럼을 "컬럼 관리" 드롭다운 뒤에 숨기지 않고 기본 노출로 변경 |
 | v3 | `custom/1.13.3-v2-instance-code-report-project-add` | 16개 필드를 사용자가 요청한 정확한 순서로 재배열, 라벨을 요청 단어에 맞게 수정 |
 | v1 | `custom/1.13.3-v2-instance-code-report-project-add` | 테이블 Schema 탭에 "데이터셋 정보" 패널 + "테이블 변경이력" 조회 모달 추가 (Custom Properties 기반) |
+| v1 | `custom/1.13.3-v2-instance-code-report-project-add` | 테이블 상세 페이지에 "테이블 인덱스" 탭 신규 추가 (Schema 탭과 활동 피드 및 작업 탭 사이) |
 
 ## v1 — Sybase 데이터베이스 서비스 커넥터 추가
 
@@ -312,3 +313,32 @@ TABLE_SCHEMA 위젯 콘텐츠 자체) 최상단에 새 패널을 렌더링하는
 | `openmetadata-ui/.../locale/languages/en-us.json` | 신규 라벨 키 21개 추가 (데이터셋 정보/운영 정보 패널 + 변경이력 모달) |
 | `openmetadata-ui/.../locale/languages/ko-kr.json` | 위 21개 키의 실제 한국어 텍스트 (스크린샷 문구 그대로) |
 | `skills/kb-seed-sample-data/scripts/seed_sample_data.py` | `table-info-custom-properties` 서브커맨드(멱등) 추가, 기존 컬럼 속성 생성 로직과 공통 헬퍼로 통합 |
+
+## 신규 기능: 테이블 인덱스 탭 라인
+
+## v1 — "테이블 인덱스" 탭 신규 추가
+
+사용자 스크린샷(인덱스명/인덱스종류구분/유니크여부/컬럼순서/컬럼명/컬럼길이/인덱스정렬구분
+표) 근거로, Table 상세 페이지의 기존 "Schema" 탭과 "활동 피드 및 작업" 탭 사이에 새 탭을
+추가. 하나의 인덱스가 여러 컬럼으로 구성될 수 있어(복합 인덱스), 인덱스명/종류/유니크여부
+3개 컬럼은 같은 인덱스에 속한 행끼리 rowSpan으로 병합해 스크린샷과 동일한 시각 효과를 냄.
+
+데이터는 `table` 엔티티에 커스텀 속성 `tableIndexesKbCust`(string, JSON 배열 직렬화) 1개를
+추가로 등록해 저장 — 변경이력(`changeHistoryKbCust`)과 동일한 이유로 `table-cp` 대신
+`string`+JSON 직렬화 방식을 씀(인덱스 레코드가 7개 필드라 `table-cp`의 3컬럼 제약을 넘음).
+
+새 탭을 등록하려면 `EntityTabs`에 신규 값 추가 → `TableClassBase.getTableDetailPageTabsIds()`
+배열에서 SCHEMA와 ACTIVITY_FEED 사이에 삽입 → `TableTabsUtils.getTableDetailPageBaseTabs()`
+반환 배열에도 동일한 위치에 탭 엔트리(`TabsLabel` + `children`) 추가, 3곳을 함께 수정해야
+함을 기존 탭 등록 코드를 읽어 확인. `getDefaultLayout()`은 SCHEMA 탭 외에는 항상 빈 배열을
+반환하므로 새 탭은 커스터마이즈 가능 위젯 그리드 시스템과 무관 — Activity Feed/Sample Data
+등 다른 비-Schema 탭과 동일하게 전용 컴포넌트를 그대로 렌더링.
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/.../enums/entity.enum.ts` | `EntityTabs.TABLE_INDEX_KB_CUST` 신규 값 추가 |
+| `openmetadata-ui/.../utils/TableClassBase.ts` | `getTableDetailPageTabsIds()`에 새 탭 id를 Schema와 Activity Feed 사이에 삽입 |
+| `openmetadata-ui/.../utils/TableTabsUtils.tsx` | `getTableDetailPageBaseTabs()`에 새 탭(`TabsLabel` + `TableIndexTab`) 등록 |
+| `openmetadata-ui/.../locale/languages/en-us.json` | 신규 라벨 키 8개 추가 (탭 이름 + 표 헤더 6개, 컬럼명은 기존 `column-name-header-kb-cust` 재사용) |
+| `openmetadata-ui/.../locale/languages/ko-kr.json` | 위 8개 키의 실제 한국어 텍스트 |
+| `skills/kb-seed-sample-data/scripts/seed_sample_data.py` | `TABLE_CUSTOM_PROPERTIES`에 `tableIndexesKbCust` 추가 |

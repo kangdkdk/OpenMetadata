@@ -206,6 +206,7 @@ export enum FqnPart {
 export enum EntityTabs {
   SCHEMA = 'schema',
   SCHEMAS = 'schemas',
+  TABLE_INDEX_KB_CUST = 'table_index_kb_cust',
   ACTIVITY_FEED = 'activity_feed',
   SAMPLE_DATA = 'sample_data',
   TABLE_QUERIES = 'table_queries',

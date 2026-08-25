@@ -62,6 +62,10 @@ const SchemaTable = withSuspenseFallback(
   lazy(() => import('../components/Database/SchemaTable/SchemaTable.component'))
 );
 
+const TableIndexTab = withSuspenseFallback(
+  lazy(() => import('../pages/TableDetailsPageV1/TableIndexTab-kb-cust'))
+);
+
 const SampleDataTableComponent = withSuspenseFallback(
   lazy(
     () =>
@@ -140,6 +144,21 @@ export const getTableDetailPageBaseTabs = ({
       ),
       key: EntityTabs.SCHEMA,
       children: <GenericTab type={PageType.Table} />,
+    },
+    {
+      label: (
+        <TabsLabel
+          id={EntityTabs.TABLE_INDEX_KB_CUST}
+          isActive={activeTab === EntityTabs.TABLE_INDEX_KB_CUST}
+          name={get(
+            labelMap,
+            EntityTabs.TABLE_INDEX_KB_CUST,
+            t('label.table-index-kb-cust')
+          )}
+        />
+      ),
+      key: EntityTabs.TABLE_INDEX_KB_CUST,
+      children: <TableIndexTab />,
     },
     {
       label: (

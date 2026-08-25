@@ -258,6 +258,33 @@ array expected]`)를 받았다가 수정. 이후 `fields=extension` 파라미터
 서브커맨드를 이미 속성이 존재하는 상태에서 재실행해 14개 전부 `skip` 처리되는 멱등성 확인.
 브라우저 자동화 도구가 없어 실제 화면에서 패널 레이아웃/모달 렌더링은 사용자 확인 필요.
 
+### 2026-08-11 — "테이블 인덱스" 탭 신규 추가
+
+사용자가 첨부한 인덱스 표 스크린샷(XETAACU01P 등, PK/H 타입, 컬럼순서별 다중 행) 근거로
+구현. 새 탭 등록이 단순 컴포넌트 추가가 아니라 `EntityTabs` enum → `TableClassBase.
+getTableDetailPageTabsIds()`(탭 id 목록) → `TableTabsUtils.getTableDetailPageBaseTabs()`
+(실제 탭 label/children) 3곳을 동시에 수정해야 화면에 반영된다는 걸 기존 탭(Schema,
+Activity Feed) 등록 코드를 먼저 읽어서 확인 후 진행 — 한 곳만 고치면 탭이 안 보이거나
+런타임 에러가 날 수 있는 구조라 처음부터 3곳 모두 반영.
+
+백엔드: `table` 엔티티에 커스텀 속성 `tableIndexesKbCust`(string) 1개 추가 생성 성공(총
+15개). 프런트: `TableIndexTab-kb-cust.tsx` 신규 작성 — 인덱스명이 같은 연속된 행을
+자동으로 그룹핑해 antd `Table`의 `onCell`로 rowSpan을 계산하는 로직을 직접 구현(그룹 내
+첫 행에 그룹 크기만큼 rowSpan, 나머지 행은 rowSpan 0으로 숨김). `npx eslint --fix`,
+`npx prettier --write`, `npx tsc --noEmit` 모두 대상 파일 기준 0건 확인 — 단, 전체
+프로젝트 `tsc` 실행 시 `AppLiveIndexing` 폴더의 무관한 기존 파일 2개에서 "Cannot find
+module '../../enums/entity.enum'" 에러가 항상 뜨는 것을 발견(git log 확인 결과 이번
+세션과 무관하게 이미 커밋된 상태에서부터 존재하던 문제로 판단, 다른 모든 파일은
+entity.enum을 정상적으로 import함) — 무시하고 진행.
+
+샘플 데이터: `kb_cust_sybase_demo...customers` 테이블에 JSON Patch로 인덱스 4건(복합
+인덱스 XETAACU01P 2건 포함) 주입, API로 정상 저장 확인. 배포: `vite build` → `mvn
+install`(ui) → `mvn package`(dist) → Docker 이미지 재빌드 → 재기동, jar 내
+`assets/assets/index-*.js`가 로컬 `dist/`와 md5 완전 일치(`c48837942939aee409553
+8ece62f5894`) 확인, 서버 `healthy` 재확인, 커스텀 속성 15개 및 테이블 extension 데이터
+API 조회 재확인. 브라우저 자동화 도구가 없어 탭 위치/rowSpan 병합이 스크린샷과 동일하게
+렌더링되는지는 사용자 확인 필요.
+
 ## Windows 로컬 환경에서 재현할 때 필요한 사전 준비
 
 이 저장소를 Windows에서 처음 셋업하면 아래 환경 이슈를 만날 수 있습니다.

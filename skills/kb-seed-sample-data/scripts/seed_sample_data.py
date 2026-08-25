@@ -227,6 +227,10 @@ TABLE_CUSTOM_PROPERTIES = [
         "name": "changeHistoryKbCust", "displayName": "테이블 변경이력",
         "description": "테이블 변경이력 - JSON 배열 문자열로 저장 (Table Change History)", "fieldType": "string",
     },
+    {
+        "name": "tableIndexesKbCust", "displayName": "테이블 인덱스",
+        "description": "테이블 인덱스 - JSON 배열 문자열로 저장 (Table Index)", "fieldType": "string",
+    },
 ]
 
 

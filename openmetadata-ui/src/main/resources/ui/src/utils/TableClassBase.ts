@@ -95,6 +95,7 @@ class TableClassBase {
   public getTableDetailPageTabsIds(): Tab[] {
     return [
       EntityTabs.SCHEMA,
+      EntityTabs.TABLE_INDEX_KB_CUST,
       EntityTabs.ACTIVITY_FEED,
       EntityTabs.SAMPLE_DATA,
       EntityTabs.TABLE_QUERIES,
