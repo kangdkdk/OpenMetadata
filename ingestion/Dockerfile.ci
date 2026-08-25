@@ -37,6 +37,7 @@ RUN dpkg --configure -a \
   unixodbc=2.3.11-2+deb12u1 \
   unixodbc-dev=2.3.11-2+deb12u1 \
   unzip \
+  vim \
   git \
   wget --no-install-recommends \
   # Accept MSSQL ODBC License
