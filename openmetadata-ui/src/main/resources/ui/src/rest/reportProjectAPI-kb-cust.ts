@@ -13,7 +13,7 @@
 import { AxiosResponse } from 'axios';
 import { Operation } from 'fast-json-patch';
 import { PagingResponse } from 'Models';
-import { ReportProject } from '../generated/entity/data/reportProject-kb-cust';
+import { ReportProject } from '../generated/entity/data/reportProject_kb_cust';
 import { Include } from '../generated/type/include';
 import { ListParams } from '../interface/API.interface';
 import { getEncodedFqn } from '../utils/StringUtils';

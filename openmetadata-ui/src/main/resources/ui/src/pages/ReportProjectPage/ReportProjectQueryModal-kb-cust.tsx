@@ -21,7 +21,7 @@ import {
 } from '@openmetadata/ui-core-components';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ReportQuery } from '../../generated/entity/data/reportProject-kb-cust';
+import { ReportQuery } from '../../generated/entity/data/reportProject_kb_cust';
 
 interface ReportProjectQueryModalProps {
   open: boolean;

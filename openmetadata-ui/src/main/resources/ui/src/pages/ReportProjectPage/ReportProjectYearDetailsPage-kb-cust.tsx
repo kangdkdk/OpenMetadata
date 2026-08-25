@@ -22,7 +22,7 @@ import ErrorPlaceHolder from '../../components/common/ErrorWithPlaceholder/Error
 import { NO_DATA } from '../../constants/constants';
 import { ERROR_PLACEHOLDER_TYPE } from '../../enums/common.enum';
 import { EntityType } from '../../enums/entity.enum';
-import { ReportProject } from '../../generated/entity/data/reportProject-kb-cust';
+import { ReportProject } from '../../generated/entity/data/reportProject_kb_cust';
 import { useFqn } from '../../hooks/useFqn';
 import { getReportProjects } from '../../rest/reportProjectAPI-kb-cust';
 import { getEntityDetailsPath } from '../../utils/RouterUtils';
@@ -75,7 +75,6 @@ const ReportProjectYearDetailsPage = () => {
     () => [
       { id: 'name', label: t('label.name') },
       { id: 'displayName', label: t('label.display-name') },
-      { id: 'type', label: t('label.type') },
     ],
     [t]
   );
@@ -95,8 +94,6 @@ const ReportProjectYearDetailsPage = () => {
               {entity.displayName || NO_DATA}
             </Typography>
           );
-        case 'type':
-          return <Typography size="text-sm">{entity.type}</Typography>;
         default:
           return null;
       }

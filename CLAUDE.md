@@ -200,15 +200,32 @@ asked each time:
    (increment `N` from the highest existing custom branch for that version).
 2. **Track every file touched**:
    - Brand-new files → add a row to `KB-CUSTOM-NEW.md` (path + one-line purpose). New
-     files must use a `-kb-cust` suffix before the extension (e.g. `foo-kb-cust.ts`,
-     `sybaseConnection-kb-cust.json`) so they're visually distinguishable from official
-     files. This suffix form (hyphen, single dot before the extension) was chosen over
-     the earlier `.kb-cust.` convention specifically because `.kb-cust.json` files under
-     `openmetadata-spec/.../connections/**` confused ingestion's
-     `datamodel-code-generator` — it mis-parsed the extra dot as a segment to import,
-     producing invalid Python (`import kb-cust as kb_cust`). Verify this is actually
-     fixed the first time a new connection schema goes through codegen; if the generator
-     still chokes, treat it the same as the Java exception below.
+     files generally use a `-kb-cust` suffix before the extension (e.g. `foo-kb-cust.ts`)
+     so they're visually distinguishable from official files.
+     **Exception: JSON schema files under `openmetadata-spec/.../connections/**`
+     that are `$ref`'d by another schema** (i.e. any file another schema pulls in,
+     which is what triggers ingestion's `datamodel-code-generator` to emit a Python
+     `import` statement for it) — use `_kb_cust` (underscore) instead of `-kb-cust`
+     (hyphen), e.g. `sybaseConnection_kb_cust.json`. Confirmed by reproduction
+     (2026-08): the generator's `as`-alias correctly escapes hyphens to underscores,
+     but the `import <target>` portion does not, producing invalid Python
+     (`from . import sybaseConnection-kb-cust as sybaseConnection_kb_cust`) that fails
+     to parse. This is **not** the same bug as the historical `.kb-cust.` (double-dot)
+     issue below, and is not fixed by avoiding double dots — the hyphen itself is the
+     problem for any cross-`$ref`'d file, regardless of internal casing. The earlier
+     note that switching `.kb-cust.` → `-kb-cust` "fixed" codegen was only validated
+     for files that are never `$ref`'d cross-file (so no Python import statement was
+     ever generated for them) — it does not hold for connection schema files, which
+     are always `$ref`'d from a `*Service.json`. If in doubt whether a new schema file
+     will be cross-referenced, use `_kb_cust` — it is safe in both cases (no-delimiter
+     CamelCase, e.g. `fooBarKbCust.json`, also works, but underscore keeps the visual
+     "kb_cust" marker closest to the established convention).
+     Non-schema new files (`.ts`, `.tsx`, `.less`, etc.) are unaffected by this and
+     keep using `-kb-cust` as before. Older double-dot `.kb-cust.json` files under
+     `connections/**` also broke codegen — it mis-parsed the extra dot as a segment to
+     import, producing invalid Python (`import kb-cust as kb_cust`) — so `.kb-cust.`
+     must never be used there either; `_kb_cust` is the only confirmed-safe form for
+     cross-referenced connection schemas.
      **Exception: Java files** — a public class name can't contain a hyphen either (or
      any punctuation), so `-kb-cust` doesn't work there. Use a punctuation-free CamelCase
      suffix instead: `FooKbCust.java` (class `FooKbCust`), and rely on `KB-CUSTOM-NEW.md`

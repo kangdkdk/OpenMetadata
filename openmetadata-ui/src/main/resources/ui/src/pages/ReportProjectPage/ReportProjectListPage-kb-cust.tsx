@@ -28,7 +28,7 @@ import { useTitleAndCount } from '../../components/common/atoms/navigation/useTi
 import ErrorPlaceHolder from '../../components/common/ErrorWithPlaceholder/ErrorPlaceHolder';
 import Loader from '../../components/common/Loader/Loader';
 import { ERROR_PLACEHOLDER_TYPE } from '../../enums/common.enum';
-import { ReportProject } from '../../generated/entity/data/reportProject-kb-cust';
+import { ReportProject } from '../../generated/entity/data/reportProject_kb_cust';
 import { getReportProjects } from '../../rest/reportProjectAPI-kb-cust';
 import {
   getReportProjectYear,

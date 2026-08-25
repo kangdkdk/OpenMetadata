@@ -10,7 +10,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-import { ReportProject } from '../generated/entity/data/reportProject-kb-cust';
+import { ReportProject } from '../generated/entity/data/reportProject_kb_cust';
 
 export const UNKNOWN_REPORT_PROJECT_YEAR = 'unknown';
 

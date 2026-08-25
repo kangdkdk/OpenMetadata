@@ -27,7 +27,7 @@ import customDatabaseConnection from '../jsons/connectionSchemas/connections/dat
 import databricksConnection from '../jsons/connectionSchemas/connections/database/databricksConnection.json';
 import datalakeConnection from '../jsons/connectionSchemas/connections/database/datalakeConnection.json';
 import db2Connection from '../jsons/connectionSchemas/connections/database/db2Connection.json';
-import db2UDBConnection from '../jsons/connectionSchemas/connections/database/db2UDBConnection-kb-cust.json';
+import db2UDBConnection from '../jsons/connectionSchemas/connections/database/db2UDBConnection_kb_cust.json';
 import deltaLakeConnection from '../jsons/connectionSchemas/connections/database/deltaLakeConnection.json';
 import domoDatabaseConnection from '../jsons/connectionSchemas/connections/database/domoDatabaseConnection.json';
 import dorisConnection from '../jsons/connectionSchemas/connections/database/dorisConnection.json';
@@ -58,10 +58,10 @@ import singleStoreConnection from '../jsons/connectionSchemas/connections/databa
 import snowflakeConnection from '../jsons/connectionSchemas/connections/database/snowflakeConnection.json';
 import sqliteConnection from '../jsons/connectionSchemas/connections/database/sqliteConnection.json';
 import starrocksConnection from '../jsons/connectionSchemas/connections/database/starrocksConnection.json';
-import sybaseConnection from '../jsons/connectionSchemas/connections/database/sybaseConnection-kb-cust.json';
+import sybaseConnection from '../jsons/connectionSchemas/connections/database/sybaseConnection_kb_cust.json';
 import synapseConnection from '../jsons/connectionSchemas/connections/database/synapseConnection.json';
 import teradataConnection from '../jsons/connectionSchemas/connections/database/teradataConnection.json';
-import tiberoConnection from '../jsons/connectionSchemas/connections/database/tiberoConnection-kb-cust.json';
+import tiberoConnection from '../jsons/connectionSchemas/connections/database/tiberoConnection_kb_cust.json';
 import timescaleConnection from '../jsons/connectionSchemas/connections/database/timescaleConnection.json';
 import trinoConnection from '../jsons/connectionSchemas/connections/database/trinoConnection.json';
 import unityCatalogConnection from '../jsons/connectionSchemas/connections/database/unityCatalogConnection.json';

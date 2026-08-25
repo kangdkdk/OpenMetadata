@@ -11,7 +11,6 @@
  *  limitations under the License.
  */
 import {
-  Badge,
   Box,
   Button,
   Card,
@@ -34,7 +33,7 @@ import { ERROR_PLACEHOLDER_TYPE } from '../../enums/common.enum';
 import {
   ReportProject,
   ReportQuery,
-} from '../../generated/entity/data/reportProject-kb-cust';
+} from '../../generated/entity/data/reportProject_kb_cust';
 import { useFqn } from '../../hooks/useFqn';
 import {
   getReportProjectByFqn,
@@ -119,22 +118,6 @@ const ReportProjectDetailsPage = () => {
         }}
       />
 
-      <Card className="tw:p-5">
-        <div className="tw:flex tw:items-center tw:gap-6">
-          <div>
-            <Typography
-              className="tw:text-tertiary tw:mb-1"
-              size="text-xs"
-              weight="medium">
-              {t('label.type')}
-            </Typography>
-            <Badge color="brand" size="sm" type="pill-color">
-              {reportProject.type}
-            </Badge>
-          </div>
-        </div>
-      </Card>
-
       {reportProject.description && (
         <Card className="tw:p-5">
           <Typography className="tw:mb-2" size="text-md" weight="semibold">
@@ -214,7 +197,7 @@ const ReportProjectDetailsPage = () => {
             className="report-project-query-editor-kb-cust"
             data-testid="query-display"
             mode={{ name: CSMode.SQL }}
-            options={{ readOnly: true }}
+            options={{ readOnly: 'nocursor' }}
             showCopyButton={false}
             value={query.query}
           />

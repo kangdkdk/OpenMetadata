@@ -208,3 +208,9 @@ ingestion/.claude/agents
 test-results/
 
 docs/superpowers/*
+
+# Exported Docker image archives (built locally for offline/internal-network deployment)
+/docker-images-amd64/
+
+# Local machine PATH shims (e.g. antlr4-tools launcher workaround) — not repo content
+/.local-bin/

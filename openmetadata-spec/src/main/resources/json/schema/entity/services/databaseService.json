@@ -442,13 +442,13 @@
               "$ref": "./connections/database/questdbConnection.json"
             },
             {
-              "$ref": "./connections/database/sybaseConnection-kb-cust.json"
+              "$ref": "./connections/database/sybaseConnection_kb_cust.json"
             },
             {
-              "$ref": "./connections/database/tiberoConnection-kb-cust.json"
+              "$ref": "./connections/database/tiberoConnection_kb_cust.json"
             },
             {
-              "$ref": "./connections/database/db2UDBConnection-kb-cust.json"
+              "$ref": "./connections/database/db2UDBConnection_kb_cust.json"
             }
           ]
         }

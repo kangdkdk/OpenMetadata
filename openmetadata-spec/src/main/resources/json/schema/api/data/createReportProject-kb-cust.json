@@ -20,13 +20,13 @@
       "$ref": "../../type/basic.json#/definitions/markdown"
     },
     "type": {
-      "$ref": "../../entity/data/reportProject-kb-cust.json#/definitions/reportProjectType"
+      "$ref": "../../entity/data/reportProject_kb_cust.json#/definitions/reportProjectType"
     },
     "queries": {
       "description": "Saved queries belonging to this report project.",
       "type": "array",
       "items": {
-        "$ref": "../../entity/data/reportProject-kb-cust.json#/definitions/reportQuery"
+        "$ref": "../../entity/data/reportProject_kb_cust.json#/definitions/reportQuery"
       },
       "default": null
     },
