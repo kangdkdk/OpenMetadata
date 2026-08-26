@@ -694,3 +694,15 @@ instead`로 실패 — 다행히 이 실패 덕에 (1)의 버그가 실제 데�
 매 부팅마다 에러 없이 멱등적으로 실행되고 별칭 상태가 그대로 유지됨을 확인(영구 자동화
 목표 달성).
 
+### 2026-08-26 — InstanceCode 목록을 그룹 단위 3컬럼으로 재설계(v9)
+
+v8의 개별 코드값 평면 목록(7행)을 실제로 확인한 사용자가 그룹(인스턴스) 단위 2행 +
+3컬럼(인스턴스코드명/인스턴스코드식별자/담당자)으로 다시 바꿔달라고 요청. 신규 로케일
+키 2개(`instance-code-group-name-kb-cust`/`instance-code-group-id-kb-cust`)를
+`en-us.json`/`ko-kr.json`에 추가 후 `yarn i18n`으로 17개 로케일 전체 동기화(en 텍스트로
+채워짐, `sync-i18n` 출력으로 확인). `npx tsc --noEmit` 결과 여전히 415줄 베이스라인과
+동일(신규 에러 없음). UI+dist 재빌드(`target`/`dist` 삭제 후 재생성) →
+`openmetadata-dist` 재빌드 → 서버 이미지 재빌드/재기동(healthy) → `GET
+/instanceCodes?limit=200`으로 7건(SVC001 3건, SVC002 4건)이 정상 반환되어 프런트가
+codeGroup 기준 2행으로 집계할 데이터가 올바름을 API 라운드트립으로 확인.
+

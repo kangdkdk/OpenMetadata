@@ -20,6 +20,7 @@
 | v6 | `custom/1.13.3-v2-instance-code-report-project-add` | 상세 페이지 디자인 시스템 적용 + ReportProject 쿼리 CRUD·복사 기능 추가 |
 | v7 | `custom/1.13.3-v2-instance-code-report-project-add` | InstanceCode 코드그룹 표 뷰 + ReportProject 연도별 그룹 뷰 추가 (참고 구현 이식) |
 | v8 | `custom/1.13.3-v2-instance-code-report-project-add` | InstanceCode 목록을 그룹 카드가 아닌 개별 코드값 평면 목록으로 재설계 (kb_instance.py 실제 데이터 구조 반영) |
+| v9 | `custom/1.13.3-v2-instance-code-report-project-add` | InstanceCode 목록을 다시 그룹(인스턴스) 단위 3컬럼(인스턴스코드명/식별자/담당자)으로 재설계 |
 | v1 | `custom/1.13.3-v2-instance-code-report-project-add` | 테이블 Schema 탭 컬럼 목록에 16개 메타데이터 필드 추가 (Custom Properties 기반) |
 | v2 | `custom/1.13.3-v2-instance-code-report-project-add` | 신규 12개 컬럼을 "컬럼 관리" 드롭다운 뒤에 숨기지 않고 기본 노출로 변경 |
 | v3 | `custom/1.13.3-v2-instance-code-report-project-add` | 16개 필드를 사용자가 요청한 정확한 순서로 재배열, 라벨을 요청 단어에 맞게 수정 |
@@ -283,6 +284,23 @@ InstanceCode는 각각이 고유한 값이라 그룹화 대상이 아니며, 목
 | 파일 | 기능 |
 |---|---|
 | `openmetadata-ui/.../pages/InstanceCodePage/InstanceCodeListPage-kb-cust.tsx` | 그룹 카드 집계 제거, 개별 엔티티 평면 목록으로 전면 재작성 |
+
+## v9 — InstanceCode 목록을 다시 그룹(인스턴스) 단위 3컬럼으로 재설계
+
+v8에서 만든 개별 코드값 평면 목록(7행)을 실제로 확인한 사용자가 재차 정정: 화면의 단위는
+kb_instance.py의 "인스턴스"(업무인스턴스식별자, 예: SVC001/SVC002) 자체이므로 목록에는
+인스턴스 개수만큼(이 데이터셋 기준 2행)만 보여야 하고, 컬럼도 인스턴스코드명/
+인스턴스코드식별자/담당자·담당부서 3개만 남겨야 한다는 요구. v8에서 뺐던 codeGroup 기준
+그룹 집계 로직을 다시 추가하되, v7의 카드+표 뷰와 달리 목록 자체를 3컬럼 표로 유지(행
+클릭 시 그룹 상세 페이지로 이동하는 것은 동일). 컬럼 라벨이 표 Schema 탭의 기존
+`instance-code-name-kb-cust`("인스턴스명")와 겹치지 않도록 신규 키
+`instance-code-group-name-kb-cust`("인스턴스코드명")/`instance-code-group-id-kb-cust`
+("인스턴스코드식별자")를 추가.
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/.../pages/InstanceCodePage/InstanceCodeListPage-kb-cust.tsx` | codeGroup 기준 그룹 집계 재도입, 3컬럼(인스턴스코드명/식별자/담당자)으로 축소 |
+| `openmetadata-ui/.../locale/languages/*.json` (17개 파일) | `instance-code-group-name-kb-cust`/`instance-code-group-id-kb-cust` 신규 키 추가, `yarn i18n` 동기화 |
 
 ## 신규 기능: 테이블 컬럼 메타데이터 확장 라인
 

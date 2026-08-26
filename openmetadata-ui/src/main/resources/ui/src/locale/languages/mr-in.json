@@ -1125,6 +1125,8 @@
     "install-service-connectors": "सेवा कनेक्टर्स स्थापित करा",
     "installed": "स्थापित केले",
     "installed-lowercase": "स्थापित केले",
+    "instance-code-group-id-kb-cust": "Instance Code Identifier",
+    "instance-code-group-name-kb-cust": "Instance Code Name",
     "instance-code-kb-cust": "Instance Code",
     "instance-code-name-kb-cust": "Instance Code Name",
     "instance-code-plural-kb-cust": "Instance Codes",

@@ -1125,6 +1125,8 @@
     "install-service-connectors": "서비스 커넥터 설치",
     "installed": "설치됨",
     "installed-lowercase": "설치됨",
+    "instance-code-group-id-kb-cust": "인스턴스코드식별자",
+    "instance-code-group-name-kb-cust": "인스턴스코드명",
     "instance-code-kb-cust": "인스턴스 코드",
     "instance-code-name-kb-cust": "인스턴스명",
     "instance-code-plural-kb-cust": "인스턴스 코드",

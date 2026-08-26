@@ -1125,6 +1125,8 @@
     "install-service-connectors": "Install Service Connectors",
     "installed": "Installed",
     "installed-lowercase": "installed",
+    "instance-code-group-id-kb-cust": "Instance Code Identifier",
+    "instance-code-group-name-kb-cust": "Instance Code Name",
     "instance-code-kb-cust": "Instance Code",
     "instance-code-name-kb-cust": "Instance Name",
     "instance-code-plural-kb-cust": "Instance Codes",
