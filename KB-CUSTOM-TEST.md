@@ -657,6 +657,15 @@ UI 재빌드 시 `openmetadata-ui/target`뿐 아니라 `openmetadata-ui/src/main
 같이 지워야 stale 청크가 안 남는다는 점 재확인(target만 지우면 `process-resources` 단계가
 dist의 이전 빌드 결과를 먼저 복사해버림).
 
+### 2026-08-26 — InstanceCode 목록 평면화(v8)
+
+`InstanceCodeListPage-kb-cust.tsx`를 그룹 카드 집계 제거 후 개별 엔티티 평면 목록으로
+재작성. `npx tsc --noEmit` 결과가 기존 415줄 베이스라인(사전에 존재하던 `Suggestions.tsx`
+관련 무관 에러)과 동일함을 확인, UI+dist 재빌드(`target`/`dist` 둘 다 삭제 후 재생성) →
+`openmetadata-dist` 재빌드 → 서버 이미지 재빌드/재기동(healthy) → 번들에 새 라벨
+(`business-instance-code-kb-cust` 등) 포함 확인, `GET /instanceCodes?limit=200`으로 7건
+전체가 개별 행으로 반환됨을 API 라운드트립으로 확인.
+
 ### 2026-08-26 — 검색 인덱스 별칭 자동 정합성 검사(Column 탐색/검색 숨김 라인 v2)
 
 로컬에서

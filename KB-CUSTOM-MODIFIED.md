@@ -19,6 +19,7 @@
 | v5 | `custom/1.13.3-v2-instance-code-report-project-add` | ES 매핑에 `entityType.keyword` 서브필드 누락으로 인한 검색 결과 0건 문제 수정 (진짜 원인) |
 | v6 | `custom/1.13.3-v2-instance-code-report-project-add` | 상세 페이지 디자인 시스템 적용 + ReportProject 쿼리 CRUD·복사 기능 추가 |
 | v7 | `custom/1.13.3-v2-instance-code-report-project-add` | InstanceCode 코드그룹 표 뷰 + ReportProject 연도별 그룹 뷰 추가 (참고 구현 이식) |
+| v8 | `custom/1.13.3-v2-instance-code-report-project-add` | InstanceCode 목록을 그룹 카드가 아닌 개별 코드값 평면 목록으로 재설계 (kb_instance.py 실제 데이터 구조 반영) |
 | v1 | `custom/1.13.3-v2-instance-code-report-project-add` | 테이블 Schema 탭 컬럼 목록에 16개 메타데이터 필드 추가 (Custom Properties 기반) |
 | v2 | `custom/1.13.3-v2-instance-code-report-project-add` | 신규 12개 컬럼을 "컬럼 관리" 드롭다운 뒤에 숨기지 않고 기본 노출로 변경 |
 | v3 | `custom/1.13.3-v2-instance-code-report-project-add` | 16개 필드를 사용자가 요청한 정확한 순서로 재배열, 라벨을 요청 단어에 맞게 수정 |
@@ -266,6 +267,22 @@ Badge, PageHeader 등) 기반으로 재작성 — `IntakeFormsPage`의 테이블
 | `openmetadata-ui/.../components/Explore/ExploreTree/ExploreTree.tsx` | 두 엔티티 트리 노드 클릭 시 퀵필터 대신 전용 목록 페이지로 이동하는 특수 케이스 추가 |
 | `openmetadata-ui/.../utils/SearchClassBase.ts` | 트리 노드에서 지난 라운드에 추가했던 `isLeaf`/`entityType` 등 불필요해진 필드 제거(참고 구현과 동일하게 단순화) |
 | `openmetadata-ui/.../locale/languages/*.json` (19개 파일) | `copy-table`/`unknown`/그룹·연도 설명 라벨 추가, `yarn i18n` 동기화 |
+
+## v8 — InstanceCode 목록을 개별 코드값 평면 목록으로 재설계
+
+v7에서 이식한 "코드그룹별 카드 → 그룹 클릭 시 표" 뷰에 대해 사용자가 강하게 반박:
+InstanceCode는 각각이 고유한 값이라 그룹화 대상이 아니며, 목록 화면에 실제로 입력된
+개별 값들이 전부 보여야 한다는 것(원본 `datahub/kb_instance.py`는 업무인스턴스식별자당
+하나의 엔티티를 만들고 그 안에 코드값 리스트를 임베드하는 구조이지만, 우리
+`instanceCode-kb-cust.json` 스키마는 코드값 하나 = 엔티티 하나로 단순화했으므로 그
+개별 엔티티들이 화면에 그대로 나열되어야 함). 목록 페이지의 `Map` 기반 그룹 집계 로직을
+제거하고 전체 InstanceCode 엔티티를 codeGroup→sortOrder 순으로 정렬한 평면 표로 변경
+(컬럼: 코드그룹/코드값/코드명/담당자). 행 클릭 시 이동 동작은 유지(정의/표준구분/
+연관테이블/담당자가 그룹 단위 속성이라 그룹 상세 페이지로 계속 이동).
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/.../pages/InstanceCodePage/InstanceCodeListPage-kb-cust.tsx` | 그룹 카드 집계 제거, 개별 엔티티 평면 목록으로 전면 재작성 |
 
 ## 신규 기능: 테이블 컬럼 메타데이터 확장 라인
 

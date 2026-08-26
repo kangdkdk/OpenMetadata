@@ -22,43 +22,22 @@ import EntityListingTable from '../../components/common/EntityListingTable/Entit
 import { ColumnDef } from '../../components/common/EntityListingTable/EntityListingTable.interface';
 import ErrorPlaceHolder from '../../components/common/ErrorWithPlaceholder/ErrorPlaceHolder';
 import OwnerAvatarGroup from '../../components/common/OwnerAvatarGroup/OwnerAvatarGroup-kb-cust';
+import { NO_DATA } from '../../constants/constants';
 import { ERROR_PLACEHOLDER_TYPE } from '../../enums/common.enum';
 import { InstanceCode } from '../../generated/entity/data/instanceCode-kb-cust';
 import { getInstanceCodes } from '../../rest/instanceCodeAPI-kb-cust';
-import {
-  InstanceCodeOwner,
-  parseInstanceCodeOwners,
-} from '../../utils/InstanceCodeOwnerUtils-kb-cust';
+import { parseInstanceCodeOwners } from '../../utils/InstanceCodeOwnerUtils-kb-cust';
 import { getInstanceCodeGroupPath } from '../../utils/RouterUtils';
 import { showErrorToast } from '../../utils/ToastUtils';
 
-interface InstanceCodeGroup {
-  id: string;
-  name: string;
-  codeGroup: string;
-  codeGroupName?: string;
-  owners: InstanceCodeOwner[];
-}
+const sortInstanceCodes = (instanceCodes: InstanceCode[]) =>
+  [...instanceCodes].sort((a, b) => {
+    const groupCompare = a.codeGroup.localeCompare(b.codeGroup);
 
-const groupInstanceCodes = (instanceCodes: InstanceCode[]) => {
-  const groupMap = new Map<string, InstanceCodeGroup>();
-
-  instanceCodes.forEach((instanceCode) => {
-    if (!groupMap.has(instanceCode.codeGroup)) {
-      groupMap.set(instanceCode.codeGroup, {
-        id: instanceCode.codeGroup,
-        name: instanceCode.codeGroup,
-        codeGroup: instanceCode.codeGroup,
-        codeGroupName: instanceCode.codeGroupName,
-        owners: parseInstanceCodeOwners(instanceCode.description),
-      });
-    }
+    return groupCompare !== 0
+      ? groupCompare
+      : (a.sortOrder ?? 0) - (b.sortOrder ?? 0);
   });
-
-  return Array.from(groupMap.values()).sort((a, b) =>
-    a.codeGroup.localeCompare(b.codeGroup)
-  );
-};
 
 const InstanceCodeListPage = () => {
   const { t } = useTranslation();
@@ -82,8 +61,8 @@ const InstanceCodeListPage = () => {
     fetchInstanceCodes();
   }, [fetchInstanceCodes]);
 
-  const groups = useMemo(
-    () => groupInstanceCodes(instanceCodes),
+  const sortedInstanceCodes = useMemo(
+    () => sortInstanceCodes(instanceCodes),
     [instanceCodes]
   );
 
@@ -103,43 +82,59 @@ const InstanceCodeListPage = () => {
   });
 
   const { titleAndCount } = useTitleAndCount({
-    titleKey: 'label.code-group-kb-cust',
-    count: groups.length,
+    titleKey: 'label.instance-code-plural-kb-cust',
+    count: sortedInstanceCodes.length,
     loading,
   });
 
-  const handleGroupClick = useCallback(
-    (group: InstanceCodeGroup) => {
-      navigate(getInstanceCodeGroupPath(group.codeGroup));
+  const handleRowClick = useCallback(
+    (instanceCode: InstanceCode) => {
+      navigate(getInstanceCodeGroupPath(instanceCode.codeGroup));
     },
     [navigate]
   );
 
   const columns: ColumnDef[] = useMemo(
     () => [
-      { id: 'codeGroupName', label: t('label.instance-code-name-kb-cust') },
+      { id: 'codeGroup', label: t('label.instance-code-name-kb-cust') },
+      { id: 'codeValue', label: t('label.business-instance-code-kb-cust') },
+      { id: 'codeName', label: t('label.business-instance-content-kb-cust') },
       { id: 'owners', label: t('label.owner-kb-cust') },
     ],
     [t]
   );
 
   const renderCell = useCallback(
-    (group: InstanceCodeGroup, columnId: string): ReactNode => {
+    (instanceCode: InstanceCode, columnId: string): ReactNode => {
       switch (columnId) {
-        case 'codeGroupName':
+        case 'codeGroup':
           return (
             <Typography size="text-sm" weight="medium">
-              {group.codeGroupName || group.codeGroup}
-              {group.codeGroupName && (
-                <span className="tw:text-tertiary tw:font-mono tw:font-normal">
-                  {' '}
-                  ({group.codeGroup})
-                </span>
-              )}
+              {instanceCode.codeGroupName || instanceCode.codeGroup}
+              <span className="tw:text-tertiary tw:font-mono tw:font-normal">
+                {' '}
+                ({instanceCode.codeGroup})
+              </span>
+            </Typography>
+          );
+        case 'codeValue':
+          return (
+            <Typography className="tw:font-mono" size="text-sm">
+              {instanceCode.codeValue}
+            </Typography>
+          );
+        case 'codeName':
+          return (
+            <Typography size="text-sm">
+              {instanceCode.codeName || instanceCode.displayName || NO_DATA}
             </Typography>
           );
         case 'owners':
-          return <OwnerAvatarGroup owners={group.owners} />;
+          return (
+            <OwnerAvatarGroup
+              owners={parseInstanceCodeOwners(instanceCode.description)}
+            />
+          );
         default:
           return null;
       }
@@ -148,7 +143,7 @@ const InstanceCodeListPage = () => {
   );
 
   const content = useMemo(() => {
-    if (!loading && groups.length === 0) {
+    if (!loading && sortedInstanceCodes.length === 0) {
       return (
         <ErrorPlaceHolder
           className="tw:border-none"
@@ -165,16 +160,16 @@ const InstanceCodeListPage = () => {
         ariaLabel={t('label.instance-code-plural-kb-cust')}
         columns={columns}
         disableSelection={true}
-        entities={groups}
+        entities={sortedInstanceCodes}
         loading={loading}
         renderCell={renderCell}
         selectedEntities={[]}
-        onEntityClick={handleGroupClick}
+        onEntityClick={handleRowClick}
         onSelect={() => {}}
         onSelectAll={() => {}}
       />
     );
-  }, [loading, groups, columns, renderCell, handleGroupClick, t]);
+  }, [loading, sortedInstanceCodes, columns, renderCell, handleRowClick, t]);
 
   return (
     <Box className="tw:p-6" direction="col" gap={4}>
