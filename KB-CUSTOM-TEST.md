@@ -657,3 +657,31 @@ UI 재빌드 시 `openmetadata-ui/target`뿐 아니라 `openmetadata-ui/src/main
 같이 지워야 stale 청크가 안 남는다는 점 재확인(target만 지우면 `process-resources` 단계가
 dist의 이전 빌드 결과를 먼저 복사해버림).
 
+### 2026-08-26 — 검색 인덱스 별칭 자동 정합성 검사(Column 탐색/검색 숨김 라인 v2)
+
+로컬에서
+`column_search_index`가 다시 `openmetadata_all`/`openmetadata_dataAsset`에 묶여있는
+재발을 `_cat/aliases`로 재확인(이전 수동 조치가 영구 조치가 아니었음이 실증됨). 사용자가
+"기본 셋팅으로 설정"(매번 수동 조치 대신 영구 자동화)을 명시 요청 → `SearchRepository`에
+`reconcileAliases()` 추가, `OpenMetadataApplication.initializeCoreSearchInfrastructure()`의
+`createMissingIndexes()` 직후 자동 호출되도록 배선.
+
+1차 구현 검증 중 실제 버그 2건을 로컬에서 잡음: (1) 논리적 인덱스명 자체가 물리적으로는
+별칭이라 `getAliases(indexName)` 응답에 그 이름 자신이 포함되는데, desired 집합에서
+누락시켜 전 엔티티의 정상 별칭을 제거 대상으로 잘못 분류함 — 재현: 재배포 후 로그에서
+`table_search_index`/`container_search_index` 등 거의 모든 엔티티의 자기 자신 별칭에 대해
+제거 시도 로그가 찍힘. (2) ES `remove-alias` 액션은 대상 `index`가 반드시 구체적인 물리
+인덱스여야 하는데 논리적 별칭명을 그대로 넘겨 전부
+`illegal_argument_exception: ... matches an alias, specify the corresponding concrete indices
+instead`로 실패 — 다행히 이 실패 덕에 (1)의 버그가 실제 데이터 별칭을 훼손하지 않고
+전부 no-op으로 끝남을 `_cat/aliases` 재조회로 확인(피해 없음 확인 후 안전하게 수정 진행).
+
+두 버그를 모두 고친 버전(desired 집합에 자기 인덱스명 포함 + `getIndicesByAlias()`로 물리
+인덱스 resolve 후 제거)으로 재빌드/재배포 후 재검증: `column_search_index`가 `table`/
+`tableColumn`/자기 자신만 유지하고 `all`/`dataAsset`은 제거됨을 `_cat/aliases`로 확인,
+`GET /search/query?index=all`/`index=dataAsset` 둘 다 정상 응답(샤드 실패 0건)하고
+`entityType` 집계에 `column`이 나타나지 않음을 확인, `index=tableColumn` 단독 질의는
+여전히 66건 전부 반환(엔티티 자체 기능은 무영향). 서버를 한 번 더 재시작해 재조정 로직이
+매 부팅마다 에러 없이 멱등적으로 실행되고 별칭 상태가 그대로 유지됨을 확인(영구 자동화
+목표 달성).
+

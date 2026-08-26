@@ -794,6 +794,57 @@ public class SearchRepository {
     }
   }
 
+  /**
+   * Removes any alias attached to an entity's index in Elasticsearch/OpenSearch that is no
+   * longer declared for that entity in indexMapping.json (e.g. a leftover "all"/"dataAsset"
+   * alias on column_search_index from before tableColumn's parentAliases was narrowed to
+   * ["table"]). createAliases()/createIndex()/updateIndex() are all additive-only - they attach
+   * the aliases indexMapping.json currently declares but never detach ones it no longer does -
+   * so a stale alias set at some point in the past (or on data restored from an older backup)
+   * persists across restarts and even index recreation. This is idempotent and safe to run on
+   * every server boot: it never touches an alias that indexMapping.json still declares for the
+   * entity.
+   */
+  public void reconcileAliases() {
+    LOG.info("Reconciling search index aliases against indexMapping.json...");
+    for (Map.Entry<String, IndexMapping> entry : entityIndexMap.entrySet()) {
+      String entityType = entry.getKey();
+      IndexMapping indexMapping = entry.getValue();
+      try {
+        if (!indexExists(indexMapping)) {
+          continue;
+        }
+        String indexName = indexMapping.getIndexName(clusterAlias);
+        // indexName is itself implemented as an alias onto a physically-named index (e.g. an
+        // "..._rebuild_<timestamp>" index from a prior reindex), so getAliases(indexName) below
+        // returns every alias on that physical index - including indexName itself. It must stay
+        // in the desired set or this would strip the entity's own canonical alias.
+        Set<String> desiredAliases = new HashSet<>(listOrEmpty(indexMapping.getParentAliases(clusterAlias)));
+        desiredAliases.add(indexName);
+        String shortAlias = indexMapping.getAlias(clusterAlias);
+        if (!nullOrEmpty(shortAlias)) {
+          desiredAliases.add(shortAlias);
+        }
+        Set<String> actualAliases = searchClient.getAliases(indexName);
+        Set<String> staleAliases = new HashSet<>(actualAliases);
+        staleAliases.removeAll(desiredAliases);
+        if (!staleAliases.isEmpty()) {
+          // indexName here is itself an alias onto a physically-named index (e.g. a prior
+          // reindex's "..._rebuild_<timestamp>" index) - ES's remove-alias action requires a
+          // concrete index, not an alias, so resolve it first.
+          Set<String> concreteIndices = searchClient.getIndicesByAlias(indexName);
+          for (String concreteIndex : concreteIndices) {
+            LOG.info(
+                "Removing stale aliases {} from index {} ({})", staleAliases, concreteIndex, entityType);
+            searchClient.removeAliases(concreteIndex, staleAliases);
+          }
+        }
+      } catch (Exception e) {
+        LOG.warn("Failed to reconcile aliases for entity {}: {}", entityType, e.getMessage());
+      }
+    }
+  }
+
   public void deleteIndex(IndexMapping indexMapping) {
     try {
       String indexName = indexMapping.getIndexName(clusterAlias);

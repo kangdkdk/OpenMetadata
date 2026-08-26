@@ -30,6 +30,7 @@
 | v4 | `custom/1.13.3-v2-instance-code-report-project-add` | Sybase/Tibero/DB2 UDB 커넥터 스키마 파일명 `-kb-cust` → `_kb_cust` 수정 (datamodel-code-generator ingestion 빌드 실패 원인) |
 | v3 | `custom/1.13.3-v2-instance-code-report-project-add` | ReportProject 상세/목록 화면에서 "유형" 필드 표시 제거, 쿼리 뷰어를 완전 읽기전용(nocursor)으로 변경 |
 | v1 | `custom/1.13.3-v2-instance-code-report-project-add` | Explore 탐색창/전역 검색에서 Column(테이블 컬럼) 항목 제거 |
+| v2 | `custom/1.13.3-v2-instance-code-report-project-add` | Column 검색 인덱스 별칭 재발 방지 — 서버 부팅 시 자동 정합성 검사(reconcileAliases) 신규 추가 |
 | v1 | `custom/1.13.3-v2-instance-code-report-project-add` | User/Team 엔티티에 Custom Properties(extension) 지원 추가 |
 | v1 | `custom/1.13.3-v2-instance-code-report-project-add` | User 프로필 사이드바/호버 카드에 직급/직책/전화번호/담당업무 표시 |
 | v1 | `custom/1.13.3-v2-instance-code-report-project-add` | 로그인 후 버전 업데이트/GitHub 팝업 제거 |
@@ -587,6 +588,45 @@ database/schema/table/column 전부 cascade 삭제). InstanceCode/ReportProject 
 | `openmetadata-ui/.../utils/SearchClassBase.ts` | Explore 트리 `childEntities`와 `getGlobalSearchOptions()`에서 Column 항목 제거 |
 | `openmetadata-ui/.../components/AppBar/Suggestions.tsx` | 전역 검색 자동완성에서 Column 결과 그룹 제거 |
 | `openmetadata-spec/.../elasticsearch/indexMapping.json` | `tableColumn`의 `parentAliases`에서 `all`/`dataAsset` 제거(`table`만 유지) |
+
+## v2 — ES 별칭이 재발하는 근본 원인 제거: 부팅 시 자동 정합성 검사(영구 조치)
+
+v1로 `indexMapping.json`을 고쳐도 이미 생성된 ES 인덱스의 실제 별칭은 그대로 남기 때문에,
+이후 시점 불명확한 재인덱싱/복구 과정에서 `column_search_index`가 다시 `all`/`dataAsset`에
+묶이는 현상이 재발(재현 확인: `_cat/aliases`에서 재확인됨). `createAliases()`/
+`updateIndex()`/재인덱싱 경로가 전부 **추가 전용**(선언된 별칭을 붙이기만 하고, 더 이상
+선언되지 않은 과거 별칭은 절대 떼지 않음)이라 한 번이라도 잘못 붙은 별칭은 수동으로
+떼어내지 않는 한 영구히 남는 구조적 문제 — 사용자가 "이건 기본 셋팅으로 설정해줘"(매번
+수동으로 고치지 말고 영구 기본값으로 만들어달라)라고 명시 요청.
+
+`SearchRepository.reconcileAliases()`를 신규 추가해 서버 부팅 시
+`OpenMetadataApplication.initializeCoreSearchInfrastructure()`에서 `createMissingIndexes()`
+직후 자동 실행되도록 배선. 모든 엔티티에 대해 `indexMapping.json`이 선언하는 별칭 집합
+(엔티티 자신의 `alias` + `parentAliases` + 자기 자신의 인덱스명)과 ES에 실제로 붙어있는
+별칭 집합을 비교해, `indexMapping.json`에 더 이상 없는 별칭만 골라 제거 — 엔티티별로
+`indexMapping.json`이 선언한 것과 다른 점만 고치므로 `table`처럼 정상적으로 `all`/
+`dataAsset`을 갖는 엔티티는 건드리지 않고, `tableColumn`처럼 좁게 선언된 엔티티만 교정됨.
+
+**구현 중 발견한 함정**: 이 아키텍처에서는 논리적 인덱스명 자체가 물리적으로는 별칭이다
+(재인덱싱 시 `..._rebuild_<timestamp>`라는 실제 인덱스가 생성되고 논리적 이름은 그 위에
+별칭으로 얹힘). 그래서 (1) `getAliases(indexName)`을 호출하면 그 논리적 이름 자신도
+"별칭 목록"에 포함되어 돌아오므로 desired 집합에 반드시 인덱스 자신의 이름을 포함해야 함
+(안 그러면 엔티티의 정상 진입점 별칭까지 제거해버림 — 로컬 검증 중 실제로 전체
+엔티티에서 제거 시도가 발생했으나, 다행히 ES가 다음 함정 때문에 전부 실패해 실제 피해는
+없었음), (2) ES의 `remove-alias` 액션은 대상 `index`가 반드시 구체적인 물리 인덱스여야
+하고 별칭을 넘기면 `illegal_argument_exception`으로 거부됨 — `getIndicesByAlias()`로 물리
+인덱스명을 먼저 resolve한 뒤 그 물리 인덱스에 대해 `removeAliases()`를 호출하도록 수정.
+로컬 재현 검증: 수정 전 코드로 배포 시 전 엔티티에서 alias 제거 시도가 전부
+`illegal_argument_exception`으로 실패(무해)함을 로그로 확인 → 두 함정을 모두 수정한
+버전으로 재배포 후 `column_search_index`에서 `all`/`dataAsset`만 정확히 제거되고 `table`/
+`tableColumn`/자기 자신은 유지됨을 `_cat/aliases`로 확인, 서버 재시작 반복 후에도 동일한
+결과 유지(멱등성 확인), `all`/`dataAsset` 검색 결과의 `entityType` 집계에 `column`이 더
+이상 나타나지 않음을 확인.
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-service/.../search/SearchRepository.java` | `reconcileAliases()` 신규 추가 — 엔티티별 실제 ES 별칭을 `indexMapping.json` 선언과 비교해 더 이상 선언되지 않은 별칭을 자동 제거 |
+| `openmetadata-service/.../OpenMetadataApplication.java` | `initializeCoreSearchInfrastructure()`에서 `createMissingIndexes()` 직후 `reconcileAliases()` 호출 배선(서버 부팅마다 자동 실행) |
 
 ## 신규 기능: User/Team Custom Properties 지원 라인
 

@@ -611,6 +611,7 @@ public class OpenMetadataApplication extends Application<OpenMetadataApplication
     }
 
     searchRepository.createMissingIndexes();
+    searchRepository.reconcileAliases();
     searchRepository.createOrUpdateIndexTemplates();
 
     LOG.info("Core search infrastructure initialization completed");
