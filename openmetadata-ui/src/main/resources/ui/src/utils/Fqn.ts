@@ -11,8 +11,14 @@
  *  limitations under the License.
  */
 
-import antlr4 from 'antlr4';
-import { ParseTreeWalker } from 'antlr4/src/antlr4/tree';
+import {
+  CommonTokenStream,
+  InputStream,
+  Lexer,
+  ParseTree,
+  ParseTreeListener,
+  ParseTreeWalker,
+} from 'antlr4';
 import SplitListener from '../antlr/SplitListener';
 import FqnLexer from '../generated/antlr/FqnLexer';
 import FqnParser from '../generated/antlr/FqnParser';
@@ -21,13 +27,20 @@ import i18n from './i18next/LocalUtil';
 export default class Fqn {
   // Equivalent of Java's FullyQualifiedName#split
   static split(fqn: string) {
-    const chars = new antlr4.InputStream(fqn);
+    const chars = new InputStream(fqn);
     const lexer = new FqnLexer(chars);
-    const tokens = new antlr4.CommonTokenStream(lexer);
+    // ANTLR-generated Lexer/Parser/Listener/ParseTree subclasses are plain,
+    // untyped .js files, so TS can't verify they structurally satisfy
+    // antlr4's stricter 4.13.x base-class types - they're correct at
+    // runtime (that's what the ANTLR tool generates them to be).
+    const tokens = new CommonTokenStream(lexer as unknown as Lexer);
     const parser = new FqnParser(tokens);
     const tree = parser.fqn();
     const splitter = new SplitListener();
-    ParseTreeWalker.DEFAULT.walk(splitter, tree);
+    ParseTreeWalker.DEFAULT.walk(
+      splitter as unknown as ParseTreeListener,
+      tree as unknown as ParseTree
+    );
 
     return splitter.split();
   }

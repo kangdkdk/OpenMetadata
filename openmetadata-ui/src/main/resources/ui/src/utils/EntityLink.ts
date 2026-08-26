@@ -10,8 +10,14 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-import antlr4 from 'antlr4';
-import { ParseTreeWalker } from 'antlr4/src/antlr4/tree';
+import {
+  CommonTokenStream,
+  InputStream,
+  Lexer,
+  ParseTree,
+  ParseTreeListener,
+  ParseTreeWalker,
+} from 'antlr4';
 import EntityLinkSplitListener from '../antlr/EntityLinkSplitListener';
 import { FQN_SEPARATOR_CHAR } from '../constants/char.constants';
 import { FqnPart } from '../enums/entity.enum';
@@ -28,13 +34,20 @@ export default class EntityLink {
    */
   static split(entityLink: string) {
     if (entityLink) {
-      const chars = new antlr4.InputStream(entityLink);
+      const chars = new InputStream(entityLink);
       const lexer = new EntityLinkLexer(chars);
-      const tokens = new antlr4.CommonTokenStream(lexer);
+      // ANTLR-generated Lexer/Parser/Listener/ParseTree subclasses are
+      // plain, untyped .js files, so TS can't verify they structurally
+      // satisfy antlr4's stricter 4.13.x base-class types - they're correct
+      // at runtime (that's what the ANTLR tool generates them to be).
+      const tokens = new CommonTokenStream(lexer as unknown as Lexer);
       const parser = new EntityLinkParser(tokens);
       const tree = parser.entitylink();
       const splitter = new EntityLinkSplitListener();
-      ParseTreeWalker.DEFAULT.walk(splitter, tree);
+      ParseTreeWalker.DEFAULT.walk(
+        splitter as unknown as ParseTreeListener,
+        tree as unknown as ParseTree
+      );
 
       return splitter.split();
     }
