@@ -13,8 +13,10 @@
 import { Button, Typography } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { NO_DATA } from '../../../constants/constants';
 import { InstanceCodeOwner } from '../../../utils/InstanceCodeOwnerUtils-kb-cust';
+import { getUserPath } from '../../../utils/RouterUtils';
 import UserPopOverCard from '../PopOverCard/UserPopOverCard';
 import ProfilePicture from '../ProfilePicture/ProfilePicture';
 
@@ -43,7 +45,9 @@ const OwnerAvatarGroup = ({
     <div className="d-flex items-center flex-wrap" style={{ gap: 6 }}>
       {visibleOwners.map((owner) => (
         <UserPopOverCard key={owner.username} userName={owner.username}>
-          <ProfilePicture name={owner.username} width={String(avatarWidth)} />
+          <Link to={getUserPath(owner.username)}>
+            <ProfilePicture name={owner.username} width={String(avatarWidth)} />
+          </Link>
         </UserPopOverCard>
       ))}
       {remaining > 0 && (

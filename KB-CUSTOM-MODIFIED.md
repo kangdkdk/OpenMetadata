@@ -21,6 +21,7 @@
 | v7 | `custom/1.13.3-v2-instance-code-report-project-add` | InstanceCode 코드그룹 표 뷰 + ReportProject 연도별 그룹 뷰 추가 (참고 구현 이식) |
 | v8 | `custom/1.13.3-v2-instance-code-report-project-add` | InstanceCode 목록을 그룹 카드가 아닌 개별 코드값 평면 목록으로 재설계 (kb_instance.py 실제 데이터 구조 반영) |
 | v9 | `custom/1.13.3-v2-instance-code-report-project-add` | InstanceCode 목록을 다시 그룹(인스턴스) 단위 3컬럼(인스턴스코드명/식별자/담당자)으로 재설계 |
+| v10 | `custom/1.13.3-v2-instance-code-report-project-add` | Explore 검색결과 InstanceCode/ReportProject 아이콘·브레드크럼 지원 + 담당자 아바타 프로필 링크 |
 | v1 | `custom/1.13.3-v2-instance-code-report-project-add` | 테이블 Schema 탭 컬럼 목록에 16개 메타데이터 필드 추가 (Custom Properties 기반) |
 | v2 | `custom/1.13.3-v2-instance-code-report-project-add` | 신규 12개 컬럼을 "컬럼 관리" 드롭다운 뒤에 숨기지 않고 기본 노출로 변경 |
 | v3 | `custom/1.13.3-v2-instance-code-report-project-add` | 16개 필드를 사용자가 요청한 정확한 순서로 재배열, 라벨을 요청 단어에 맞게 수정 |
@@ -301,6 +302,27 @@ kb_instance.py의 "인스턴스"(업무인스턴스식별자, 예: SVC001/SVC002
 |---|---|
 | `openmetadata-ui/.../pages/InstanceCodePage/InstanceCodeListPage-kb-cust.tsx` | codeGroup 기준 그룹 집계 재도입, 3컬럼(인스턴스코드명/식별자/담당자)으로 축소 |
 | `openmetadata-ui/.../locale/languages/*.json` (17개 파일) | `instance-code-group-name-kb-cust`/`instance-code-group-id-kb-cust` 신규 키 추가, `yarn i18n` 동기화 |
+
+## v10 — Explore 검색결과 아이콘/브레드크럼 지원 + 담당자 아바타 프로필 링크
+
+InstanceCode/ReportProject가 Explore 전역 검색 결과 카드에 섞여 나올 때 전용 아이콘 없이
+기본 아이콘으로 나오고, 브레드크럼도 일반 엔티티 규칙(이름 그대로 나열)을 타면서 그룹명
+대신 raw FQN 조각이 보이던 문제 수정. `TableUtils.tsx`의 `entityIconMapping`에 두 엔티티
+전용 아이콘(`codeOutline.svg`/`ic-reports.svg`) 추가, `EntityBreadcrumbPureUtils.ts`/
+`EntityGovernanceBreadcrumbUtils.ts`에 두 엔티티 전용 브레드크럼 빌더(`getBreadcrumbFor
+InstanceCode`/`getBreadcrumbForReportProject`) 추가. 겸사겸사 `OwnerAvatarGroup-kb-cust.tsx`의
+아바타 클릭 시 담당자 User 상세 페이지로 이동하는 링크 추가, `SchemaTable.component.tsx`의
+CSV 내보내기에서 `instanceCodeName?.name` 대신 `getEntityName()`을 써서 표시 우선순위
+규칙(`displayName` 우선)을 다른 화면과 일관되게 맞춤.
+
+| 파일 | 기능 |
+|---|---|
+| `openmetadata-ui/.../utils/TableUtils.tsx` | `entityIconMapping`에 InstanceCode/ReportProject 아이콘 추가 |
+| `openmetadata-ui/.../constants/Assets.constants.ts` | `NON_SERVICE_TYPE_ASSETS`에 두 엔티티 추가(서비스 아이콘 대신 엔티티 아이콘 사용) |
+| `openmetadata-ui/.../utils/EntityGovernanceBreadcrumbUtils.ts` | `getBreadcrumbForInstanceCode`/`getBreadcrumbForReportProject` 신규 추가 |
+| `openmetadata-ui/.../utils/EntityBreadcrumbPureUtils.ts` | `getEntityBreadcrumbs`에 두 엔티티 case 분기 추가 |
+| `openmetadata-ui/.../components/common/OwnerAvatarGroup/OwnerAvatarGroup-kb-cust.tsx` | 아바타를 담당자 User 상세 페이지 링크로 감쌈 |
+| `openmetadata-ui/.../components/Database/SchemaTable/SchemaTable.component.tsx` | CSV 내보내기 인스턴스 코드명 표시를 `getEntityName()`으로 통일 |
 
 ## 신규 기능: 테이블 컬럼 메타데이터 확장 라인
 

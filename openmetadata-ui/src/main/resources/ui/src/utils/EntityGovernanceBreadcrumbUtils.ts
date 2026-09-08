@@ -45,6 +45,7 @@ import {
   getDataQualityPagePath,
   getDomainPath,
   getGlossaryPath,
+  getInstanceCodeGroupPath,
   getKpiPath,
   getPersonaDetailsPath,
   getPolicyWithFqnPath,
@@ -308,5 +309,33 @@ export const getBreadcrumbForKnowledgePage = (
     name: entityName,
     url: '',
     activeTitle: Boolean(includeCurrent),
+  },
+];
+
+export const getBreadcrumbForInstanceCode = (entity: {
+  codeGroup?: string;
+  codeGroupName?: string;
+}) => [
+  {
+    name: i18n.t('label.instance-code-plural-kb-cust'),
+    url: ROUTES.INSTANCE_CODES,
+  },
+  {
+    name: entity.codeGroupName || entity.codeGroup || '',
+    url: entity.codeGroup ? getInstanceCodeGroupPath(entity.codeGroup) : '',
+  },
+];
+
+export const getBreadcrumbForReportProject = (entity: {
+  name?: string;
+  displayName?: string;
+}) => [
+  {
+    name: i18n.t('label.report-project-plural-kb-cust'),
+    url: ROUTES.REPORT_PROJECTS,
+  },
+  {
+    name: getEntityName(entity),
+    url: '',
   },
 ];

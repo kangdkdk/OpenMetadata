@@ -67,11 +67,13 @@ import {
   getBreadcrumbForDomain,
   getBreadcrumbForEventSubscription,
   getBreadcrumbForGlossaryOrTerm,
+  getBreadcrumbForInstanceCode,
   getBreadcrumbForKnowledgePage,
   getBreadCrumbForKpi,
   getBreadcrumbForMetric,
   getBreadcrumbForPersona,
   getBreadcrumbForPolicy,
+  getBreadcrumbForReportProject,
   getBreadcrumbForRole,
   getBreadcrumbForTag,
   getBreadcrumbForTeam,
@@ -104,11 +106,13 @@ export {
   getBreadcrumbForDomain,
   getBreadcrumbForEventSubscription,
   getBreadcrumbForGlossaryOrTerm,
+  getBreadcrumbForInstanceCode,
   getBreadcrumbForKnowledgePage,
   getBreadCrumbForKpi,
   getBreadcrumbForMetric,
   getBreadcrumbForPersona,
   getBreadcrumbForPolicy,
+  getBreadcrumbForReportProject,
   getBreadcrumbForRole,
   getBreadcrumbForTag,
   getBreadcrumbForTeam,
@@ -298,6 +302,14 @@ export const getEntityBreadcrumbs = (
       return getBreadcrumbForKnowledgePage(
         getEntityName(entity as { name?: string; displayName?: string }),
         includeCurrent
+      );
+    case EntityType.INSTANCE_CODE:
+      return getBreadcrumbForInstanceCode(
+        entity as { codeGroup?: string; codeGroupName?: string }
+      );
+    case EntityType.REPORT_PROJECT:
+      return getBreadcrumbForReportProject(
+        entity as { name?: string; displayName?: string }
       );
     case EntityType.TABLE_COLUMN: {
       const columnData = entity as TableColumnSearchSource;

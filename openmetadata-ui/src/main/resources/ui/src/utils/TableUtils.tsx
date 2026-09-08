@@ -25,6 +25,7 @@ import { ReactComponent as GlossaryTermIcon } from '../assets/svg/book.svg';
 import { ReactComponent as BotIcon } from '../assets/svg/bot.svg';
 import { ReactComponent as ChartIcon } from '../assets/svg/chart.svg';
 import { ReactComponent as ClassificationIcon } from '../assets/svg/classification.svg';
+import { ReactComponent as InstanceCodeIcon } from '../assets/svg/codeOutline.svg';
 import { ReactComponent as ConversationIcon } from '../assets/svg/comment.svg';
 import { ReactComponent as QueryIcon } from '../assets/svg/customproperties/sql-query.svg';
 import { ReactComponent as IconDataModel } from '../assets/svg/data-model.svg';
@@ -80,6 +81,7 @@ import { ReactComponent as FileIcon } from '../assets/svg/ic-file.svg';
 import { ReactComponent as MlModelIcon } from '../assets/svg/ic-ml-model.svg';
 import { ReactComponent as PersonaIcon } from '../assets/svg/ic-personas.svg';
 import { ReactComponent as PipelineIcon } from '../assets/svg/ic-pipeline.svg';
+import { ReactComponent as ReportProjectIcon } from '../assets/svg/ic-reports.svg';
 import { ReactComponent as SchemaIcon } from '../assets/svg/ic-schema.svg';
 import { ReactComponent as SpreadsheetIcon } from '../assets/svg/ic-spreadsheet.svg';
 import { ReactComponent as ContainerIcon } from '../assets/svg/ic-storage.svg';
@@ -342,6 +344,8 @@ const entityIconMapping: Record<string, SvgComponent> = {
   [EntityType.SPREADSHEET]: SpreadsheetIcon,
   [EntityType.WORKSHEET]: WorksheetIcon,
   [EntityType.DRIVE_SERVICE]: DriveServiceIcon,
+  [EntityType.INSTANCE_CODE]: InstanceCodeIcon,
+  [EntityType.REPORT_PROJECT]: ReportProjectIcon,
 };
 
 export const getEntityIcon = (

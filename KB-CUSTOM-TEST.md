@@ -706,3 +706,14 @@ v8의 개별 코드값 평면 목록(7행)을 실제로 확인한 사용자가 �
 /instanceCodes?limit=200`으로 7건(SVC001 3건, SVC002 4건)이 정상 반환되어 프런트가
 codeGroup 기준 2행으로 집계할 데이터가 올바름을 API 라운드트립으로 확인.
 
+### 2026-08-26 — Explore 아이콘/브레드크럼 + 담당자 링크(v10) 커밋 전 재확인
+
+작업 도중 커밋되지 않은 채 남아있던 6개 파일(TableUtils 아이콘 매핑, Assets.constants
+NON_SERVICE_TYPE_ASSETS, 브레드크럼 유틸 2개, OwnerAvatarGroup 링크, SchemaTable CSV
+표시명)을 커밋하기 전 `npx tsc --noEmit`으로 재검증 — 413줄로 오늘 다른 작업들의
+베이스라인과 동일(신규 에러 없음). 참조하는 신규 아이콘 파일
+(`assets/svg/codeOutline.svg`, `assets/svg/ic-reports.svg`)이 실제로 존재하는지도
+확인. 이 6개 파일은 오늘 여러 차례의 UI 전체 재빌드(`target`/`dist` 삭제 후 재생성)에
+매번 포함되어 있었으므로(빌드는 git 커밋 상태가 아니라 작업 디렉터리 기준으로 동작) 이미
+로컬 배포본에 반영되어 실행 중이었음 — 별도 재배포 없이 커밋만 진행.
+

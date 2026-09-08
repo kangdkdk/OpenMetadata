@@ -1128,7 +1128,7 @@ const SchemaTable = () => {
           column.constraint === Constraint.PrimaryKey ? 'Y' : 'N',
           extension.attributeName,
           dataTypeWithLength,
-          instanceCodeName?.name ?? '',
+          instanceCodeName ? getEntityName(instanceCodeName) : '',
           getExtensionValueAsText(extension.infoType),
           extension.variableName,
           extension.columnDefinitionKbCust,
